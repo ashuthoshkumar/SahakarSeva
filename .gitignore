@@ -32,6 +32,7 @@ dist-ssr
 # Android build outputs & local config
 *.apk
 *.aab
+!apk/*.apk
 android/.gradle
 android/build
 android/app/build
