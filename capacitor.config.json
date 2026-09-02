@@ -1,0 +1,6 @@
+{
+  "appId": "com.sahakarseva.app",
+  "appName": "SahakarSeva",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}

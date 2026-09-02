@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-slate-100 text-slate-800 antialiased;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+    overflow-x: hidden;
+  }
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Safe Area padding for phones with notch/rounded corners */
+.safe-area-top {
+  padding-top: max(28px, env(safe-area-inset-top, 28px));
+}
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Custom UI Utilities for Modern Professional Light Theme */
+.card-glass {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+.card-hover {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -4px rgba(13, 148, 136, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+}
+
+/* India Cooperative Govt Header Bar */
+.gov-top-bar {
+  background: linear-gradient(90deg, #1e293b 0%, #0f172a 100%);
+}
+
+.coop-badge-gradient {
+  background: linear-gradient(135deg, #0d9488 0%, #059669 100%);
+}
+
+.saffron-badge-gradient {
+  background: linear-gradient(135deg, #ea580c 0%, #d97706 100%);
+}
+
+/* Leaflet Custom Marker Overrides */
+.leaflet-popup-content-wrapper {
+  border-radius: 0.75rem !important;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1) !important;
+  padding: 0.25rem !important;
+}
+
+.leaflet-container {
+  border-radius: 0.75rem;
+  z-index: 10;
+}
+
+/* Pulse Glow Effect for Emergency SOS */
+@keyframes sosPulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { transform: scale(1.03); box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.sos-pulse-btn {
+  animation: sosPulse 2s infinite;
+}
+
+/* Custom Scrollbars - thin for mobile */
+::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Prevent text selection on interactive elements */
+button, a, [role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Fix input zoom on iOS */
+input, select, textarea {
+  font-size: 16px !important;
+}
+input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"] {
+  font-size: 16px !important;
+}
+
+/* Modal & Toast Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.18s ease-out both;
+}
+
+@keyframes slideInDown {
+  from { opacity: 0; transform: translateX(-50%) translateY(-16px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.animate-slideIn {
+  animation: slideInDown 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
