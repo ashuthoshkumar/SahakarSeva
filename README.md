@@ -16,8 +16,8 @@ You can install and run SahakarSeva directly on any Android smartphone (Android 
 
 | APK Package | File Size | Direct Download Link |
 | :--- | :--- | :--- |
-| **SahakarSeva Standalone APK** | **8.13 MB** | [⬇️ Download `apk/SahakarSeva.apk`](apk/SahakarSeva.apk) |
-| **SahakarSeva v1.0.0 Debug APK** | **8.13 MB** | [⬇️ Download `apk/SahakarSeva-v1.0.0-debug.apk`](apk/SahakarSeva-v1.0.0-debug.apk) |
+| **SahakarSeva Standalone APK** | **5.24 MB** | [⬇️ Download `apk/SahakarSeva.apk`](apk/SahakarSeva.apk) |
+| **SahakarSeva v1.0.0 Debug APK** | **5.24 MB** | [⬇️ Download `apk/SahakarSeva-v1.0.0-debug.apk`](apk/SahakarSeva-v1.0.0-debug.apk) |
 
 ### 📥 How to Install on Android:
 1. Download [SahakarSeva.apk](apk/SahakarSeva.apk) to your Android device.
@@ -205,7 +205,7 @@ SahakarSeva features full bilingual and localized coverage across 8 Indian langu
 ```
 SahakarSeva/
 ├── apk/                                # Ready-to-install Android APK binaries
-│   ├── SahakarSeva.apk                 # Standalone release binary (8.13 MB)
+│   ├── SahakarSeva.apk                 # Standalone release binary (5.24 MB)
 │   └── SahakarSeva-v1.0.0-debug.apk    # Debug build binary
 ├── android/                            # Capacitor Android native studio project
 │   ├── app/src/main/
