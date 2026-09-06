@@ -90,15 +90,19 @@ app.post('/api/auth/register', async (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [userId, name.trim(), formattedPhone, email ? email.trim().toLowerCase() : null, password, role, aadhaarNo || null, societyId || null, aadhaarNo ? 1 : 0, createdAt]);
 
+    let createdWorker = null;
+
     // If registering a Worker, also create their public worker card entry in SQLite workers table
     if (role === 'worker') {
       const workerId = `wrk_${Date.now()}`;
       const society = await dbGet('SELECT * FROM societies WHERE id = ?', [societyId || 'soc_delhi_1']);
       const societyName = society ? society.name : 'Delhi NCR Shramik Sahakari Samiti';
 
-      // Assign dynamic coordinates around Delhi NCR center
-      const lat = 28.6139 + (Math.random() - 0.5) * 0.04;
-      const lng = 77.2090 + (Math.random() - 0.5) * 0.04;
+      // Use supplied client coordinates or fallback near Delhi NCR center
+      const reqLat = req.body.lat !== undefined && req.body.lat !== null ? parseFloat(req.body.lat) : null;
+      const reqLng = req.body.lng !== undefined && req.body.lng !== null ? parseFloat(req.body.lng) : null;
+      const lat = (reqLat !== null && !isNaN(reqLat)) ? reqLat : (28.6139 + (Math.random() - 0.5) * 0.04);
+      const lng = (reqLng !== null && !isNaN(reqLng)) ? reqLng : (77.2090 + (Math.random() - 0.5) * 0.04);
 
       const photos = [
         'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=250',
@@ -111,7 +115,17 @@ app.post('/api/auth/register', async (req, res) => {
       await dbRun(`
         INSERT INTO workers (id, name, photo, category, societyId, societyName, rating, reviewsCount, jobsCompleted, experienceYears, hourlyRate, lat, lng, ncctLevel, kycStatus, policeVerification, ayushmanCard, pfAccountNumber, onDuty, skills, phone)
         VALUES (?, ?, ?, ?, ?, ?, 5.0, 1, 1, 2, ?, ?, ?, 'Level 2 Certified Craftsman', 'Aadhaar & NCCT Verified', 'Clear (Verified by Police)', ?, ?, 1, ?, ?)
-      `, [workerId, name, photo, category || 'electrician', societyId || 'soc_delhi_1', societyName, hourlyRate || 350, lat, lng, `AB-${aadhaarNo || '2026'}`, `DL/CPM/${Date.now().toString().slice(-5)}`, JSON.stringify([category ? category.toUpperCase() + ' Specialist' : 'General Skilled Service']), phone]);
+      `, [workerId, name.trim(), photo, category || 'electrician', societyId || 'soc_delhi_1', societyName, hourlyRate || 350, lat, lng, `AB-${aadhaarNo || '2026'}`, `DL/CPM/${Date.now().toString().slice(-5)}`, JSON.stringify([category ? category.toUpperCase() + ' Specialist' : 'General Skilled Service']), formattedPhone]);
+
+      const wRow = await dbGet('SELECT * FROM workers WHERE id = ?', [workerId]);
+      if (wRow) {
+        createdWorker = {
+          ...wRow,
+          skills: JSON.parse(wRow.skills || '[]'),
+          onDuty: Boolean(wRow.onDuty),
+          distanceKm: 0.1
+        };
+      }
     }
 
     const newUser = await dbGet('SELECT id, name, phone, email, role, aadhaarNo, societyId, kycVerified FROM users WHERE id = ?', [userId]);
@@ -121,7 +135,8 @@ app.post('/api/auth/register', async (req, res) => {
       success: true,
       message: 'Account registered successfully in SQLite database!',
       user: newUser,
-      token
+      token,
+      worker: createdWorker
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -204,48 +219,31 @@ app.get('/api/auth/me', async (req, res) => {
 // GET /api/workers - Real PostGIS / Geo-Spatial Haversine radius query
 app.get('/api/workers', async (req, res) => {
   try {
-    const { lat, lng, radiusKm = 10, category, search } = req.query;
+    const { lat, lng, radiusKm, category, search } = req.query;
     const userLat = parseFloat(lat) || 28.6139; // Default Connaught Place
     const userLng = parseFloat(lng) || 77.2090;
-    const maxRadius = parseFloat(radiusKm);
+    const maxRadius = radiusKm !== undefined && !isNaN(parseFloat(radiusKm)) ? parseFloat(radiusKm) : 50;
 
-    const rows = await dbAll('SELECT * FROM workers');
+    const rows = await dbAll('SELECT * FROM workers ORDER BY rowid DESC');
 
     let workers = rows.map((w) => {
-      const distanceKm = calculateDistanceKm(userLat, userLng, w.lat, w.lng);
+      const distanceKm = (w.lat && w.lng)
+        ? calculateDistanceKm(userLat, userLng, w.lat, w.lng)
+        : 0.5;
       return {
         ...w,
         skills: JSON.parse(w.skills || '[]'),
         onDuty: Boolean(w.onDuty),
-        distanceKm
+        distanceKm: parseFloat(distanceKm.toFixed(1))
       };
     });
 
     // Spatial Radius Filter
     let filteredWorkers = workers.filter((w) => w.distanceKm <= maxRadius);
 
-    // If no workers exist within radius for this GPS location, generate localized workers near userLat & userLng
-    if (filteredWorkers.length === 0 && rows.length > 0) {
-      const templateWorkers = rows.slice(0, 4);
-      for (const t of templateWorkers) {
-        const newLat = userLat + (Math.random() - 0.5) * 0.03;
-        const newLng = userLng + (Math.random() - 0.5) * 0.03;
-        const newId = `wrk_geo_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-        await dbRun(`
-          INSERT INTO workers (id, name, photo, category, societyId, societyName, rating, reviewsCount, jobsCompleted, experienceYears, hourlyRate, lat, lng, ncctLevel, kycStatus, policeVerification, ayushmanCard, pfAccountNumber, onDuty, skills, phone)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
-        `, [newId, t.name + ' (Local)', t.photo, t.category, t.societyId, t.societyName, t.rating, t.reviewsCount, t.jobsCompleted, t.experienceYears, t.hourlyRate, newLat, newLng, t.ncctLevel, t.kycStatus, t.policeVerification, t.ayushmanCard, t.pfAccountNumber, t.skills, t.phone]);
-      }
-
-      // Re-fetch and calculate distances
-      const updatedRows = await dbAll('SELECT * FROM workers');
-      workers = updatedRows.map((w) => ({
-        ...w,
-        skills: JSON.parse(w.skills || '[]'),
-        onDuty: Boolean(w.onDuty),
-        distanceKm: calculateDistanceKm(userLat, userLng, w.lat, w.lng)
-      }));
-      filteredWorkers = workers.filter((w) => w.distanceKm <= maxRadius);
+    // If radius is too tight and no workers match, still provide closest workers rather than an empty screen
+    if (filteredWorkers.length === 0 && workers.length > 0) {
+      filteredWorkers = [...workers].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 10);
     }
 
     workers = filteredWorkers;
@@ -260,11 +258,17 @@ app.get('/api/workers', async (req, res) => {
       const query = search.toLowerCase();
       workers = workers.filter(
         (w) =>
-          w.name.toLowerCase().includes(query) ||
-          w.societyName.toLowerCase().includes(query) ||
-          w.skills.some((s) => s.toLowerCase().includes(query))
+          (w.name || '').toLowerCase().includes(query) ||
+          (w.societyName || '').toLowerCase().includes(query) ||
+          (w.skills || []).some((s) => s.toLowerCase().includes(query))
       );
     }
+
+    // Sort: onDuty workers first, then closest distance
+    workers.sort((a, b) => {
+      if (a.onDuty !== b.onDuty) return a.onDuty ? -1 : 1;
+      return a.distanceKm - b.distanceKm;
+    });
 
     res.json({ success: true, count: workers.length, workers });
   } catch (err) {
@@ -452,8 +456,13 @@ app.get('/api/worker/my-stats', async (req, res) => {
     const user = await dbGet('SELECT * FROM users WHERE id = ?', [userId]);
     if (!user) return res.status(404).json({ success: false, error: 'User not found' });
 
-    // Find their worker card
-    const worker = await dbGet('SELECT * FROM workers WHERE phone = ? OR name = ?', [user.phone, user.name]);
+    // Find their worker card by name or cleaned phone digits
+    const cleanUserDigits = (user.phone || '').replace(/\D/g, '').slice(-10);
+    const allWorkers = await dbAll('SELECT * FROM workers');
+    const worker = allWorkers.find(w =>
+      (w.name && user.name && w.name.trim().toLowerCase() === user.name.trim().toLowerCase()) ||
+      (w.phone && cleanUserDigits && w.phone.replace(/\D/g, '').slice(-10) === cleanUserDigits)
+    );
 
     // Get earnings from bookings assigned to this worker
     const today = new Date().toISOString().substring(0, 10);

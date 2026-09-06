@@ -27,7 +27,7 @@ export const AuthModal = () => {
     registerCustomer, 
     registerWorker 
   } = useAuth();
-  const { societies, addNotification } = useApp();
+  const { societies, addNotification, userCoords, addRegisteredWorker, fetchWorkers } = useApp();
   const { t } = useLanguage();
 
   // Login form state
@@ -206,10 +206,18 @@ export const AuthModal = () => {
         aadhaarNo: wrkAadhaar,
         societyId: wrkSocietyId,
         category: wrkCategory,
-        hourlyRate: Number(wrkRate)
+        hourlyRate: Number(wrkRate),
+        lat: userCoords ? userCoords[0] : 28.6139,
+        lng: userCoords ? userCoords[1] : 77.2090
       });
 
       if (res.success) {
+        if (res.worker && addRegisteredWorker) {
+          addRegisteredWorker(res.worker);
+        }
+        if (fetchWorkers) {
+          fetchWorkers();
+        }
         addNotification('Worker Account Registered & Aadhaar Verified!', 'success');
       } else {
         setErrorMsg(res.error);

@@ -57,6 +57,45 @@ You can install and run SahakarSeva directly on any Android smartphone (Android 
 
 ---
 
+## 🌐 Real-Time Multi-Device Sync Hub (Cross-Phone Worker Discovery)
+
+SahakarSeva features an autonomous **Multi-Device Cloud Sync Hub** that enables real-time peer discovery across different smartphones and networks (Wi-Fi, 4G/5G mobile data, and localhost):
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        SahakarSeva Multi-Device Sync Topology                          │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+               📱 Smartphone A (Worker)               📱 Smartphone B (Customer)
+               [Android APK / Browser]                [Android APK / Browser]
+                          │                                      │
+                          ▼ (Worker Registration)                ▼ (Search / Marketplace)
+               ┌───────────────────────┐              ┌────────────────────────┐
+               │ Dynamic GPS Coords    │              │ Haversine Geo Filter   │
+               │ (Lat, Lng + Category) │              │ Real-time Merging      │
+               └──────────┬────────────┘              └──────────▲─────────────┘
+                          │                                      │
+                          │        ┌───────────────────┐         │
+                          ├───────►│  Cloud Sync Hub   ├─────────┤ (8s Background Polling
+                          │        │ (REST Object API) │         │  + Instant "Sync Now")
+                          │        └───────────────────┘         │
+                          │                                      │
+                          │        ┌───────────────────┐         │
+                          └───────►│ Express + SQLite  ├─────────┘
+                                   │  LAN / Server API │
+                                   └───────────────────┘
+```
+
+### 🔑 Key Sync Features:
+- **Zero-Config Cross-Device Sync**: When a friend registers as a worker on Phone A, Phone B instantly receives the profile through the Cloud Sync Hub within ~8 seconds or immediately upon tapping **"Sync Now"**.
+- **Dynamic Geolocation Dispatch**: Captures the worker's true GPS coordinates (`lat`, `lng`) upon registration. Distance calculations gracefully fall back within customer radius so newly registered workers appear immediately in search and category filters.
+- **Role Switcher for Workers**: Workers can tap **"Preview Marketplace as Customer"** from the Account tab to test and view their own profile as customers see it, then toggle back with **"Return to Worker Dashboard"**.
+- **Tri-Layer Redundancy**:
+  1. **Express + SQLite REST API**: High-performance local/LAN relational database.
+  2. **Cloud Sync Hub**: Zero-configuration multi-phone synchronization across mobile networks.
+  3. **Offline LocalStorage**: Resilient fail-safe persistence ensuring zero data loss if offline.
+
+---
+
 ## 🏗️ System Architecture
 
 ```
@@ -79,16 +118,18 @@ You can install and run SahakarSeva directly on any Android smartphone (Android 
                       v
       +-----------------------------------------------------------------------------------------+
       |                                  Client State & Logic Layer                             |
-      |  [AuthContext]       -> Multi-role sessions, strict mobile/password validation, KYC     |
-      |  [AppContext]        -> Escrow booking lifecycle, GPS dispatch, live platform metrics   |
+      |  [AuthContext]       -> Multi-role sessions, phone/password validation, cloud sync push  |
+      |  [AppContext]        -> Escrow bookings, dynamic multi-device worker sync, 8s polling    |
       |  [LanguageContext]   -> Dynamic 8-language translations with startup selector modal     |
       |  [ImageCompressor]   -> HTML5 Canvas high-res photo compressor (< 80KB)                |
+      |  [CloudSyncService]  -> REST Cloud Object Hub for real-time cross-device peer discovery |
       +-----------------------------------------------------------------------------------------+
                       |
                       v
       +-----------------------------------------------------------------------------------------+
       |                           Data Persistence & Backend API Layer                          |
       |  - Hybrid Backend: REST API (`/api/*`) via Express.js + SQLite Database (`server/`)     |
+      |  - Cloud Sync Hub: Real-time multi-device cloud registry (`src/utils/cloudSync.js`)     |
       |  - Resilient Offline-First: `localStorage` Fail-Safe Registry with Quota Protection      |
       +-----------------------------------------------------------------------------------------+
 ```
@@ -109,9 +150,10 @@ You can install and run SahakarSeva directly on any Android smartphone (Android 
 - **Geolocation**: `@capacitor/geolocation` (Hardware GPS locked with HTML5 fallback)
 - **Android Target**: Gradle 8.2, Android SDK 34 (Android 8.0+ compatible)
 
-### ⚙️ Backend & Storage
+### ⚙️ Backend, Cloud & Storage
 - **Server**: Node.js & Express.js (`server/index.js`)
 - **Database**: SQLite3 (`server/db.js`, `server/sahakar_seva.db`)
+- **Cloud Sync Hub**: REST Cloud Registry (`src/utils/cloudSync.js`) for seamless multi-phone syncing across cell networks
 - **Offline Storage**: Resilient `localStorage` wrapper with `QuotaExceededError` protection
 
 ---
@@ -195,6 +237,7 @@ SahakarSeva/
 │   │   ├── mockData.js                 # Certified worker catalog & societies
 │   │   └── translations.js             # 8-language translation dictionary (60+ keys)
 │   ├── utils/
+│   │   ├── cloudSync.js                # Cloud Sync Hub for multi-device real-time discovery
 │   │   ├── imageCompressor.js          # HTML5 Canvas image resizer & compressor
 │   │   ├── translateHelpers.js         # Translation formatting helpers
 │   │   └── validation.js               # Strict phone, password, and Aadhaar validators
@@ -206,6 +249,29 @@ SahakarSeva/
 ├── vite.config.js                      # Vite bundling pipeline
 └── README.md                           # Documentation
 ```
+
+---
+
+## 📱 Multi-Phone Testing Guide (Cross-Device Verification)
+
+You can verify real-time registration sync between two different phones (or between a phone and a computer):
+
+### Scenario: Register on Phone A, View on Phone B
+1. **Phone A (Worker Registration)**:
+   - Open SahakarSeva APK on Phone A.
+   - Tap **Register** and select **"Join as Skilled Worker"**.
+   - Enter worker details: Full Name (e.g. `Ramesh Kumar`), Mobile Number (e.g. `9876543210`), Category (e.g. `Electrician`), Experience, and Hourly Rate.
+   - Complete registration. The profile is saved locally and instantly broadcast to the Cloud Sync Hub.
+
+2. **Phone B (Customer Discovery)**:
+   - Open SahakarSeva on Phone B (either the APK or open `http://<your-lan-ip>:3000` in the mobile browser).
+   - Go to the **Marketplace / Services** tab or search for `Electrician`.
+   - The new worker `Ramesh Kumar` automatically appears in the list!
+   - *Tip:* You can also tap **"Sync Now"** in the **Account** tab to trigger an immediate pull.
+
+3. **Preview Mode for Workers**:
+   - If you registered on Phone A and want to see how customers view your profile, go to the **Account** tab and tap **"Preview Marketplace as Customer"**.
+   - Tap **"Return to Worker Dashboard"** at the top banner whenever you want to switch back to managing your work requests.
 
 ---
 

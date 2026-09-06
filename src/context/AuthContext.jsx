@@ -7,6 +7,12 @@ import {
   validateAadhaar,
   validateHourlyRate
 } from '../utils/validation';
+import {
+  fetchCloudAccounts,
+  pushCloudAccount,
+  pushCloudWorker,
+  getSavedBackendUrl
+} from '../utils/cloudSync';
 
 const AuthContext = createContext();
 
@@ -106,30 +112,38 @@ const saveAccountToRegistry = (account) => {
 
 const safeFetchJson = async (endpoint, options = {}) => {
   let cleanEndpoint = endpoint.startsWith('/api') ? endpoint : `/api${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
-  let url = cleanEndpoint;
+  const backendBase = getSavedBackendUrl();
+
+  // 1. Try relative URL
   try {
-    const res = await fetch(url, options);
+    const res = await fetch(cleanEndpoint, options);
     const contentType = res.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      throw new Error(`Server returned non-JSON response (${res.status}).`);
+    if (res.ok && contentType && contentType.includes('application/json')) {
+      return await res.json();
     }
-    return await res.json();
-  } catch (err) {
-    if (err.message && (err.message.includes('Failed to fetch') || err.message.includes('non-JSON'))) {
-      try {
-        const fallbackUrl = `http://localhost:5050${cleanEndpoint}`;
-        const res = await fetch(fallbackUrl, options);
-        const contentType = res.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          throw new Error('Offline or non-JSON fallback');
-        }
-        return await res.json();
-      } catch (e) {
-        return { success: false, offlineFallback: true };
-      }
+  } catch (err) {}
+
+  // 2. Try configured backend / LAN IP URL (e.g. http://192.168.7.8:5050)
+  try {
+    const rootBase = backendBase.replace(/\/api\/?$/, '');
+    const res = await fetch(`${rootBase}${cleanEndpoint}`, options);
+    const contentType = res.headers.get('content-type');
+    if (res.ok && contentType && contentType.includes('application/json')) {
+      return await res.json();
     }
-    return { success: false, offlineFallback: true };
-  }
+  } catch (e) {}
+
+  // 3. Try localhost fallback
+  try {
+    const fallbackUrl = `http://localhost:5050${cleanEndpoint}`;
+    const res = await fetch(fallbackUrl, options);
+    const contentType = res.headers.get('content-type');
+    if (res.ok && contentType && contentType.includes('application/json')) {
+      return await res.json();
+    }
+  } catch (e) {}
+
+  return { success: false, offlineFallback: true };
 };
 
 export const AuthProvider = ({ children }) => {
@@ -203,12 +217,25 @@ export const AuthProvider = ({ children }) => {
       console.warn('Network login unavailable, validating against account registry');
     }
 
-    // Standalone Offline Registry Login — Zero Role Guessing
-    const accounts = getAccountRegistry();
-    const matchedAccount = accounts.find(a =>
+    // Standalone Offline Registry Login — Check local registry first, then Cloud Hub
+    let accounts = getAccountRegistry();
+    let matchedAccount = accounts.find(a =>
       (a.email && a.email.toLowerCase() === cleanInput) ||
       (a.phone && a.phone.replace(/\s+/g, '').includes(cleanInput.replace(/\s+/g, '')))
     );
+
+    if (!matchedAccount) {
+      try {
+        const cloudAccs = await fetchCloudAccounts();
+        matchedAccount = cloudAccs.find(a =>
+          (a.email && a.email.toLowerCase() === cleanInput) ||
+          (a.phone && a.phone.replace(/\s+/g, '').includes(cleanInput.replace(/\s+/g, '')))
+        );
+        if (matchedAccount) {
+          saveAccountToRegistry(matchedAccount);
+        }
+      } catch (e) {}
+    }
 
     if (!matchedAccount) {
       return {
@@ -350,7 +377,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // ─── Worker Registration & Aadhaar KYC ───
-  const registerWorker = async ({ name, phone, email, password, aadhaarNo, societyId, category, hourlyRate }) => {
+  const registerWorker = async ({ name, phone, email, password, aadhaarNo, societyId, category, hourlyRate, lat, lng }) => {
     // 1. Strict Name Validation
     const nameVal = validateFullName(name);
     if (!nameVal.isValid) {
@@ -408,7 +435,9 @@ export const AuthProvider = ({ children }) => {
           aadhaarNo: cleanAadhaar,
           societyId,
           category,
-          hourlyRate: cleanRate
+          hourlyRate: cleanRate,
+          lat,
+          lng
         })
       });
       if (data && data.success) {
@@ -417,8 +446,25 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('sahakar_token', data.token);
         localStorage.setItem('sahakar_local_user', JSON.stringify(data.user));
         saveAccountToRegistry({ ...data.user, password: cleanPass, category, hourlyRate: cleanRate });
+
+        // Also save to shared worker pool so it appears in search across components
+        if (data.worker) {
+          try {
+            const existingWorkers = JSON.parse(localStorage.getItem('sahakar_registered_workers') || '[]');
+            const filtered = existingWorkers.filter(w => w.id !== data.worker.id && w.phone !== data.worker.phone);
+            filtered.unshift(data.worker);
+            localStorage.setItem('sahakar_registered_workers', JSON.stringify(filtered));
+          } catch (e) {}
+
+          // Broadcast to multi-device cloud hub
+          pushCloudWorker(data.worker).catch(() => {});
+        }
+
+        // Push account to cloud hub for multi-device login
+        pushCloudAccount({ ...data.user, password: cleanPass, category, hourlyRate: cleanRate }).catch(() => {});
+
         setIsAuthModalOpen(false);
-        return { success: true, message: data.message };
+        return { success: true, message: data.message, worker: data.worker };
       } else if (data && data.alreadyRegistered) {
         return { success: false, alreadyRegistered: true, error: data.error || 'Account already registered.' };
       }
@@ -461,19 +507,23 @@ export const AuthProvider = ({ children }) => {
     saveAccountToRegistry(newWorkerAccount);
 
     // Also add to the shared worker pool so this worker appears in customer search
+    let workerProfile = null;
     try {
       const existingWorkers = JSON.parse(localStorage.getItem('sahakar_registered_workers') || '[]');
-      let workerLat = 20.5937, workerLng = 78.9629;
-      if (navigator.geolocation) {
+      let workerLat = (lat !== undefined && lat !== null && !isNaN(Number(lat))) ? Number(lat) : 28.6139;
+      let workerLng = (lng !== undefined && lng !== null && !isNaN(Number(lng))) ? Number(lng) : 77.2090;
+
+      if (!lat && !lng) {
         try {
-          const pos = await new Promise((resolve, reject) =>
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 })
-          );
-          workerLat = pos.coords.latitude;
-          workerLng = pos.coords.longitude;
-        } catch (e) { /* default location */ }
+          const lastGps = JSON.parse(localStorage.getItem('sahakar_last_gps') || '[]');
+          if (Array.isArray(lastGps) && lastGps.length === 2) {
+            workerLat = lastGps[0];
+            workerLng = lastGps[1];
+          }
+        } catch (e) {}
       }
-      const workerProfile = {
+
+      workerProfile = {
         id: workerId,
         name: cleanName,
         phone: cleanPhone,
@@ -481,21 +531,27 @@ export const AuthProvider = ({ children }) => {
         category: category || 'electrician',
         hourlyRate: Number(hourlyRate) || 350,
         rating: 5.0,
-        reviewsCount: 0,
-        distanceKm: 0,
+        reviewsCount: 1,
+        distanceKm: 0.1,
         ncctLevel: 'Level 2 Certified Craftsman',
         societyName: societyId || 'SahakarSeva Cooperative Society',
-        photo: null,
+        photo: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=250',
         lat: workerLat,
         lng: workerLng,
-        skills: [(category || 'electrician').toUpperCase() + ' Specialist'],
+        skills: [(category || 'electrician').toUpperCase() + ' Specialist', 'Quick Doorstep Service'],
         onDuty: true,
         registeredAt: new Date().toISOString()
       };
-      if (!existingWorkers.some(w => w.id === workerId)) {
-        existingWorkers.push(workerProfile);
-        localStorage.setItem('sahakar_registered_workers', JSON.stringify(existingWorkers));
+
+      const filtered = existingWorkers.filter(w => w.id !== workerId && w.phone !== cleanPhone);
+      filtered.unshift(workerProfile);
+      localStorage.setItem('sahakar_registered_workers', JSON.stringify(filtered));
+
+      // Broadcast to multi-device cloud hub so friend's phone sees it
+      if (workerProfile) {
+        pushCloudWorker(workerProfile).catch(() => {});
       }
+      pushCloudAccount(newWorkerAccount).catch(() => {});
     } catch (e) {
       console.warn('Could not save worker to search pool:', e);
     }
@@ -517,7 +573,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('sahakar_local_user', JSON.stringify(userSession));
     setIsAuthModalOpen(false);
 
-    return { success: true, message: 'Worker Account Registered & Aadhaar KYC Verified!' };
+    return { success: true, message: 'Worker Account Registered & Aadhaar KYC Verified!', worker: workerProfile };
   };
 
   // User Logout

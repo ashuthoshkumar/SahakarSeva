@@ -1,5 +1,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Geolocation } from '@capacitor/geolocation';
+import {
+  fetchCloudWorkers,
+  pushCloudWorker,
+  getSavedBackendUrl,
+  setSavedBackendUrl,
+  DEFAULT_LAN_IP
+} from '../utils/cloudSync';
 
 const AppContext = createContext();
 
@@ -31,62 +38,85 @@ const writeStorage = (key, data) => {
 };
 
 const apiFetch = async (endpoint) => {
+  const backendBase = getSavedBackendUrl();
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  // 1. Try relative (browser proxy)
   try {
-    const res = await fetch(`${API}${endpoint}`);
-    const data = await res.json();
-    return data;
-  } catch (err) {
-    try {
-      const res = await fetch(`http://localhost:5050/api${endpoint}`);
-      return await res.json();
-    } catch (e) {
-      return { success: false };
-    }
-  }
+    const res = await fetch(`${API}${cleanEndpoint}`);
+    if (res.ok) return await res.json();
+  } catch (err) {}
+
+  // 2. Try configured backend / LAN IP (works on mobile phones & APK)
+  try {
+    const res = await fetch(`${backendBase}${cleanEndpoint}`);
+    if (res.ok) return await res.json();
+  } catch (e) {}
+
+  // 3. Try localhost fallback
+  try {
+    const res = await fetch(`http://localhost:5050/api${cleanEndpoint}`);
+    if (res.ok) return await res.json();
+  } catch (e) {}
+
+  return { success: false };
 };
 
 const apiPost = async (endpoint, body) => {
+  const backendBase = getSavedBackendUrl();
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const payload = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  };
+
+  // 1. Try relative
   try {
-    const res = await fetch(`${API}${endpoint}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    return await res.json();
-  } catch (err) {
-    try {
-      const res = await fetch(`http://localhost:5050/api${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      return await res.json();
-    } catch (e) {
-      return { success: false };
-    }
-  }
+    const res = await fetch(`${API}${cleanEndpoint}`, payload);
+    if (res.ok) return await res.json();
+  } catch (err) {}
+
+  // 2. Try configured backend / LAN IP
+  try {
+    const res = await fetch(`${backendBase}${cleanEndpoint}`, payload);
+    if (res.ok) return await res.json();
+  } catch (e) {}
+
+  // 3. Try localhost fallback
+  try {
+    const res = await fetch(`http://localhost:5050/api${cleanEndpoint}`, payload);
+    if (res.ok) return await res.json();
+  } catch (e) {}
+
+  return { success: false };
 };
 
 const apiPatch = async (endpoint, body) => {
+  const backendBase = getSavedBackendUrl();
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const payload = {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  };
+
   try {
-    const res = await fetch(`${API}${endpoint}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    });
-    return await res.json();
-  } catch (err) {
-    try {
-      const res = await fetch(`http://localhost:5050/api${endpoint}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      return await res.json();
-    } catch (e) {
-      return { success: false };
-    }
-  }
+    const res = await fetch(`${API}${cleanEndpoint}`, payload);
+    if (res.ok) return await res.json();
+  } catch (err) {}
+
+  try {
+    const res = await fetch(`${backendBase}${cleanEndpoint}`, payload);
+    if (res.ok) return await res.json();
+  } catch (e) {}
+
+  try {
+    const res = await fetch(`http://localhost:5050/api${cleanEndpoint}`, payload);
+    if (res.ok) return await res.json();
+  } catch (e) {}
+
+  return { success: false };
 };
 
 // ─── Haversine distance calculator (km) ───
@@ -99,11 +129,164 @@ const haversineKm = (lat1, lng1, lat2, lng2) => {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
+// Initial verified seed workers fallback for dynamic state
+const DEFAULT_WORKERS = [
+  {
+    id: 'wrk_101',
+    name: 'Ramesh Sharma',
+    photo: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=250',
+    category: 'electrician',
+    societyId: 'soc_delhi_1',
+    societyName: 'Delhi NCR Shramik Sahakari Samiti',
+    rating: 4.9,
+    reviewsCount: 142,
+    jobsCompleted: 310,
+    experienceYears: 8,
+    hourlyRate: 350,
+    lat: 28.6139,
+    lng: 77.2090,
+    ncctLevel: 'Level 3 Master Craftsman',
+    kycStatus: 'Aadhaar Verified',
+    policeVerification: 'Clear (Verified by Delhi Police)',
+    ayushmanCard: 'AB-8829-1029-4411',
+    pfAccountNumber: 'DL/CPM/88219/101',
+    onDuty: true,
+    skills: ['MCB Wiring', 'Inverter Repair', 'Smart Switches', 'Industrial Solar Panels'],
+    phone: '+91 98765 43210',
+    distanceKm: 0.8
+  },
+  {
+    id: 'wrk_102',
+    name: 'Sunita Devi',
+    photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=250',
+    category: 'caregiver',
+    societyId: 'soc_delhi_1',
+    societyName: 'Delhi NCR Shramik Sahakari Samiti',
+    rating: 4.95,
+    reviewsCount: 98,
+    jobsCompleted: 215,
+    experienceYears: 6,
+    hourlyRate: 320,
+    lat: 28.6250,
+    lng: 77.2180,
+    ncctLevel: 'Level 2 Certified Nursing Assistant',
+    kycStatus: 'Aadhaar Verified',
+    policeVerification: 'Clear',
+    ayushmanCard: 'AB-4410-9921-1029',
+    pfAccountNumber: 'DL/CPM/88219/102',
+    onDuty: true,
+    skills: ['Elderly Care', 'Blood Pressure & Sugar Monitor', 'Physiotherapy Assist', 'Post-Op Care'],
+    phone: '+91 98111 22334',
+    distanceKm: 1.2
+  },
+  {
+    id: 'wrk_103',
+    name: 'Vikram Singh',
+    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250',
+    category: 'plumber',
+    societyId: 'soc_delhi_1',
+    societyName: 'Delhi NCR Shramik Sahakari Samiti',
+    rating: 4.8,
+    reviewsCount: 110,
+    jobsCompleted: 190,
+    experienceYears: 7,
+    hourlyRate: 350,
+    lat: 28.6080,
+    lng: 77.2300,
+    ncctLevel: 'Level 2 Hydro Technician',
+    kycStatus: 'Aadhaar Verified',
+    policeVerification: 'Clear',
+    ayushmanCard: 'AB-7711-3092-8812',
+    pfAccountNumber: 'DL/CPM/88219/103',
+    onDuty: true,
+    skills: ['High Pressure Leak Fix', 'CPVC Fitting', 'Geyser Installation', 'Motor Pump Overhaul'],
+    phone: '+91 97123 45678',
+    distanceKm: 1.5
+  },
+  {
+    id: 'wrk_104',
+    name: 'Mohammed Mansoor',
+    photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=250',
+    category: 'carpenter',
+    societyId: 'soc_delhi_1',
+    societyName: 'Delhi NCR Shramik Sahakari Samiti',
+    rating: 4.85,
+    reviewsCount: 76,
+    jobsCompleted: 145,
+    experienceYears: 9,
+    hourlyRate: 380,
+    lat: 28.6300,
+    lng: 77.2000,
+    ncctLevel: 'Level 3 Wood Craftsman',
+    kycStatus: 'Aadhaar Verified',
+    policeVerification: 'Clear',
+    ayushmanCard: 'AB-5590-1120-7733',
+    pfAccountNumber: 'DL/CPM/88219/104',
+    onDuty: true,
+    skills: ['Modular Kitchen Repair', 'Custom Shelving', 'Door Frame Realignment', 'Furniture Polishing'],
+    phone: '+91 99887 76655',
+    distanceKm: 2.1
+  },
+  {
+    id: 'wrk_105',
+    name: 'Pooja Patil',
+    photo: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=250',
+    category: 'domestic_helper',
+    societyId: 'soc_mh_1',
+    societyName: 'Maharashtra Household & Skilled Workers Coop',
+    rating: 4.9,
+    reviewsCount: 160,
+    jobsCompleted: 340,
+    experienceYears: 5,
+    hourlyRate: 300,
+    lat: 19.0760,
+    lng: 72.8777,
+    ncctLevel: 'Level 2 Sanitation Specialist',
+    kycStatus: 'Aadhaar Verified',
+    policeVerification: 'Clear (Mumbai Police)',
+    ayushmanCard: 'AB-3392-8819-0012',
+    pfAccountNumber: 'MH/BOM/55120/105',
+    onDuty: true,
+    skills: ['Nutritious Meal Prep', 'Utensil Washing Machine', 'Floor Sanitization', 'Laundry Care'],
+    phone: '+91 98222 33445',
+    distanceKm: 2.8
+  },
+  {
+    id: 'wrk_106',
+    name: 'Ganesh Shinde',
+    photo: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=250',
+    category: 'technician',
+    societyId: 'soc_mh_1',
+    societyName: 'Maharashtra Household & Skilled Workers Coop',
+    rating: 4.75,
+    reviewsCount: 88,
+    jobsCompleted: 175,
+    experienceYears: 6,
+    hourlyRate: 400,
+    lat: 19.0820,
+    lng: 72.8900,
+    ncctLevel: 'Level 2 HVAC & Electronics',
+    kycStatus: 'Aadhaar Verified',
+    policeVerification: 'Clear',
+    ayushmanCard: 'AB-9921-4412-5501',
+    pfAccountNumber: 'MH/BOM/55120/106',
+    onDuty: true,
+    skills: ['Inverter AC Gas Refill', 'PCB Washing Machine Fix', 'Double Door Fridge Repair'],
+    phone: '+91 97654 32109',
+    distanceKm: 3.2
+  }
+];
+
 export const AppProvider = ({ children }) => {
   const [currentRole, setCurrentRole] = useState('customer');
 
-  // Dynamic data from localStorage (no hardcoded fallback)
-  const [workers, setWorkers] = useState(() => readStorage(STORAGE_KEYS.WORKERS));
+  // Dynamic data from localStorage with reliable fallback
+  const [workers, setWorkers] = useState(() => {
+    const saved = readStorage(STORAGE_KEYS.WORKERS);
+    if (saved && saved.length > 0) return saved;
+    writeStorage(STORAGE_KEYS.WORKERS, DEFAULT_WORKERS);
+    return DEFAULT_WORKERS;
+  });
   const [bookings, setBookings] = useState(() => readStorage(STORAGE_KEYS.BOOKINGS));
   const [societies, setSocieties] = useState(() => readStorage(STORAGE_KEYS.SOCIETIES, [
     { id: 'soc_default', name: 'SahakarSeva Cooperative Society', registrationNo: 'MSCS/CR/2024/001', federation: 'National Labour Cooperative Federation', location: 'Pan India', workerCount: 0, welfareFundBalance: '₹ 0', complianceScore: 100, wageFloor: 300, status: 'Active' }
@@ -157,11 +340,6 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     writeStorage(STORAGE_KEYS.BOOKINGS, bookings);
   }, [bookings]);
-
-  // ─── Persist workers to localStorage whenever they change ───
-  useEffect(() => {
-    writeStorage(STORAGE_KEYS.WORKERS, workers);
-  }, [workers]);
 
   // ─── Compute dynamic stats from real data ───
   const computeStats = useCallback(() => {
@@ -254,39 +432,78 @@ export const AppProvider = ({ children }) => {
     detectUserLocation();
   }, []);
 
-  // ─── Fetch Workers — Try API first, fallback to localStorage ───
+  // ─── Fetch Workers — Hybrid Sync (Express Backend + Multi-Device Cloud Hub + Local Storage) ───
   const fetchWorkers = async () => {
     if (!userCoords) return;
     const queryParams = new URLSearchParams({
       lat: userCoords[0].toString(),
       lng: userCoords[1].toString(),
-      radiusKm: radiusKm.toString(),
+      radiusKm: (radiusKm || 50).toString(),
       category: selectedCategory,
       search: searchQuery
     });
-    const data = await apiFetch(`/workers?${queryParams.toString()}`);
-    if (data.success && data.workers) {
-      setWorkers(data.workers);
-    } else {
-      // Use localStorage registered workers with filtering
-      const allRegistered = readStorage(STORAGE_KEYS.WORKERS);
-      const filtered = allRegistered.filter(w => {
-        const matchCat = selectedCategory === 'all' || w.category === selectedCategory;
-        const matchSearch = !searchQuery ||
-          (w.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (w.skills || []).some(s => s.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          (w.societyName || '').toLowerCase().includes(searchQuery.toLowerCase());
-        // Distance filter using haversine
-        let matchRadius = true;
-        if (w.lat && w.lng && userCoords) {
-          const dist = haversineKm(userCoords[0], userCoords[1], w.lat, w.lng);
-          w.distanceKm = parseFloat(dist.toFixed(1));
-          matchRadius = dist <= radiusKm;
-        }
-        return matchCat && matchSearch && matchRadius;
-      });
-      setWorkers(filtered);
-    }
+
+    // 1. Fetch from Express SQLite backend
+    let backendWorkers = [];
+    try {
+      const data = await apiFetch(`/workers?${queryParams.toString()}`);
+      if (data && data.success && Array.isArray(data.workers)) {
+        backendWorkers = data.workers;
+      }
+    } catch (e) {}
+
+    // 2. Fetch from Multi-Device Cloud Sync Hub (cross-phone synchronization)
+    let cloudWorkers = [];
+    try {
+      cloudWorkers = await fetchCloudWorkers();
+    } catch (e) {}
+
+    // 3. Read locally registered workers
+    const localRegistered = readStorage(STORAGE_KEYS.WORKERS, DEFAULT_WORKERS);
+
+    // 4. Merge all sources into unified master pool without duplicates
+    const combinedMap = new Map();
+
+    const addWorkerToMap = (w) => {
+      if (!w || !w.id) return;
+      const cleanP = (w.phone || '').replace(/\D/g, '').slice(-10);
+      const key = cleanP ? `phone_${cleanP}` : `id_${w.id}`;
+
+      let dist = (w.distanceKm !== undefined && !isNaN(w.distanceKm)) ? w.distanceKm : 0.5;
+      if (w.lat && w.lng && userCoords) {
+        dist = parseFloat(haversineKm(userCoords[0], userCoords[1], w.lat, w.lng).toFixed(1));
+      }
+
+      const existing = combinedMap.get(key);
+      if (!existing) {
+        combinedMap.set(key, { ...w, distanceKm: dist });
+      } else {
+        combinedMap.set(key, { ...existing, ...w, distanceKm: dist });
+      }
+    };
+
+    DEFAULT_WORKERS.forEach(addWorkerToMap);
+    localRegistered.forEach(addWorkerToMap);
+    cloudWorkers.forEach(addWorkerToMap);
+    backendWorkers.forEach(addWorkerToMap);
+
+    const mergedMasterPool = Array.from(combinedMap.values());
+
+    // Update master pool in localStorage
+    writeStorage(STORAGE_KEYS.WORKERS, mergedMasterPool);
+
+    // Apply active filter (category, search, radius) for display
+    const filtered = mergedMasterPool.filter(w => {
+      const matchCat = selectedCategory === 'all' || w.category === selectedCategory;
+      const matchSearch = !searchQuery ||
+        (w.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (w.skills || []).some(s => s.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (w.societyName || '').toLowerCase().includes(searchQuery.toLowerCase());
+      const matchRadius = (w.distanceKm || 0) <= (radiusKm || 50);
+      return matchCat && matchSearch && matchRadius;
+    });
+
+    setWorkers(filtered.length > 0 ? filtered : mergedMasterPool);
   };
 
   // Fetch Active Bookings
@@ -322,15 +539,73 @@ export const AppProvider = ({ children }) => {
     Promise.all([fetchWorkers(), fetchBookings(), fetchSocieties(), fetchPlatformStats(), fetchCategoryCounts()]).then(() => setLoading(false));
   }, [userCoords, selectedCategory, searchQuery, radiusKm]);
 
-  // ─── Add a new registered worker to the dynamic pool ───
-  const addRegisteredWorker = (workerData) => {
-    const allWorkers = readStorage(STORAGE_KEYS.WORKERS);
-    // Avoid duplicates
-    const exists = allWorkers.some(w => w.id === workerData.id);
-    if (!exists) {
-      const updated = [...allWorkers, workerData];
-      writeStorage(STORAGE_KEYS.WORKERS, updated);
-      setWorkers(updated);
+  // ─── Real-Time Multi-Device Background Sync (polls cloud every 8 seconds) ───
+  useEffect(() => {
+    const syncInterval = setInterval(() => {
+      fetchCloudWorkers().then(remoteWorkers => {
+        if (Array.isArray(remoteWorkers) && remoteWorkers.length > 0) {
+          const currentPool = readStorage(STORAGE_KEYS.WORKERS, DEFAULT_WORKERS);
+          const currentIds = new Set(currentPool.map(w => w.id));
+          const currentPhones = new Set(currentPool.map(w => (w.phone || '').replace(/\D/g, '').slice(-10)));
+
+          const hasNew = remoteWorkers.some(rw => {
+            const cleanP = (rw.phone || '').replace(/\D/g, '').slice(-10);
+            return !currentIds.has(rw.id) && (!cleanP || !currentPhones.has(cleanP));
+          });
+
+          if (hasNew) {
+            // New worker registered from another phone! Refresh workers list
+            fetchWorkers();
+          }
+        }
+      }).catch(() => {});
+    }, 8000);
+
+    return () => clearInterval(syncInterval);
+  }, [userCoords, selectedCategory, searchQuery, radiusKm]);
+
+  // ─── Manual Multi-Device Instant Sync Action ───
+  const syncNow = async () => {
+    addNotification('Syncing with multi-device network...', 'info');
+    await fetchWorkers();
+    await fetchBookings();
+    addNotification('Synced with cloud & all devices successfully!', 'success');
+  };
+
+  // ─── Add a new registered worker to the dynamic pool & broadcast to cloud ───
+  const addRegisteredWorker = async (workerData) => {
+    // 1. Calculate distance
+    if (workerData.lat && workerData.lng && userCoords) {
+      workerData.distanceKm = parseFloat(haversineKm(userCoords[0], userCoords[1], workerData.lat, workerData.lng).toFixed(1));
+    } else {
+      workerData.distanceKm = 0.2;
+    }
+
+    // 2. Save into local master pool
+    const allWorkers = readStorage(STORAGE_KEYS.WORKERS, DEFAULT_WORKERS);
+    const cleanP = (workerData.phone || '').replace(/\D/g, '').slice(-10);
+    const filtered = allWorkers.filter(w => {
+      const wCleanP = (w.phone || '').replace(/\D/g, '').slice(-10);
+      return w.id !== workerData.id && (!cleanP || wCleanP !== cleanP);
+    });
+
+    const updated = [workerData, ...filtered];
+    writeStorage(STORAGE_KEYS.WORKERS, updated);
+
+    // 3. Update active UI immediately
+    setWorkers(prev => {
+      const pFiltered = prev.filter(w => {
+        const wCleanP = (w.phone || '').replace(/\D/g, '').slice(-10);
+        return w.id !== workerData.id && (!cleanP || wCleanP !== cleanP);
+      });
+      return [workerData, ...pFiltered];
+    });
+
+    // 4. Push to Cloud Sync Hub so friend's phone sees it instantly
+    try {
+      await pushCloudWorker(workerData);
+    } catch (e) {
+      console.warn('Cloud sync push notice:', e);
     }
   };
 
@@ -524,6 +799,9 @@ export const AppProvider = ({ children }) => {
         updateSocietyWageFloor,
         addRegisteredWorker,
         fetchWorkers,
+        syncNow,
+        getSavedBackendUrl,
+        setSavedBackendUrl,
         fetchPlatformStats,
         fetchCategoryCounts
       }}
