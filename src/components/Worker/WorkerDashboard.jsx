@@ -5,6 +5,8 @@ import { useAuth } from '../../context/AuthContext';
 import { HardHat, ShieldCheck, HeartHandshake, DollarSign, Award, ToggleLeft, ToggleRight, CheckCircle2, Clock, MapPin, Phone, Camera, Upload, ImageIcon, AlertCircle } from 'lucide-react';
 import { translateNcctLevel, translateCategory } from '../../utils/translateHelpers';
 import { compressImage } from '../../utils/imageCompressor';
+import { WelfarePassbookModal } from './WelfarePassbookModal';
+import { NcctAcademyModal } from './NcctAcademyModal';
 
 export const WorkerDashboard = () => {
   const { workerDutyStatus, toggleWorkerDuty, bookings, addNotification, acceptBooking, uploadCompletionPhoto } = useApp();
@@ -13,6 +15,8 @@ export const WorkerDashboard = () => {
 
   const [loadingStats, setLoadingStats] = useState(true);
   const [workerStats, setWorkerStats] = useState(null);
+  const [isPassbookOpen, setIsPassbookOpen] = useState(false);
+  const [isAcademyOpen, setIsAcademyOpen] = useState(false);
   const fileInputRefs = useRef({});
 
   // Build worker stats from real data (localStorage + user profile)
@@ -204,6 +208,67 @@ export const WorkerDashboard = () => {
           <p className="text-lg font-extrabold text-slate-900 mt-1">⭐ {workerStats?.rating || 5.0}</p>
         </div>
       </div>
+
+      {/* SIH26089 INNOVATION SUITE FOR WORKERS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        
+        {/* Innovation 2 Trigger: Social Security & Dividend Passbook */}
+        <div className="bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-900 text-white p-4 rounded-2xl border border-emerald-600/40 shadow-md relative overflow-hidden flex flex-col justify-between space-y-2.5">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-400/30">
+                Social Security
+              </span>
+              <span className="text-[10px] text-emerald-300 font-bold">100% Protected</span>
+            </div>
+            <h4 className="text-xs font-black text-white mt-1">
+              Cooperative Welfare & Dividend Passbook
+            </h4>
+            <p className="text-[10px] text-slate-300 mt-0.5 leading-snug">
+              Ayushman Bharat health escrow, PMSBY insurance & annual profit-sharing dividends.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setIsPassbookOpen(true)}
+            className="w-full py-2 bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98] text-slate-950 font-black text-xs rounded-xl shadow transition-all flex items-center justify-center gap-1.5"
+          >
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Open Social Security Passbook →</span>
+          </button>
+        </div>
+
+        {/* Innovation 3 Trigger: AI Skill Ladder & NCCT Upskilling Academy */}
+        <div className="bg-gradient-to-br from-blue-950 via-teal-950 to-slate-900 text-white p-4 rounded-2xl border border-blue-600/40 shadow-md relative overflow-hidden flex flex-col justify-between space-y-2.5">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black uppercase tracking-wider text-blue-300 bg-blue-500/20 px-2 py-0.5 rounded-full border border-blue-400/30">
+                NCCT Mandate
+              </span>
+              <span className="text-[10px] text-amber-300 font-bold">+48% Earning Boost</span>
+            </div>
+            <h4 className="text-xs font-black text-white mt-1">
+              AI Skill Ladder & Upskilling Academy
+            </h4>
+            <p className="text-[10px] text-slate-300 mt-0.5 leading-snug">
+              Level 2 → Level 3 certification courses (Solar PV & EV Charger) with free institute enrollment.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setIsAcademyOpen(true)}
+            className="w-full py-2 bg-blue-500 hover:bg-blue-400 active:scale-[0.98] text-slate-950 font-black text-xs rounded-xl shadow transition-all flex items-center justify-center gap-1.5"
+          >
+            <Award className="w-3.5 h-3.5" />
+            <span>View NCCT Skill Ladder →</span>
+          </button>
+        </div>
+
+      </div>
+
+      {/* Welfare Passbook & NCCT Academy Modals */}
+      <WelfarePassbookModal isOpen={isPassbookOpen} onClose={() => setIsPassbookOpen(false)} />
+      <NcctAcademyModal isOpen={isAcademyOpen} onClose={() => setIsAcademyOpen(false)} />
 
       {/* Incoming Job Requests */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">

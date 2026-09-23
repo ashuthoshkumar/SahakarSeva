@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { ServiceCatalog } from './ServiceCatalog';
 import { WorkerList } from './WorkerList';
 import { InteractiveMap } from '../Map/InteractiveMap';
-import { Search, MapPin, ShieldCheck, HeartHandshake, AlertTriangle, Navigation, X } from 'lucide-react';
+import { AiSahayakModal } from '../AI/AiSahayakModal';
+import { Search, MapPin, ShieldCheck, HeartHandshake, AlertTriangle, Navigation, X, Sparkles, Mic } from 'lucide-react';
 import { translateCategory, translateWorkerName } from '../../utils/translateHelpers';
 
 export const CustomerDashboard = () => {
@@ -23,6 +24,7 @@ export const CustomerDashboard = () => {
   } = useApp();
 
   const { t, lang } = useLanguage();
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -32,9 +34,15 @@ export const CustomerDashboard = () => {
         <div className="absolute top-0 right-0 w-48 h-48 bg-teal-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
         
         <div className="relative z-10 space-y-2.5">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-[10px] font-bold border border-teal-500/30">
-            <ShieldCheck className="w-3 h-3 text-teal-400" />
-            <span className="truncate">{t('heroBadge')}</span>
+          <div className="flex items-center justify-between">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-[10px] font-bold border border-teal-500/30">
+              <ShieldCheck className="w-3 h-3 text-teal-400" />
+              <span className="truncate">{t('heroBadge')}</span>
+            </div>
+
+            <span className="text-[10px] font-black text-amber-300 bg-amber-500/20 border border-amber-400/30 px-2 py-0.5 rounded-full">
+              SIH26089 Active
+            </span>
           </div>
 
           <h1 className="text-xl font-extrabold tracking-tight leading-tight">
@@ -44,9 +52,34 @@ export const CustomerDashboard = () => {
             {t('heroDesc')}
           </p>
 
-          {/* Quick Search Controls */}
+          {/* Quick Search & AI Voice Controls */}
           <div className="pt-1 space-y-2">
-            {/* Search Input with Auto-Filter & Clear */}
+            
+            {/* Sahakar AI Sahayak Voice Trigger Button */}
+            <button
+              onClick={() => setIsAiModalOpen(true)}
+              className="w-full px-3 py-2 rounded-xl bg-gradient-to-r from-teal-500/30 via-emerald-500/20 to-teal-500/30 hover:from-teal-500/40 hover:to-teal-500/40 border border-teal-400/40 text-white flex items-center justify-between shadow-lg transition-all group active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-2">
+                <span className="p-1 rounded-lg bg-teal-400 text-slate-950">
+                  <Sparkles className="w-3.5 h-3.5" />
+                </span>
+                <div className="text-left">
+                  <p className="text-[11px] font-black text-teal-200 group-hover:text-white leading-tight">
+                    Sahakar AI Sahayak (Voice & Text)
+                  </p>
+                  <p className="text-[9px] text-slate-300 font-medium leading-none">
+                    Instant Problem Diagnosis • Transparent Fair-Cost Matrix
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-1 rounded-full bg-white/10 group-hover:bg-white/20 text-teal-300">
+                <Mic className="w-3.5 h-3.5" />
+              </div>
+            </button>
+
+            {/* Standard Search Input with Auto-Filter & Clear */}
             <div className="relative w-full">
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3 pointer-events-none" />
               <input
@@ -100,6 +133,9 @@ export const CustomerDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* AI Sahayak Modal Dialog */}
+      <AiSahayakModal isOpen={isAiModalOpen} onClose={() => setIsAiModalOpen(false)} />
 
       {/* Active Bookings Status */}
       {bookings.length > 0 && (

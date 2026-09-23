@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { Modal } from '../Common/Modal';
-import { ShieldCheck, QrCode, CreditCard, Building, ArrowRight, HeartHandshake, CheckCircle2, Camera, ThumbsUp, Sparkles, Check, AlertCircle } from 'lucide-react';
+import { ShieldCheck, QrCode, CreditCard, Building, ArrowRight, HeartHandshake, CheckCircle2, Camera, ThumbsUp, Sparkles, Check, AlertCircle, Heart } from 'lucide-react';
 import { translateCategory, translateWorkerName } from '../../utils/translateHelpers';
 
 export const PaymentModal = () => {
@@ -229,6 +229,19 @@ export const PaymentModal = () => {
             </div>
           </div>
         )}
+
+        {/* COOPERATIVE SOCIAL IMPACT BADGE */}
+        <div className="bg-emerald-50/90 border border-emerald-200 rounded-2xl p-3 flex items-center gap-3 shadow-sm">
+          <div className="p-2 rounded-xl bg-emerald-600 text-white shrink-0">
+            <Heart className="w-4 h-4" />
+          </div>
+          <div className="text-xs">
+            <p className="font-extrabold text-emerald-950">🌱 Your Cooperative Impact</p>
+            <p className="text-[11px] text-emerald-800 leading-snug">
+              ₹{selectedBooking.welfareContribution || Math.round(selectedBooking.totalAmount * 0.05)} is directly deposited into {selectedBooking.workerName}’s Ayushman Bharat healthcare escrow. 0% exploitative corporate commission!
+            </p>
+          </div>
+        </div>
 
         {/* CONFIRM & PAY BUTTON */}
         <button

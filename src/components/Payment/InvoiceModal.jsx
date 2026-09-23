@@ -186,6 +186,17 @@ export const InvoiceModal = () => {
             </table>
           </div>
 
+          {/* COOPERATIVE SOCIAL IMPACT STATEMENT */}
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs space-y-1">
+            <div className="flex items-center justify-between text-emerald-900 font-extrabold text-[11px]">
+              <span>🌱 Cooperative Social Impact Audit</span>
+              <span>₹{welfareContrib + healthContrib}.00 Funded</span>
+            </div>
+            <p className="text-[10px] text-emerald-800 leading-snug">
+              Your payment directly deposited ₹{welfareContrib} to worker pension and ₹{healthContrib} to Ayushman Bharat medical insurance. Unlike private aggregators charging ~₹{Math.round(totalAmount * 0.30)} commission, your payment directly strengthens the cooperative economy.
+            </p>
+          </div>
+
           {/* TOTAL AMOUNT & STATUS BOX */}
           <div className="flex items-center justify-between p-3.5 bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-xl shadow-sm">
             <div className="flex items-center gap-2">

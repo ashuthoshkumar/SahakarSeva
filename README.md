@@ -57,6 +57,31 @@ You can install and run SahakarSeva directly on any Android smartphone (Android 
 
 ---
 
+## 🏆 Smart India Hackathon (SIH26089) Flagship Innovations
+
+Developed specifically to address **Problem Statement SIH26089** (*Cooperative Gig Services Platform for Household & Community Services*) under the **Ministry of Cooperation** and the **National Council for Cooperative Training (NCCT)**:
+
+### 1. 🤖 "Sahakar AI Sahayak" (Multilingual Voice Problem Diagnostician & Fair-Price Estimator)
+- **Voice-First in Indian Languages**: Users tap the mic and speak in Hindi, Marathi, Tamil, or English *(e.g. "किचन का नल टूट गया है और बहुत पानी बह रहा है")*.
+- **Intelligent Fault Diagnosis**: Detects exact sub-service, estimated repair time (~45 mins), necessary specialized equipment, and flags safety warnings (e.g. *⚠️ Critical Electrical Hazard: Turn off MCB immediately*).
+- **Transparent Cooperative vs. Corporate Price Matrix**:
+  - **SahakarSeva**: ₹350 Base Wage (90% to worker) + ₹18 Ayushman Healthcare Escrow + ₹18 Ops = **₹386 Total**
+  - **Corporate Aggregator (Urban Company)**: ₹550 Base + ₹165 (30% Commission) + ₹49 Platform fee = **₹764 Total** *(Consumer saves ₹378 / 49% cheaper!)*
+- **1-Tap Auto-Dispatch**: Matches and pre-populates the booking with the nearest certified specialist.
+
+### 2. 🛡️ NCCT Cooperative Social Security & Dividend Passbook
+- **Ayushman Bharat Healthcare Escrow**: Live balance accumulated from 5% welfare deductions on every completed job.
+- **PMSBY Insurance Guarantee**: Government-backed ₹2,00,000 accidental and disability insurance coverage.
+- **Democratic Profit Sharing**: Real-time projected year-end dividend counter distributed to workers as cooperative member-owners.
+- **Instant Medical Claim**: Workers can request emergency medical disbursements directly from their cooperative society.
+
+### 3. 🎓 AI Skill Ladder & NCCT Upskilling Academy
+- **Skill Gap Progression**: AI analyzes worker job ratings to identify upward mobility pathways (Level 2 Certified Craftsman → Level 3 Solar PV & EV Charger Specialist).
+- **Projected Income Boost**: Demonstrates dynamic wage progression from **₹350/hr → ₹520/hr (+48% increase)**.
+- **1-Tap Institute Enrollment**: Free enrollment in certified regional workshops at Institutes of Cooperative Management (ICM / VAMNICOM).
+
+---
+
 ## 🌐 Real-Time Multi-Device Sync Hub (Cross-Phone Worker Discovery)
 
 SahakarSeva features an autonomous **Multi-Device Cloud Sync Hub** that enables real-time peer discovery across different smartphones and networks (Wi-Fi, 4G/5G mobile data, and localhost):
@@ -218,17 +243,18 @@ SahakarSeva/
 │   └── aiEngine.js                     # Cooperative demand forecasting engine
 ├── src/
 │   ├── components/
+│   │   ├── AI/                         # Sahakar AI Sahayak (voice & problem diagnostician)
 │   │   ├── Auth/                       # AuthModal with live password strength meter
 │   │   ├── Common/                     # ErrorBoundary, LanguageSelectModal, StarRating
-│   │   ├── Customer/                   # BookingModal, EmergencyBooking, WorkerList
+│   │   ├── Customer/                   # BookingModal, EmergencyBooking, WorkerList, ServiceCatalog
 │   │   ├── FederationAdmin/            # State Federation analytics & AI forecaster
 │   │   ├── Landing/                    # Hero showcase & statistics
 │   │   ├── Map/                        # Interactive GPS OpenStreetMap
 │   │   ├── Navigation/                 # MobileNav header & bottom tab bar
-│   │   ├── Payment/                    # Escrow payment breakdown & UPI invoice
+│   │   ├── Payment/                    # Escrow payment breakdown, UPI invoice & impact audit
 │   │   ├── SocietyAdmin/               # Primary cooperative society dashboard
 │   │   ├── SuperAdmin/                 # NCCT national director oversight
-│   │   └── Worker/                     # Worker dashboard & camera proof upload
+│   │   └── Worker/                     # Worker dashboard, Welfare Passbook & NCCT Academy
 │   ├── context/
 │   │   ├── AppContext.jsx              # Global bookings, workers, and escrow state
 │   │   ├── AuthContext.jsx             # Session management & user roles
@@ -237,6 +263,7 @@ SahakarSeva/
 │   │   ├── mockData.js                 # Certified worker catalog & societies
 │   │   └── translations.js             # 8-language translation dictionary (60+ keys)
 │   ├── utils/
+│   │   ├── aiDiagnosticEngine.js       # Multilingual problem diagnosis & fair pricing engine
 │   │   ├── cloudSync.js                # Cloud Sync Hub for multi-device real-time discovery
 │   │   ├── imageCompressor.js          # HTML5 Canvas image resizer & compressor
 │   │   ├── translateHelpers.js         # Translation formatting helpers
