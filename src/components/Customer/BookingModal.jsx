@@ -137,6 +137,14 @@ export const BookingModal = () => {
           </div>
         </div>
 
+        {/* Suraksha Kavach Collective Guarantee Seal */}
+        <div className="p-3 bg-amber-50/80 border border-amber-200/90 rounded-xl flex items-center gap-3 text-xs text-amber-950">
+          <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0" />
+          <div className="leading-tight">
+            <span className="font-bold text-amber-900">Sahakari Suraksha Kavach Protected:</span> Includes ₹25,000 Zero-Deductible Property Damage Guarantee & 30-Day Free Re-work Warranty funded by Society Escrow.
+          </div>
+        </div>
+
         <button
           type="submit"
           className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-bold text-xs shadow-md transition-colors flex items-center justify-center gap-2"

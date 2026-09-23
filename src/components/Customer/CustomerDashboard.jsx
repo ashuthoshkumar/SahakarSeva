@@ -5,7 +5,8 @@ import { ServiceCatalog } from './ServiceCatalog';
 import { WorkerList } from './WorkerList';
 import { InteractiveMap } from '../Map/InteractiveMap';
 import { AiSahayakModal } from '../AI/AiSahayakModal';
-import { Search, MapPin, ShieldCheck, HeartHandshake, AlertTriangle, Navigation, X, Sparkles, Mic } from 'lucide-react';
+import { SurakshaKavachModal } from './SurakshaKavachModal';
+import { Search, MapPin, ShieldCheck, HeartHandshake, AlertTriangle, Navigation, X, Sparkles, Mic, ShieldAlert } from 'lucide-react';
 import { translateCategory, translateWorkerName } from '../../utils/translateHelpers';
 
 export const CustomerDashboard = () => {
@@ -25,6 +26,7 @@ export const CustomerDashboard = () => {
 
   const { t, lang } = useLanguage();
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isSurakshaOpen, setIsSurakshaOpen] = useState(false);
 
   return (
     <div className="space-y-4">
@@ -35,10 +37,13 @@ export const CustomerDashboard = () => {
         
         <div className="relative z-10 space-y-2.5">
           <div className="flex items-center justify-between">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-[10px] font-bold border border-teal-500/30">
-              <ShieldCheck className="w-3 h-3 text-teal-400" />
-              <span className="truncate">{t('heroBadge')}</span>
-            </div>
+            <button
+              onClick={() => setIsSurakshaOpen(true)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 text-[10px] font-bold border border-emerald-500/30 transition-all cursor-pointer active:scale-95"
+            >
+              <ShieldCheck className="w-3 h-3 text-emerald-400" />
+              <span>₹25,000 Suraksha Kavach Active →</span>
+            </button>
 
             <span className="text-[10px] font-black text-amber-300 bg-amber-500/20 border border-amber-400/30 px-2 py-0.5 rounded-full">
               SIH26089 Active
@@ -136,6 +141,9 @@ export const CustomerDashboard = () => {
 
       {/* AI Sahayak Modal Dialog */}
       <AiSahayakModal isOpen={isAiModalOpen} onClose={() => setIsAiModalOpen(false)} />
+
+      {/* Suraksha Kavach Modal Dialog */}
+      <SurakshaKavachModal isOpen={isSurakshaOpen} onClose={() => setIsSurakshaOpen(false)} />
 
       {/* Active Bookings Status */}
       {bookings.length > 0 && (

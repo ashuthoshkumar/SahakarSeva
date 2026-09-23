@@ -80,6 +80,17 @@ Developed specifically to address **Problem Statement SIH26089** (*Cooperative G
 - **Projected Income Boost**: Demonstrates dynamic wage progression from **₹350/hr → ₹520/hr (+48% increase)**.
 - **1-Tap Institute Enrollment**: Free enrollment in certified regional workshops at Institutes of Cooperative Management (ICM / VAMNICOM).
 
+### 4. 🛡️ "Sahakari Suraksha Kavach" (₹25,000 Mutual Property Damage & Re-work Guarantee)
+- **Closing the Corporate Trust Gap**: Corporate platforms charge high 30% commissions claiming they protect customer property. SahakarSeva replaces private commercial insurers by pooling **5% Society Escrow** into a collective mutual fund.
+- **₹25,000 Zero-Deductible Property Damage Guarantee**: Instant coverage on every booking against accidental property damage during electrical, plumbing, or appliance repairs.
+- **30-Day Free Re-work Warranty**: If the issue recurs within 30 days, a senior cooperative craftsman revisits at zero extra charge to the customer.
+- **2-Hour Rapid Cooperative Surveyor Resolution**: Claims are settled transparently via society peers, generating an instant claim token.
+
+### 5. 💳 "Sahakar Material & Spare Parts Micro-Credit Vault" (Zero-Interest PACS Working Capital)
+- **Breaking the Worker Liquidity Trap**: Over 70% of household repair jobs require upfront spare parts (pipes, MCB switches, compressor valves). Gig workers often lack liquidity and borrow from informal lenders at usurious rates.
+- **Instant PACS e-RUPI / UPI Merchant Vouchers**: In partnership with Primary Agricultural Credit Societies (PACS) and Urban Cooperative Banks, workers generate zero-interest digital vouchers (₹500–₹5,000) sent directly to local hardware merchants.
+- **Automated Seamless Settlement**: The voucher is closed with 0% interest from the job's customer escrow release upon job completion, protecting worker cashflow with zero risk of default.
+
 ---
 
 ## 🌐 Real-Time Multi-Device Sync Hub (Cross-Phone Worker Discovery)

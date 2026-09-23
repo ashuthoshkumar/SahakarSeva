@@ -2,11 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useAuth } from '../../context/AuthContext';
-import { HardHat, ShieldCheck, HeartHandshake, DollarSign, Award, ToggleLeft, ToggleRight, CheckCircle2, Clock, MapPin, Phone, Camera, Upload, ImageIcon, AlertCircle } from 'lucide-react';
+import { HardHat, ShieldCheck, HeartHandshake, DollarSign, Award, ToggleLeft, ToggleRight, CheckCircle2, Clock, MapPin, Phone, Camera, Upload, ImageIcon, AlertCircle, Wrench } from 'lucide-react';
 import { translateNcctLevel, translateCategory } from '../../utils/translateHelpers';
 import { compressImage } from '../../utils/imageCompressor';
 import { WelfarePassbookModal } from './WelfarePassbookModal';
 import { NcctAcademyModal } from './NcctAcademyModal';
+import { MaterialCreditModal } from './MaterialCreditModal';
 
 export const WorkerDashboard = () => {
   const { workerDutyStatus, toggleWorkerDuty, bookings, addNotification, acceptBooking, uploadCompletionPhoto } = useApp();
@@ -17,6 +18,7 @@ export const WorkerDashboard = () => {
   const [workerStats, setWorkerStats] = useState(null);
   const [isPassbookOpen, setIsPassbookOpen] = useState(false);
   const [isAcademyOpen, setIsAcademyOpen] = useState(false);
+  const [isMaterialCreditOpen, setIsMaterialCreditOpen] = useState(false);
   const fileInputRefs = useRef({});
 
   // Build worker stats from real data (localStorage + user profile)
@@ -264,11 +266,38 @@ export const WorkerDashboard = () => {
           </button>
         </div>
 
+        {/* Innovation 4 Trigger: Material & Spare Parts Micro-Credit Vault */}
+        <div className="sm:col-span-2 bg-gradient-to-r from-amber-950 via-slate-900 to-teal-950 text-white p-4 rounded-2xl border border-amber-500/40 shadow-md relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="space-y-0.5 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-black uppercase tracking-wider text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full border border-amber-400/30">
+                PACS Working Capital
+              </span>
+              <span className="text-[10px] text-emerald-300 font-bold">0% Free Credit Line</span>
+            </div>
+            <h4 className="text-xs font-black text-white mt-1">
+              Material & Tool Micro-Credit Vault (Powered by PACS)
+            </h4>
+            <p className="text-[10px] text-slate-300 leading-snug">
+              Need replacement MCBs, pipes or hardware? Issue zero-interest e-RUPI vouchers directly to local merchants.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setIsMaterialCreditOpen(true)}
+            className="w-full sm:w-auto px-4 py-2 bg-amber-500 hover:bg-amber-400 active:scale-[0.98] text-slate-950 font-black text-xs rounded-xl shadow transition-all flex items-center justify-center gap-1.5 shrink-0"
+          >
+            <Wrench className="w-3.5 h-3.5" />
+            <span>Issue Material Voucher →</span>
+          </button>
+        </div>
+
       </div>
 
-      {/* Welfare Passbook & NCCT Academy Modals */}
+      {/* Welfare Passbook, NCCT Academy & Material Credit Modals */}
       <WelfarePassbookModal isOpen={isPassbookOpen} onClose={() => setIsPassbookOpen(false)} />
       <NcctAcademyModal isOpen={isAcademyOpen} onClose={() => setIsAcademyOpen(false)} />
+      <MaterialCreditModal isOpen={isMaterialCreditOpen} onClose={() => setIsMaterialCreditOpen(false)} />
 
       {/* Incoming Job Requests */}
       <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
