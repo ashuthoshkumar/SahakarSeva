@@ -705,10 +705,15 @@ export const AppProvider = ({ children }) => {
       setSelectedBooking(data.booking);
       fetchBookings();
     } else {
-      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'Confirmed & Paid', paidAt: new Date().toISOString() } : b));
-      if (selectedBooking && selectedBooking.id === bookingId) {
-        setSelectedBooking({ ...selectedBooking, status: 'Confirmed & Paid', paidAt: new Date().toISOString() });
-      }
+      setBookings(prev => {
+        const updated = prev.map(b => b.id === bookingId ? { ...b, status: 'Confirmed & Paid', paidAt: new Date().toISOString() } : b);
+        // Also update selectedBooking from the freshly-computed list
+        const paidBooking = updated.find(b => b.id === bookingId);
+        if (paidBooking) {
+          setSelectedBooking(paidBooking);
+        }
+        return updated;
+      });
     }
     setPaymentModalOpen(false);
     setInvoiceModalOpen(true);

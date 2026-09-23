@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -12,6 +12,14 @@ export const BookingModal = () => {
   const { t, lang } = useLanguage();
   const [hours, setHours] = useState(2);
   const [address, setAddress] = useState('');
+
+  // Reset form state when a different worker is selected
+  useEffect(() => {
+    if (selectedWorker) {
+      setHours(2);
+      setAddress('');
+    }
+  }, [selectedWorker]);
 
   if (!selectedWorker) return null;
 

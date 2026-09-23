@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { Modal } from '../Common/Modal';
@@ -14,6 +14,17 @@ export const RatingModal = () => {
   const [reviewText, setReviewText] = useState('');
   const [tipAmount, setTipAmount] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Reset form state when a new booking is selected for rating
+  useEffect(() => {
+    if (ratingBooking) {
+      setRating(5);
+      setHoverRating(0);
+      setReviewText('');
+      setTipAmount(0);
+      setIsSubmitting(false);
+    }
+  }, [ratingBooking]);
 
   if (!ratingBooking) return null;
 

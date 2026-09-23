@@ -183,7 +183,7 @@ export const WorkerList = () => {
 
                   <div className="flex flex-col items-end gap-1 shrink-0">
                     <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-bold">
-                      {worker.distanceKm ? worker.distanceKm.toFixed(1) : 0.8} km
+                      {(worker.distanceKm != null && !isNaN(worker.distanceKm)) ? worker.distanceKm.toFixed(1) : '0.5'} km
                     </span>
                     <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                       ● Ready Now

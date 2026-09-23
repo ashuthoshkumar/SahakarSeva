@@ -330,7 +330,7 @@ export const WorkerDashboard = () => {
                         {translateCategory(b.category, t)}
                       </span>
                     </div>
-                    <span className="text-sm font-black text-emerald-700">₹{b.baseWage}</span>
+                    <span className="text-sm font-black text-emerald-700">₹{b.baseWage || b.totalAmount || 0}</span>
                   </div>
 
                   <p className="text-[10px] text-slate-500 flex items-center gap-1">

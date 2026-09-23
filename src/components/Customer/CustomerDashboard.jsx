@@ -163,17 +163,17 @@ export const CustomerDashboard = () => {
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-900 truncate">{translateCategory(booking.category, t)}</span>
                     <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-bold shrink-0 ${
-                      booking.status.includes('Paid') ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      booking.status?.includes('Paid') ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
                     }`}>
-                      {booking.status.includes('Paid') ? t('statusPaid') : t('statusPending')}
+                      {booking.status?.includes('Paid') ? t('statusPaid') : t('statusPending')}
                     </span>
                   </div>
                   <p className="text-slate-500 text-[10px] mt-0.5 truncate">
-                    {translateWorkerName(booking.workerName, lang)} • ₹{booking.totalAmount}
+                    {translateWorkerName(booking.workerName, lang)} • ₹{booking.totalAmount || 0}
                   </p>
                 </div>
 
-                {booking.status.includes('Paid') ? (
+                {booking.status?.includes('Paid') ? (
                   <button
                     onClick={() => {
                       setSelectedBooking(booking);
