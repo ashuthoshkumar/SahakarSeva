@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { Modal } from '../Common/Modal';
 import { 
   ShieldCheck, User, HardHat, Lock, Mail, AlertCircle, 
-  Sparkles, LogIn, ArrowRight, Eye, EyeOff, Building2, Landmark, Crown, CheckCircle2, Phone, Check, X
+  Sparkles, LogIn, ArrowRight, ArrowLeft, Eye, EyeOff, 
+  CheckCircle2, Phone, X, ChevronRight
 } from 'lucide-react';
-import { translateCategory, translateRole } from '../../utils/translateHelpers';
+import { translateCategory } from '../../utils/translateHelpers';
 import {
   validatePhoneNumber,
   validatePassword,
@@ -42,7 +42,8 @@ export const AuthModal = () => {
   const [custPassword, setCustPassword] = useState('');
   const [showCustPassword, setShowCustPassword] = useState(false);
 
-  // Worker Signup form state
+  // Worker Signup form state — with stepper
+  const [wrkStep, setWrkStep] = useState(1);
   const [wrkName, setWrkName] = useState('');
   const [wrkPhone, setWrkPhone] = useState('');
   const [wrkEmail, setWrkEmail] = useState('');
@@ -57,26 +58,16 @@ export const AuthModal = () => {
   const [isAlreadyRegistered, setIsAlreadyRegistered] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Helper for live password analysis
+  // Validators
   const custPassAnalysis = validatePassword(custPassword);
   const wrkPassAnalysis = validatePassword(wrkPassword);
-
-  // Helper for live phone format
   const custPhoneAnalysis = validatePhoneNumber(custPhone);
   const wrkPhoneAnalysis = validatePhoneNumber(wrkPhone);
-
-  // Helper for live Aadhaar format
   const wrkAadhaarAnalysis = validateAadhaar(wrkAadhaar);
 
-  // 1-Tap Demo Role Login Triggers
-  const demoAccounts = [
-    { role: 'customer', label: translateRole('customer', t), input: 'customer@sahakar.in', pass: 'password123', icon: User, badgeColor: 'bg-emerald-500/10 text-emerald-700 border-emerald-300' },
-    { role: 'worker', label: translateRole('worker', t), input: 'worker@sahakar.in', pass: 'password123', icon: HardHat, badgeColor: 'bg-amber-500/10 text-amber-700 border-amber-300' },
-    { role: 'society_admin', label: translateRole('society_admin', t), input: 'society@sahakar.in', pass: 'admin123', icon: Building2, badgeColor: 'bg-blue-500/10 text-blue-700 border-blue-300' },
-    { role: 'federation_admin', label: translateRole('federation_admin', t), input: 'federation@sahakar.in', pass: 'admin123', icon: Landmark, badgeColor: 'bg-indigo-500/10 text-indigo-700 border-indigo-300' },
-    { role: 'super_admin', label: translateRole('super_admin', t), input: 'admin@sahakar.in', pass: 'admin123', icon: Crown, badgeColor: 'bg-purple-500/10 text-purple-700 border-purple-300' },
-  ];
+  if (!isAuthModalOpen) return null;
 
+  // --- Handlers ---
   const handleDemoLogin = async (input, pass) => {
     setLoginInput(input);
     setLoginPassword(pass);
@@ -109,7 +100,6 @@ export const AuthModal = () => {
     setErrorMsg('');
     setIsAlreadyRegistered(false);
     setIsSubmitting(true);
-
     try {
       const res = await login(loginInput, loginPassword);
       if (res.success) {
@@ -129,31 +119,22 @@ export const AuthModal = () => {
     setErrorMsg('');
     setIsAlreadyRegistered(false);
 
-    // Front-end strict checks before dispatch
     const nameCheck = validateFullName(custName);
     if (!nameCheck.isValid) { setErrorMsg(nameCheck.error); return; }
-
     const phoneCheck = validatePhoneNumber(custPhone);
     if (!phoneCheck.isValid) { setErrorMsg(phoneCheck.error); return; }
-
     const passCheck = validatePassword(custPassword);
     if (!passCheck.isValid) { setErrorMsg(passCheck.error); return; }
-
     if (custEmail) {
       const emailCheck = validateEmail(custEmail);
       if (!emailCheck.isValid) { setErrorMsg(emailCheck.error); return; }
     }
 
     setIsSubmitting(true);
-
     try {
       const res = await registerCustomer({
-        name: custName,
-        phone: custPhone,
-        email: custEmail,
-        password: custPassword
+        name: custName, phone: custPhone, email: custEmail, password: custPassword
       });
-
       if (res.success) {
         addNotification('Customer Account Created Successfully!', 'success');
       } else {
@@ -174,51 +155,34 @@ export const AuthModal = () => {
     setErrorMsg('');
     setIsAlreadyRegistered(false);
 
-    // Front-end strict checks
     const nameCheck = validateFullName(wrkName);
     if (!nameCheck.isValid) { setErrorMsg(nameCheck.error); return; }
-
     const phoneCheck = validatePhoneNumber(wrkPhone);
     if (!phoneCheck.isValid) { setErrorMsg(phoneCheck.error); return; }
-
     const aadhaarCheck = validateAadhaar(wrkAadhaar);
     if (!aadhaarCheck.isValid) { setErrorMsg(aadhaarCheck.error); return; }
-
     const rateCheck = validateHourlyRate(wrkRate);
     if (!rateCheck.isValid) { setErrorMsg(rateCheck.error); return; }
-
     const passCheck = validatePassword(wrkPassword);
     if (!passCheck.isValid) { setErrorMsg(passCheck.error); return; }
-
     if (wrkEmail) {
       const emailCheck = validateEmail(wrkEmail);
       if (!emailCheck.isValid) { setErrorMsg(emailCheck.error); return; }
     }
 
     setIsSubmitting(true);
-
     try {
       const res = await registerWorker({
-        name: wrkName,
-        phone: wrkPhone,
-        email: wrkEmail,
-        password: wrkPassword,
-        aadhaarNo: wrkAadhaar,
-        societyId: wrkSocietyId,
-        category: wrkCategory,
+        name: wrkName, phone: wrkPhone, email: wrkEmail, password: wrkPassword,
+        aadhaarNo: wrkAadhaar, societyId: wrkSocietyId, category: wrkCategory,
         hourlyRate: Number(wrkRate),
         lat: userCoords ? userCoords[0] : 28.6139,
         lng: userCoords ? userCoords[1] : 77.2090
       });
-
       if (res.success) {
-        if (res.worker && addRegisteredWorker) {
-          addRegisteredWorker(res.worker);
-        }
-        if (fetchWorkers) {
-          fetchWorkers();
-        }
-        addNotification('Worker Account Registered & Aadhaar Verified!', 'success');
+        if (res.worker && addRegisteredWorker) addRegisteredWorker(res.worker);
+        if (fetchWorkers) fetchWorkers();
+        addNotification('Worker Account Registered & Verified!', 'success');
       } else {
         setErrorMsg(res.error);
         if (res.alreadyRegistered || (res.error && res.error.toLowerCase().includes('already'))) {
@@ -232,470 +196,525 @@ export const AuthModal = () => {
     }
   };
 
-  // Password Checklist Component
-  const PasswordChecklist = ({ analysis }) => {
-    const { checks } = analysis;
+  // --- Password strength bar ---
+  const StrengthBar = ({ analysis }) => {
+    if (!analysis) return null;
+    const pct = (analysis.score / 5) * 100;
+    const color = analysis.score <= 2 ? 'bg-red-500' : analysis.score <= 4 ? 'bg-amber-500' : 'bg-emerald-500';
+    const label = analysis.score <= 2 ? 'Weak' : analysis.score <= 4 ? 'Medium' : 'Strong';
     return (
-      <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5 text-[11px]">
-        <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-          <span>Password Security Requirements</span>
-          <span className={analysis.isValid ? 'text-emerald-600 font-extrabold' : 'text-amber-600 font-extrabold'}>
-            {analysis.score}/5 Passed
+      <div className="space-y-1">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-slate-500">Password strength</span>
+          <span className={`text-xs font-bold ${analysis.score <= 2 ? 'text-red-600' : analysis.score <= 4 ? 'text-amber-600' : 'text-emerald-600'}`}>
+            {label} ({analysis.score}/5)
           </span>
         </div>
-
-        {/* Strength Progress Bar */}
-        <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden flex">
-          <div
-            className={`h-full transition-all duration-300 ${
-              analysis.score <= 2 ? 'bg-red-500' : analysis.score <= 4 ? 'bg-amber-500' : 'bg-emerald-500'
-            }`}
-            style={{ width: `${(analysis.score / 5) * 100}%` }}
-          ></div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-1 pt-1 text-[10px]">
-          <div className={`flex items-center gap-1 font-medium ${checks.minLength ? 'text-emerald-700 font-bold' : 'text-slate-400'}`}>
-            {checks.minLength ? <Check className="w-3 h-3 text-emerald-600" /> : <span className="w-3 h-3 text-slate-400 font-bold text-center">•</span>}
-            <span>8+ Characters</span>
-          </div>
-          <div className={`flex items-center gap-1 font-medium ${checks.hasUpper ? 'text-emerald-700 font-bold' : 'text-slate-400'}`}>
-            {checks.hasUpper ? <Check className="w-3 h-3 text-emerald-600" /> : <span className="w-3 h-3 text-slate-400 font-bold text-center">•</span>}
-            <span>1 Uppercase (A-Z)</span>
-          </div>
-          <div className={`flex items-center gap-1 font-medium ${checks.hasLower ? 'text-emerald-700 font-bold' : 'text-slate-400'}`}>
-            {checks.hasLower ? <Check className="w-3 h-3 text-emerald-600" /> : <span className="w-3 h-3 text-slate-400 font-bold text-center">•</span>}
-            <span>1 Lowercase (a-z)</span>
-          </div>
-          <div className={`flex items-center gap-1 font-medium ${checks.hasNumber ? 'text-emerald-700 font-bold' : 'text-slate-400'}`}>
-            {checks.hasNumber ? <Check className="w-3 h-3 text-emerald-600" /> : <span className="w-3 h-3 text-slate-400 font-bold text-center">•</span>}
-            <span>1 Number (0-9)</span>
-          </div>
-          <div className={`col-span-2 flex items-center gap-1 font-medium ${checks.hasSpecial ? 'text-emerald-700 font-bold' : 'text-slate-400'}`}>
-            {checks.hasSpecial ? <Check className="w-3 h-3 text-emerald-600" /> : <span className="w-3 h-3 text-slate-400 font-bold text-center">•</span>}
-            <span>1 Special Character (!@#$%^&*)</span>
-          </div>
+        <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+          <div className={`h-full transition-all duration-300 rounded-full ${color}`} style={{ width: `${pct}%` }}></div>
         </div>
       </div>
     );
   };
 
-  return (
-    <Modal
-      isOpen={isAuthModalOpen}
-      onClose={() => setIsAuthModalOpen(false)}
-      title={t('authPortalTitle') || 'SahakarSeva Authentication Portal'}
-    >
-      <div className="space-y-5 font-sans">
-        
-        {/* Navigation Tabs */}
-        <div className="flex border-b border-slate-200 text-xs font-extrabold bg-slate-50 p-1 rounded-xl">
+  // --- Shared input component for consistency ---
+  const FormInput = ({ label, icon: Icon, type = 'text', value, onChange, placeholder, required = true, badge, maxLength, showToggle, isPassword, onToggle, showPassword }) => (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between">
+        <label className="text-sm font-semibold text-slate-700">{label}</label>
+        {badge}
+      </div>
+      <div className="relative">
+        {Icon && <Icon className="w-4.5 h-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />}
+        <input
+          type={isPassword ? (showPassword ? 'text' : 'password') : type}
+          value={value}
+          onChange={onChange}
+          required={required}
+          placeholder={placeholder}
+          maxLength={maxLength}
+          className={`w-full ${Icon ? 'pl-10' : 'pl-4'} ${showToggle ? 'pr-12' : 'pr-4'} py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none text-sm font-medium text-slate-900 bg-white transition-all placeholder:text-slate-400`}
+        />
+        {showToggle && (
           <button
-            onClick={() => { setAuthModalTab('login'); setErrorMsg(''); setIsAlreadyRegistered(false); }}
-            className={`flex-1 py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-              authModalTab === 'login'
-                ? 'bg-white text-teal-800 shadow-sm border border-slate-200'
-                : 'text-slate-500 hover:text-slate-900'
-            }`}
+            type="button"
+            onClick={onToggle}
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1"
           >
-            <Lock className="w-3.5 h-3.5" /> {t('signInTab') || 'Sign In'}
+            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
-
-          <button
-            onClick={() => { setAuthModalTab('register_customer'); setErrorMsg(''); setIsAlreadyRegistered(false); }}
-            className={`flex-1 py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-              authModalTab === 'register_customer'
-                ? 'bg-white text-teal-800 shadow-sm border border-slate-200'
-                : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            <User className="w-3.5 h-3.5" /> {t('custRegisterTab') || 'Customer Register'}
-          </button>
-
-          <button
-            onClick={() => { setAuthModalTab('register_worker'); setErrorMsg(''); setIsAlreadyRegistered(false); }}
-            className={`flex-1 py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-              authModalTab === 'register_worker'
-                ? 'bg-white text-teal-800 shadow-sm border border-slate-200'
-                : 'text-slate-500 hover:text-slate-900'
-            }`}
-          >
-            <HardHat className="w-3.5 h-3.5" /> {t('workerKycTab') || 'Worker KYC'}
-          </button>
-        </div>
-
-        {/* Error / Already Registered Alert Banner */}
-        {errorMsg && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-900 text-xs font-bold rounded-xl flex items-center justify-between gap-2 shadow-sm">
-            <div className="flex items-center gap-2 min-w-0">
-              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-              <span className="truncate">{errorMsg}</span>
-            </div>
-            {isAlreadyRegistered && (
-              <button
-                type="button"
-                onClick={() => handleSwitchToLoginWithCreds(custEmail || custPhone || wrkEmail || wrkPhone)}
-                className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors shrink-0 flex items-center gap-1"
-              >
-                <span>{t('signInTab') || 'Log In'}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
         )}
+      </div>
+    </div>
+  );
 
-        {/* TAB 1: LOGIN */}
-        {authModalTab === 'login' && (
-          <div className="space-y-4">
+  // --- Tab switching ---
+  const switchTab = (tab) => {
+    setAuthModalTab(tab);
+    setErrorMsg('');
+    setIsAlreadyRegistered(false);
+    if (tab === 'register_worker') setWrkStep(1);
+  };
 
-            {/* 1-Tap Demo Role Triggers */}
-            <div className="p-3 bg-slate-900 text-white rounded-2xl space-y-2 border border-slate-800 shadow-md">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] uppercase font-black tracking-wider text-teal-400 flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-teal-400" /> {t('quickTestLogins') || '1-Tap Quick Test Logins'}
-                </span>
-                <span className="text-[9px] text-slate-400">{t('selectRoleToSignIn') || 'Select any role to sign in instantly'}</span>
+  // Worker step validation
+  const isWrkStep1Valid = wrkName.trim().length >= 2 && wrkPhoneAnalysis.isValid;
+  const isWrkStep2Valid = wrkAadhaarAnalysis.isValid && wrkSocietyId;
+  const isWrkStep3Valid = wrkCategory && wrkRate >= 300 && wrkPassAnalysis.isValid;
+
+  return (
+    <div className="fixed inset-0 z-50 bg-white flex flex-col animate-fadeIn">
+      
+      {/* Clean Header Bar */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-white sticky top-0 z-10">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-500 flex items-center justify-center text-white text-sm font-black shadow-sm">
+            🤝
+          </div>
+          <div>
+            <h1 className="text-sm font-black text-slate-900 leading-none">SahakarSeva</h1>
+            <p className="text-[11px] text-slate-500 font-medium">{t('cooperativeGigWorkforce') || 'Cooperative Workforce'}</p>
+          </div>
+        </div>
+        <button
+          onClick={() => setIsAuthModalOpen(false)}
+          className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-md mx-auto px-5 py-5 space-y-5">
+
+          {/* Tab Switcher — Clean Pill Design */}
+          <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+            <button
+              onClick={() => switchTab('login')}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
+                authModalTab === 'login'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <LogIn className="w-4 h-4" /> Sign In
+            </button>
+            <button
+              onClick={() => switchTab('register_customer')}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
+                authModalTab === 'register_customer'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <User className="w-4 h-4" /> Customer
+            </button>
+            <button
+              onClick={() => switchTab('register_worker')}
+              className={`flex-1 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-1.5 ${
+                authModalTab === 'register_worker'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <HardHat className="w-4 h-4" /> Worker
+            </button>
+          </div>
+
+          {/* Error Banner */}
+          {errorMsg && (
+            <div className="p-3.5 bg-red-50 border border-red-200 text-red-800 text-sm font-medium rounded-xl flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+                <span className="text-sm">{errorMsg}</span>
               </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-1">
-                {demoAccounts.map((acc) => {
-                  const Icon = acc.icon;
-                  return (
-                    <button
-                      key={acc.role}
-                      type="button"
-                      onClick={() => handleDemoLogin(acc.input, acc.pass)}
-                      className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 border border-slate-700 text-left transition-all flex items-center gap-2 group"
-                    >
-                      <div className="p-1.5 rounded-lg bg-teal-500/20 text-teal-400 group-hover:bg-teal-500 group-hover:text-slate-950 transition-colors">
-                        <Icon className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-extrabold text-[11px] text-white leading-tight truncate">{acc.label}</p>
-                        <p className="text-[9px] text-slate-400 truncate">{acc.input.split('@')[0]}</p>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+              {isAlreadyRegistered && (
+                <button
+                  type="button"
+                  onClick={() => handleSwitchToLoginWithCreds(custEmail || custPhone || wrkEmail || wrkPhone)}
+                  className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors shrink-0"
+                >
+                  Log In →
+                </button>
+              )}
             </div>
+          )}
 
-            <form onSubmit={handleLoginSubmit} className="space-y-3.5 pt-1">
-              <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1">
-                  {t('phoneOrEmail') || 'Phone Number or Email'}
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  <input
-                    type="text"
-                    value={loginInput}
-                    onChange={(e) => setLoginInput(e.target.value)}
-                    required
-                    placeholder="e.g. 9701392418 or customer@sahakar.in"
-                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:outline-none text-xs font-semibold text-slate-900"
-                  />
+          {/* ═══════════ TAB 1: SIGN IN ═══════════ */}
+          {authModalTab === 'login' && (
+            <div className="space-y-5">
+
+              {/* Quick Demo Logins */}
+              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-teal-600" />
+                  <span className="text-sm font-bold text-slate-700">Quick Demo Access</span>
                 </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1">
-                  {t('passwordLabel') || 'Password'}
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  <input
-                    type={showLoginPassword ? 'text' : 'password'}
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    required
-                    placeholder={t('enterPasswordPlaceholder') || 'Enter your password'}
-                    className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:outline-none text-xs font-semibold text-slate-900"
-                  />
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setShowLoginPassword(!showLoginPassword)}
-                    className="absolute right-3 top-3 text-slate-400 hover:text-slate-700"
+                    onClick={() => handleDemoLogin('customer@sahakar.in', 'password123')}
+                    className="py-2.5 px-3 rounded-xl bg-white border border-slate-200 hover:border-teal-400 hover:bg-teal-50 transition-all text-sm font-bold text-slate-700 flex items-center gap-2 active:scale-95"
                   >
-                    {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    <User className="w-4 h-4 text-emerald-600" /> Customer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('worker@sahakar.in', 'password123')}
+                    className="py-2.5 px-3 rounded-xl bg-white border border-slate-200 hover:border-amber-400 hover:bg-amber-50 transition-all text-sm font-bold text-slate-700 flex items-center gap-2 active:scale-95"
+                  >
+                    <HardHat className="w-4 h-4 text-amber-600" /> Worker
                   </button>
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3 bg-teal-600 hover:bg-teal-700 active:scale-95 text-white rounded-xl font-extrabold text-xs shadow-lg transition-all flex items-center justify-center gap-2"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>{isSubmitting ? (t('authenticatingText') || 'Authenticating...') : (t('signInBtnText') || 'Sign In to Account')}</span>
-              </button>
-            </form>
-
-          </div>
-        )}
-
-        {/* TAB 2: CUSTOMER SIGNUP */}
-        {authModalTab === 'register_customer' && (
-          <form onSubmit={handleCustRegisterSubmit} className="space-y-3.5">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1">
-                  {t('fullNameLabel') || 'Full Name'}
-                </label>
-                <input
-                  type="text"
-                  value={custName}
-                  onChange={(e) => setCustName(e.target.value)}
-                  required
-                  placeholder="Ashuthosh Kumar"
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                />
+              {/* Divider */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-px bg-slate-200"></div>
+                <span className="text-xs font-semibold text-slate-400 uppercase">or sign in manually</span>
+                <div className="flex-1 h-px bg-slate-200"></div>
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase">
-                    {t('phoneNumberLabel') || 'Mobile Number'}
-                  </label>
-                  {custPhone && (
-                    <span className={`text-[10px] font-bold ${custPhoneAnalysis.isValid ? 'text-emerald-600' : 'text-amber-600'}`}>
-                      {custPhoneAnalysis.isValid ? '✓ Valid Mobile' : '10 Digits'}
-                    </span>
-                  )}
-                </div>
-                <input
+              {/* Login Form */}
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
+                <FormInput
+                  label="Phone or Email"
+                  icon={Mail}
+                  value={loginInput}
+                  onChange={(e) => setLoginInput(e.target.value)}
+                  placeholder="e.g. 9701392418 or name@email.com"
+                />
+
+                <FormInput
+                  label="Password"
+                  icon={Lock}
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  placeholder="Enter your password"
+                  isPassword
+                  showToggle
+                  showPassword={showLoginPassword}
+                  onToggle={() => setShowLoginPassword(!showLoginPassword)}
+                />
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-3.5 bg-teal-600 hover:bg-teal-700 active:scale-[0.98] text-white rounded-xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span>{isSubmitting ? 'Signing in...' : 'Sign In'}</span>
+                </button>
+              </form>
+
+              {/* Switch to Register */}
+              <p className="text-center text-sm text-slate-500">
+                Don't have an account?{' '}
+                <button onClick={() => switchTab('register_customer')} className="text-teal-700 font-bold hover:underline">
+                  Create one
+                </button>
+              </p>
+            </div>
+          )}
+
+          {/* ═══════════ TAB 2: CUSTOMER REGISTER ═══════════ */}
+          {authModalTab === 'register_customer' && (
+            <div className="space-y-5">
+              <div className="space-y-1">
+                <h2 className="text-lg font-black text-slate-900">Create Customer Account</h2>
+                <p className="text-sm text-slate-500">Book verified service workers at fair prices</p>
+              </div>
+
+              <form onSubmit={handleCustRegisterSubmit} className="space-y-4">
+                <FormInput
+                  label="Full Name"
+                  icon={User}
+                  value={custName}
+                  onChange={(e) => setCustName(e.target.value)}
+                  placeholder="e.g. Ashuthosh Kumar"
+                />
+
+                <FormInput
+                  label="Mobile Number"
+                  icon={Phone}
                   type="tel"
                   value={custPhone}
                   onChange={(e) => setCustPhone(e.target.value)}
-                  required
-                  maxLength={14}
                   placeholder="e.g. 9701392418"
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                  maxLength={14}
+                  badge={custPhone && (
+                    <span className={`text-xs font-bold ${custPhoneAnalysis.isValid ? 'text-emerald-600' : 'text-slate-400'}`}>
+                      {custPhoneAnalysis.isValid ? '✓ Valid' : '10 digits required'}
+                    </span>
+                  )}
                 />
-              </div>
-            </div>
 
-            <div>
-              <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1">
-                {t('emailAddressLabel') || 'Email Address (Optional)'}
-              </label>
-              <input
-                type="email"
-                value={custEmail}
-                onChange={(e) => setCustEmail(e.target.value)}
-                placeholder="customer@sahakar.in"
-                className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-              />
-            </div>
+                <FormInput
+                  label="Email (Optional)"
+                  icon={Mail}
+                  type="email"
+                  value={custEmail}
+                  onChange={(e) => setCustEmail(e.target.value)}
+                  placeholder="e.g. name@email.com"
+                  required={false}
+                />
 
-            <div>
-              <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1">
-                {t('passwordLabel') || 'Password'}
-              </label>
-              <div className="relative">
-                <input
-                  type={showCustPassword ? 'text' : 'password'}
+                <FormInput
+                  label="Create Password"
+                  icon={Lock}
                   value={custPassword}
                   onChange={(e) => setCustPassword(e.target.value)}
-                  required
-                  placeholder={t('chooseSecurePassword') || 'Choose a secure password (e.g. Secure@123)'}
-                  className="w-full px-3 pr-10 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                  placeholder="Min 8 characters with uppercase & number"
+                  isPassword
+                  showToggle
+                  showPassword={showCustPassword}
+                  onToggle={() => setShowCustPassword(!showCustPassword)}
                 />
+
+                {custPassword.length > 0 && <StrengthBar analysis={custPassAnalysis} />}
+
                 <button
-                  type="button"
-                  onClick={() => setShowCustPassword(!showCustPassword)}
-                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-700"
+                  type="submit"
+                  disabled={isSubmitting || (custPassword.length > 0 && !custPassAnalysis.isValid)}
+                  className={`w-full py-3.5 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 ${
+                    custPassAnalysis.isValid && custPhoneAnalysis.isValid
+                      ? 'bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }`}
                 >
-                  {showCustPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>{isSubmitting ? 'Creating Account...' : 'Create Account'}</span>
                 </button>
-              </div>
+              </form>
+
+              <p className="text-center text-sm text-slate-500">
+                Already have an account?{' '}
+                <button onClick={() => switchTab('login')} className="text-teal-700 font-bold hover:underline">
+                  Sign In
+                </button>
+              </p>
             </div>
+          )}
 
-            {/* Live Password Checklist */}
-            {custPassword.length > 0 && (
-              <PasswordChecklist analysis={custPassAnalysis} />
-            )}
-
-            <button
-              type="submit"
-              disabled={isSubmitting || (custPassword.length > 0 && !custPassAnalysis.isValid)}
-              className={`w-full py-3 rounded-xl font-extrabold text-xs shadow-lg transition-all flex items-center justify-center gap-2 ${
-                custPassAnalysis.isValid && custPhoneAnalysis.isValid
-                  ? 'bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white'
-                  : 'bg-slate-300 text-slate-500 cursor-not-allowed'
-              }`}
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>{isSubmitting ? 'Creating Account...' : (t('registerCustomerBtn') || 'Register Customer Account')}</span>
-            </button>
-          </form>
-        )}
-
-        {/* TAB 3: WORKER SIGNUP & AADHAAR KYC */}
-        {authModalTab === 'register_worker' && (
-          <form onSubmit={handleWorkerRegisterSubmit} className="space-y-3.5">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1">
-                  {t('workerNameLabel') || 'Worker Name'}
-                </label>
-                <input
-                  type="text"
-                  value={wrkName}
-                  onChange={(e) => setWrkName(e.target.value)}
-                  required
-                  placeholder="Ramesh Sharma"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase">
-                    {t('phoneNumberLabel') || 'Mobile Number'}
-                  </label>
-                  {wrkPhone && (
-                    <span className={`text-[10px] font-bold ${wrkPhoneAnalysis.isValid ? 'text-emerald-600' : 'text-amber-600'}`}>
-                      {wrkPhoneAnalysis.isValid ? '✓ Valid' : '10 Digits'}
-                    </span>
-                  )}
-                </div>
-                <input
-                  type="tel"
-                  value={wrkPhone}
-                  onChange={(e) => setWrkPhone(e.target.value)}
-                  required
-                  maxLength={14}
-                  placeholder="e.g. 9876543210"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-xs font-extrabold text-slate-700 uppercase">
-                    {t('aadhaarNoLabel') || 'Aadhaar (12 Digits)'}
-                  </label>
-                  {wrkAadhaar && (
-                    <span className={`text-[10px] font-bold ${wrkAadhaarAnalysis.isValid ? 'text-emerald-600' : 'text-amber-600'}`}>
-                      {wrkAadhaarAnalysis.isValid ? '✓ Valid' : '12 Digits'}
-                    </span>
-                  )}
-                </div>
-                <input
-                  type="text"
-                  value={wrkAadhaar}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, '').slice(0, 12);
-                    // auto format in blocks of 4
-                    const formatted = val.replace(/(\d{4})(?=\d)/g, '$1-');
-                    setWrkAadhaar(formatted);
-                  }}
-                  required
-                  placeholder="8829-1029-4411"
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1">
-                  {t('coopSocietyLabel') || 'Cooperative Society'}
-                </label>
-                <select
-                  value={wrkSocietyId}
-                  onChange={(e) => setWrkSocietyId(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white"
-                >
-                  {(societies && societies.length > 0 ? societies : []).map((s) => (
-                    <option key={s.id} value={s.id}>{s.name}</option>
+          {/* ═══════════ TAB 3: WORKER REGISTER (3-STEP) ═══════════ */}
+          {authModalTab === 'register_worker' && (
+            <div className="space-y-5">
+              
+              {/* Step Progress */}
+              <div className="space-y-2">
+                <h2 className="text-lg font-black text-slate-900">Worker Registration</h2>
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3].map((s) => (
+                    <React.Fragment key={s}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                        wrkStep === s
+                          ? 'bg-teal-600 text-white shadow-md'
+                          : wrkStep > s
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-slate-100 text-slate-400'
+                      }`}>
+                        {wrkStep > s ? <CheckCircle2 className="w-4 h-4" /> : s}
+                      </div>
+                      {s < 3 && (
+                        <div className={`flex-1 h-0.5 rounded-full ${wrkStep > s ? 'bg-emerald-400' : 'bg-slate-200'}`}></div>
+                      )}
+                    </React.Fragment>
                   ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1">
-                  {t('skillCategoryLabel') || 'Skill Category'}
-                </label>
-                <select
-                  value={wrkCategory}
-                  onChange={(e) => setWrkCategory(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white"
-                >
-                  <option value="electrician">{translateCategory('electrician', t)}</option>
-                  <option value="plumber">{translateCategory('plumber', t)}</option>
-                  <option value="carpenter">{translateCategory('carpenter', t)}</option>
-                  <option value="painter">{translateCategory('painter', t)}</option>
-                  <option value="domestic_helper">{translateCategory('domestic_helper', t)}</option>
-                  <option value="caregiver">{translateCategory('caregiver', t)}</option>
-                  <option value="technician">{translateCategory('technician', t)}</option>
-                </select>
+                </div>
+                <p className="text-sm text-slate-500">
+                  {wrkStep === 1 && 'Step 1: Personal Information'}
+                  {wrkStep === 2 && 'Step 2: Aadhaar KYC & Society'}
+                  {wrkStep === 3 && 'Step 3: Skills & Password'}
+                </p>
               </div>
 
-              <div>
-                <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1">
-                  {t('hourlyRateLabel') || 'Hourly Rate (Min ₹300)'}
-                </label>
-                <input
-                  type="number"
-                  value={wrkRate}
-                  onChange={(e) => setWrkRate(e.target.value)}
-                  required
-                  min={300}
-                  max={5000}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                />
-              </div>
-            </div>
+              <form onSubmit={handleWorkerRegisterSubmit} className="space-y-4">
 
-            <div>
-              <label className="block text-xs font-extrabold text-slate-700 uppercase mb-1">
-                {t('passwordLabel') || 'Password'}
-              </label>
-              <div className="relative">
-                <input
-                  type={showWrkPassword ? 'text' : 'password'}
-                  value={wrkPassword}
-                  onChange={(e) => setWrkPassword(e.target.value)}
-                  required
-                  placeholder={t('chooseSecurePassword') || 'Choose a password (e.g. Worker@2026)'}
-                  className="w-full px-3 pr-10 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowWrkPassword(!showWrkPassword)}
-                  className="absolute right-3 top-3 text-slate-400 hover:text-slate-700"
-                >
-                  {showWrkPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                {/* STEP 1: Personal Info */}
+                {wrkStep === 1 && (
+                  <>
+                    <FormInput
+                      label="Full Name"
+                      icon={User}
+                      value={wrkName}
+                      onChange={(e) => setWrkName(e.target.value)}
+                      placeholder="e.g. Ramesh Sharma"
+                    />
+                    <FormInput
+                      label="Mobile Number"
+                      icon={Phone}
+                      type="tel"
+                      value={wrkPhone}
+                      onChange={(e) => setWrkPhone(e.target.value)}
+                      placeholder="e.g. 9876543210"
+                      maxLength={14}
+                      badge={wrkPhone && (
+                        <span className={`text-xs font-bold ${wrkPhoneAnalysis.isValid ? 'text-emerald-600' : 'text-slate-400'}`}>
+                          {wrkPhoneAnalysis.isValid ? '✓ Valid' : '10 digits required'}
+                        </span>
+                      )}
+                    />
+                    <FormInput
+                      label="Email (Optional)"
+                      icon={Mail}
+                      type="email"
+                      value={wrkEmail}
+                      onChange={(e) => setWrkEmail(e.target.value)}
+                      placeholder="e.g. name@email.com"
+                      required={false}
+                    />
+                    <button
+                      type="button"
+                      disabled={!isWrkStep1Valid}
+                      onClick={() => { setErrorMsg(''); setWrkStep(2); }}
+                      className={`w-full py-3.5 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                        isWrkStep1Valid
+                          ? 'bg-teal-600 hover:bg-teal-700 active:scale-[0.98] text-white shadow-lg'
+                          : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                      }`}
+                    >
+                      <span>Next: KYC Verification</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </>
+                )}
+
+                {/* STEP 2: KYC & Society */}
+                {wrkStep === 2 && (
+                  <>
+                    <FormInput
+                      label="Aadhaar Number (12 digits)"
+                      icon={ShieldCheck}
+                      value={wrkAadhaar}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, '').slice(0, 12);
+                        const formatted = val.replace(/(\d{4})(?=\d)/g, '$1-');
+                        setWrkAadhaar(formatted);
+                      }}
+                      placeholder="e.g. 8829-1029-4411"
+                      badge={wrkAadhaar && (
+                        <span className={`text-xs font-bold ${wrkAadhaarAnalysis.isValid ? 'text-emerald-600' : 'text-slate-400'}`}>
+                          {wrkAadhaarAnalysis.isValid ? '✓ Verified Format' : '12 digits needed'}
+                        </span>
+                      )}
+                    />
+
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-slate-700">Cooperative Society</label>
+                      <select
+                        value={wrkSocietyId}
+                        onChange={(e) => setWrkSocietyId(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white"
+                      >
+                        {(societies && societies.length > 0 ? societies : []).map((s) => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setWrkStep(1)}
+                        className="flex-1 py-3 rounded-xl font-bold text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center justify-center gap-2"
+                      >
+                        <ArrowLeft className="w-4 h-4" /> Back
+                      </button>
+                      <button
+                        type="button"
+                        disabled={!isWrkStep2Valid}
+                        onClick={() => { setErrorMsg(''); setWrkStep(3); }}
+                        className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                          isWrkStep2Valid
+                            ? 'bg-teal-600 hover:bg-teal-700 active:scale-[0.98] text-white shadow-lg'
+                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        }`}
+                      >
+                        <span>Next: Skills</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {/* STEP 3: Skills & Password */}
+                {wrkStep === 3 && (
+                  <>
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-semibold text-slate-700">Skill Category</label>
+                      <select
+                        value={wrkCategory}
+                        onChange={(e) => setWrkCategory(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-medium text-slate-900 focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white"
+                      >
+                        <option value="electrician">{translateCategory('electrician', t)}</option>
+                        <option value="plumber">{translateCategory('plumber', t)}</option>
+                        <option value="carpenter">{translateCategory('carpenter', t)}</option>
+                        <option value="painter">{translateCategory('painter', t)}</option>
+                        <option value="domestic_helper">{translateCategory('domestic_helper', t)}</option>
+                        <option value="caregiver">{translateCategory('caregiver', t)}</option>
+                        <option value="technician">{translateCategory('technician', t)}</option>
+                      </select>
+                    </div>
+
+                    <FormInput
+                      label="Hourly Rate (Min ₹300)"
+                      type="number"
+                      value={wrkRate}
+                      onChange={(e) => setWrkRate(e.target.value)}
+                      placeholder="e.g. 350"
+                    />
+
+                    <FormInput
+                      label="Create Password"
+                      icon={Lock}
+                      value={wrkPassword}
+                      onChange={(e) => setWrkPassword(e.target.value)}
+                      placeholder="Min 8 characters"
+                      isPassword
+                      showToggle
+                      showPassword={showWrkPassword}
+                      onToggle={() => setShowWrkPassword(!showWrkPassword)}
+                    />
+
+                    {wrkPassword.length > 0 && <StrengthBar analysis={wrkPassAnalysis} />}
+
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setWrkStep(2)}
+                        className="py-3 px-5 rounded-xl font-bold text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all flex items-center justify-center gap-2"
+                      >
+                        <ArrowLeft className="w-4 h-4" /> Back
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting || !isWrkStep3Valid}
+                        className={`flex-1 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                          isWrkStep3Valid
+                            ? 'bg-amber-600 hover:bg-amber-700 active:scale-[0.98] text-white shadow-lg'
+                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                        }`}
+                      >
+                        <ShieldCheck className="w-4 h-4" />
+                        <span>{isSubmitting ? 'Registering...' : 'Register Worker'}</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </form>
+
+              <p className="text-center text-sm text-slate-500">
+                Already registered?{' '}
+                <button onClick={() => switchTab('login')} className="text-teal-700 font-bold hover:underline">
+                  Sign In
                 </button>
-              </div>
+              </p>
             </div>
+          )}
 
-            {/* Live Password Checklist for Worker */}
-            {wrkPassword.length > 0 && (
-              <PasswordChecklist analysis={wrkPassAnalysis} />
-            )}
-
-            <button
-              type="submit"
-              disabled={isSubmitting || (wrkPassword.length > 0 && !wrkPassAnalysis.isValid)}
-              className={`w-full py-3 rounded-xl font-extrabold text-xs shadow-lg transition-all flex items-center justify-center gap-2 ${
-                wrkPassAnalysis.isValid && wrkPhoneAnalysis.isValid && wrkAadhaarAnalysis.isValid
-                  ? 'bg-amber-600 hover:bg-amber-700 active:scale-95 text-white'
-                  : 'bg-slate-300 text-slate-500 cursor-not-allowed'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4" />
-              <span>{isSubmitting ? 'Verifying Aadhaar KYC...' : (t('registerWorkerBtn') || 'Register Worker & Link to Cooperative')}</span>
-            </button>
-          </form>
-        )}
+        </div>
       </div>
-    </Modal>
+    </div>
   );
 };
-

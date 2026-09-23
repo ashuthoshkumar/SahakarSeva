@@ -10,7 +10,7 @@ export const MobileHeader = ({ setActiveTab }) => {
   const { t, lang, openLanguageModal } = useLanguage();
 
   return (
-    <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80 text-white px-4 pt-8 pb-3 shadow-lg">
+    <header className="sticky top-0 z-40 bg-slate-950/95 backdrop-blur-xl border-b border-slate-800/80 text-white px-4 pt-3 pb-3 shadow-lg safe-area-top">
       <div className="flex items-center justify-between gap-2 max-w-md mx-auto">
         
         {/* BRAND LOGO & TITLE */}

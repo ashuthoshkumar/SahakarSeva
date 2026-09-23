@@ -12,6 +12,7 @@
     -webkit-tap-highlight-color: transparent;
     overscroll-behavior: none;
     overflow-x: hidden;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   }
   * {
     -webkit-tap-highlight-color: transparent;
@@ -20,7 +21,7 @@
 
 /* Safe Area padding for phones with notch/rounded corners */
 .safe-area-top {
-  padding-top: max(28px, env(safe-area-inset-top, 28px));
+  padding-top: max(12px, env(safe-area-inset-top, 12px));
 }
 .safe-area-bottom {
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -38,8 +39,8 @@
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .card-hover:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 28px -4px rgba(13, 148, 136, 0.12), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(13, 148, 136, 0.1), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
 }
 
 /* India Cooperative Govt Header Bar */
@@ -100,11 +101,8 @@ button, a, [role="button"] {
   user-select: none;
 }
 
-/* Fix input zoom on iOS */
+/* Fix input zoom on iOS — keep 16px to prevent auto-zoom */
 input, select, textarea {
-  font-size: 16px !important;
-}
-input[type="text"], input[type="email"], input[type="password"], input[type="tel"], input[type="number"] {
   font-size: 16px !important;
 }
 
@@ -114,7 +112,7 @@ input[type="text"], input[type="email"], input[type="password"], input[type="tel
   to   { opacity: 1; transform: scale(1); }
 }
 .animate-fadeIn {
-  animation: fadeIn 0.18s ease-out both;
+  animation: fadeIn 0.2s ease-out both;
 }
 
 @keyframes slideInDown {
@@ -123,4 +121,13 @@ input[type="text"], input[type="email"], input[type="password"], input[type="tel
 }
 .animate-slideIn {
   animation: slideInDown 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* Smooth page transitions */
+@keyframes pageSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-pageIn {
+  animation: pageSlideIn 0.25s ease-out both;
 }

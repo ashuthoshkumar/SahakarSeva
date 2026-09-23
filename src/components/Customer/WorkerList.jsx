@@ -66,7 +66,7 @@ export const WorkerList = () => {
               )}
             </h3>
 
-            <span className="text-[11px] font-black bg-teal-50 text-teal-800 px-2 py-0.5 rounded-full border border-teal-200">
+            <span className="text-xs font-black bg-teal-50 text-teal-800 px-2 py-0.5 rounded-full border border-teal-200">
               {filteredWorkers.length} {filteredWorkers.length === 1 ? 'Worker' : 'Workers'}
             </span>
           </div>
@@ -175,7 +175,7 @@ export const WorkerList = () => {
                         <span>{translateWorkerName(worker.name, lang)}</span>
                         <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                       </h4>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-teal-700">
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-teal-700">
                         <Award className="w-3 h-3" /> {translateNcctLevel(worker.ncctLevel, lang)}
                       </span>
                     </div>
@@ -185,8 +185,8 @@ export const WorkerList = () => {
                     <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-bold">
                       {(worker.distanceKm != null && !isNaN(worker.distanceKm)) ? worker.distanceKm.toFixed(1) : '0.5'} km
                     </span>
-                    <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                      ● Ready Now
+                    <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                      ● Available
                     </span>
                   </div>
                 </div>
@@ -194,10 +194,10 @@ export const WorkerList = () => {
                 {/* Category Chip & Society Affiliation */}
                 <div className="bg-slate-50 border border-slate-100 rounded-xl p-2.5 mb-2.5 text-xs flex items-center justify-between gap-2">
                   <div className="min-w-0">
-                    <span className="text-[9px] uppercase font-bold text-slate-400 block">{t('cooperativeSociety')}</span>
-                    <p className="font-bold text-slate-800 truncate text-[11px]">{worker.societyName}</p>
+                    <span className="text-xs uppercase font-bold text-slate-400 block">{t('cooperativeSociety')}</span>
+                    <p className="font-bold text-slate-800 truncate text-xs">{worker.societyName}</p>
                   </div>
-                  <span className="px-2 py-0.5 rounded-lg bg-teal-100/70 text-teal-800 text-[10px] font-extrabold shrink-0 border border-teal-200/50">
+                  <span className="px-2 py-0.5 rounded-lg bg-teal-100/70 text-teal-800 text-xs font-extrabold shrink-0 border border-teal-200/50">
                     {translateCategory(worker.category, t)}
                   </span>
                 </div>
@@ -205,12 +205,12 @@ export const WorkerList = () => {
                 {/* Key Metrics */}
                 <div className="grid grid-cols-2 gap-2 text-xs mb-3">
                   <div className="bg-emerald-50/70 p-2 rounded-xl border border-emerald-100">
-                    <span className="text-[10px] text-slate-500 font-medium">{t('baseHourlyRate')}</span>
+                    <span className="text-xs text-slate-500 font-medium">{t('baseHourlyRate')}</span>
                     <p className="font-extrabold text-emerald-800 text-sm">₹{worker.hourlyRate}/hr</p>
                   </div>
 
                   <div className="bg-amber-50/70 p-2 rounded-xl border border-amber-100">
-                    <span className="text-[10px] text-slate-500 font-medium">{t('ratingAndJobs')}</span>
+                    <span className="text-xs text-slate-500 font-medium">{t('ratingAndJobs')}</span>
                     <StarRating rating={worker.rating} count={worker.reviewsCount} />
                   </div>
                 </div>
@@ -220,7 +220,7 @@ export const WorkerList = () => {
                   {(worker.skills || []).slice(0, 3).map((skill, idx) => (
                     <span
                       key={idx}
-                      className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium"
+                      className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-xs font-medium"
                     >
                       {translateSkill(skill, lang)}
                     </span>

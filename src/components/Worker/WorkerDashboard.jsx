@@ -144,8 +144,8 @@ export const WorkerDashboard = () => {
 
           <div className="min-w-0 flex-1">
             <h2 className="text-base font-bold text-slate-900 truncate">{workerStats?.name}</h2>
-            <p className="text-[10px] text-slate-500 font-medium capitalize truncate">{workerStats?.category} • {workerStats?.phone}</p>
-            <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[9px] font-bold border border-emerald-200">
+            <p className="text-xs text-slate-500 font-medium capitalize truncate">{workerStats?.category} • {workerStats?.phone}</p>
+            <div className="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
               <CheckCircle2 className="w-3 h-3" />
               <span>{t('ncctVerified')}</span>
             </div>
@@ -166,11 +166,11 @@ export const WorkerDashboard = () => {
             <Award className="w-5 h-5 text-amber-300" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[9px] font-bold uppercase tracking-wider text-teal-100">{t('officialCertification')}</p>
+            <p className="text-xs font-bold uppercase tracking-wider text-teal-100">{t('officialCertification')}</p>
             <p className="font-extrabold text-xs truncate">{translateNcctLevel(workerStats?.ncctLevel, lang)}</p>
-            <p className="text-[10px] text-teal-100 truncate">{workerStats?.societyName}</p>
+            <p className="text-xs text-teal-100 truncate">{workerStats?.societyName}</p>
           </div>
-          <span className="px-2 py-1 bg-white/15 rounded-lg text-[9px] font-bold border border-white/25 shrink-0">
+          <span className="px-2 py-1 bg-white/15 rounded-lg text-xs font-bold border border-white/25 shrink-0">
             {workerStats?.jobsCompleted} {t('workersCount') || 'Jobs'}
           </span>
         </div>
@@ -180,7 +180,7 @@ export const WorkerDashboard = () => {
       <div className="grid grid-cols-2 gap-2.5">
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-[9px] font-bold uppercase">{t('todaysPayout')}</span>
+            <span className="text-xs font-bold uppercase">{t('todaysPayout')}</span>
             <DollarSign className="w-3.5 h-3.5 text-emerald-600" />
           </div>
           <p className="text-xl font-black text-slate-900 mt-1">₹{workerStats?.todayEarnings || 0}</p>
@@ -188,7 +188,7 @@ export const WorkerDashboard = () => {
 
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-[9px] font-bold uppercase">{t('monthlyIncome')}</span>
+            <span className="text-xs font-bold uppercase">{t('monthlyIncome')}</span>
             <HardHat className="w-3.5 h-3.5 text-teal-600" />
           </div>
           <p className="text-xl font-black text-slate-900 mt-1">₹{workerStats?.monthlyEarnings || 0}</p>
@@ -196,7 +196,7 @@ export const WorkerDashboard = () => {
 
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-[9px] font-bold uppercase truncate">{t('coopWelfareSavings')}</span>
+            <span className="text-xs font-bold uppercase truncate">{t('coopWelfareSavings')}</span>
             <HeartHandshake className="w-3.5 h-3.5 text-orange-600" />
           </div>
           <p className="text-xl font-black text-slate-900 mt-1">₹{workerStats?.welfareFundBalance || 0}</p>
@@ -204,7 +204,7 @@ export const WorkerDashboard = () => {
 
         <div className="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between text-slate-500">
-            <span className="text-[9px] font-bold uppercase">{t('healthAccidentCover')}</span>
+            <span className="text-xs font-bold uppercase">{t('healthAccidentCover')}</span>
             <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
           </div>
           <p className="text-lg font-extrabold text-slate-900 mt-1">⭐ {workerStats?.rating || 5.0}</p>

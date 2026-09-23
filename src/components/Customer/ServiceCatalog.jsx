@@ -91,7 +91,7 @@ export const ServiceCatalog = () => {
           <Grid className="w-4 h-4 text-teal-600" />
           <span>{t('categoriesTitle')}</span>
           {trimmedQuery && (
-            <span className="text-[11px] font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+            <span className="text-xs font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
               {filteredCategories.length} {filteredCategories.length === 1 ? 'match' : 'matches'}
             </span>
           )}
@@ -137,10 +137,10 @@ export const ServiceCatalog = () => {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-teal-300 bg-teal-500/20 px-2 py-0.5 rounded-full border border-teal-400/30">
+                  <span className="text-xs font-black uppercase tracking-wider text-teal-300 bg-teal-500/20 px-2 py-0.5 rounded-full border border-teal-400/30">
                     Selected Category
                   </span>
-                  <span className="text-[11px] font-bold text-slate-300">
+                  <span className="text-xs font-bold text-slate-300">
                     ₹300/hr Wage Floor
                   </span>
                 </div>
@@ -237,7 +237,7 @@ export const ServiceCatalog = () => {
                   </div>
 
                   {!isSelected && (
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600`}>
                       {liveCount} {t('workersCount')}
                     </span>
                   )}
@@ -247,16 +247,16 @@ export const ServiceCatalog = () => {
                   <h4 className="font-extrabold text-xs text-slate-900 leading-snug">
                     {translatedName}
                   </h4>
-                  <p className="text-[10px] text-slate-500 line-clamp-1 mt-0.5">
+                  <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">
                     {translatedDesc}
                   </p>
 
-                  <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-bold">
+                  <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-xs font-bold">
                     <span className={isSelected ? 'text-teal-700' : 'text-slate-400 group-hover:text-teal-600'}>
                       {isSelected ? '✓ Showing Workers' : 'View Workers →'}
                     </span>
                     {isSelected && (
-                      <span className="text-[9px] font-black text-emerald-700 bg-emerald-100 px-1.5 py-0.2 rounded">
+                      <span className="text-xs font-black text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">
                         {liveCount} Active
                       </span>
                     )}
