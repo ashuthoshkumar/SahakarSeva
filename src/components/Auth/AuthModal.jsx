@@ -17,6 +17,58 @@ import {
   validateEmail
 } from '../../utils/validation';
 
+// --- Password strength bar (defined outside AuthModal to prevent re-renders) ---
+const StrengthBar = ({ analysis }) => {
+  if (!analysis) return null;
+  const pct = (analysis.score / 5) * 100;
+  const color = analysis.score <= 2 ? 'bg-red-500' : analysis.score <= 4 ? 'bg-amber-500' : 'bg-emerald-500';
+  const label = analysis.score <= 2 ? 'Weak' : analysis.score <= 4 ? 'Medium' : 'Strong';
+  return (
+    <div className="space-y-1">
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-slate-500">Password strength</span>
+        <span className={`text-xs font-bold ${analysis.score <= 2 ? 'text-red-600' : analysis.score <= 4 ? 'text-amber-600' : 'text-emerald-600'}`}>
+          {label} ({analysis.score}/5)
+        </span>
+      </div>
+      <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+        <div className={`h-full transition-all duration-300 rounded-full ${color}`} style={{ width: `${pct}%` }}></div>
+      </div>
+    </div>
+  );
+};
+
+// --- Shared input component (defined outside AuthModal to prevent keyboard dismiss on re-render) ---
+const FormInput = ({ label, icon: Icon, type = 'text', value, onChange, placeholder, required = true, badge, maxLength, showToggle, isPassword, onToggle, showPassword }) => (
+  <div className="space-y-1.5">
+    <div className="flex items-center justify-between">
+      <label className="text-sm font-semibold text-slate-700">{label}</label>
+      {badge}
+    </div>
+    <div className="relative">
+      {Icon && <Icon className="w-4.5 h-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />}
+      <input
+        type={isPassword ? (showPassword ? 'text' : 'password') : type}
+        value={value}
+        onChange={onChange}
+        required={required}
+        placeholder={placeholder}
+        maxLength={maxLength}
+        className={`w-full ${Icon ? 'pl-10' : 'pl-4'} ${showToggle ? 'pr-12' : 'pr-4'} py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none text-sm font-medium text-slate-900 bg-white transition-all placeholder:text-slate-400`}
+      />
+      {showToggle && (
+        <button
+          type="button"
+          onClick={onToggle}
+          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1"
+        >
+          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        </button>
+      )}
+    </div>
+  </div>
+);
+
 export const AuthModal = () => {
   const { 
     isAuthModalOpen, 
@@ -196,57 +248,6 @@ export const AuthModal = () => {
     }
   };
 
-  // --- Password strength bar ---
-  const StrengthBar = ({ analysis }) => {
-    if (!analysis) return null;
-    const pct = (analysis.score / 5) * 100;
-    const color = analysis.score <= 2 ? 'bg-red-500' : analysis.score <= 4 ? 'bg-amber-500' : 'bg-emerald-500';
-    const label = analysis.score <= 2 ? 'Weak' : analysis.score <= 4 ? 'Medium' : 'Strong';
-    return (
-      <div className="space-y-1">
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-slate-500">Password strength</span>
-          <span className={`text-xs font-bold ${analysis.score <= 2 ? 'text-red-600' : analysis.score <= 4 ? 'text-amber-600' : 'text-emerald-600'}`}>
-            {label} ({analysis.score}/5)
-          </span>
-        </div>
-        <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-          <div className={`h-full transition-all duration-300 rounded-full ${color}`} style={{ width: `${pct}%` }}></div>
-        </div>
-      </div>
-    );
-  };
-
-  // --- Shared input component for consistency ---
-  const FormInput = ({ label, icon: Icon, type = 'text', value, onChange, placeholder, required = true, badge, maxLength, showToggle, isPassword, onToggle, showPassword }) => (
-    <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-semibold text-slate-700">{label}</label>
-        {badge}
-      </div>
-      <div className="relative">
-        {Icon && <Icon className="w-4.5 h-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />}
-        <input
-          type={isPassword ? (showPassword ? 'text' : 'password') : type}
-          value={value}
-          onChange={onChange}
-          required={required}
-          placeholder={placeholder}
-          maxLength={maxLength}
-          className={`w-full ${Icon ? 'pl-10' : 'pl-4'} ${showToggle ? 'pr-12' : 'pr-4'} py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none text-sm font-medium text-slate-900 bg-white transition-all placeholder:text-slate-400`}
-        />
-        {showToggle && (
-          <button
-            type="button"
-            onClick={onToggle}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1"
-          >
-            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-          </button>
-        )}
-      </div>
-    </div>
-  );
 
   // --- Tab switching ---
   const switchTab = (tab) => {
