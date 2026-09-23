@@ -73,14 +73,15 @@ export const MobileHeader = ({ setActiveTab }) => {
 
 export const MobileBottomNav = ({ activeTab, setActiveTab }) => {
   const { setEmergencyModalOpen, bookings } = useApp();
-  const { isAuthenticated, openAuthModal } = useAuth();
+  const { isAuthenticated, openAuthModal, user } = useAuth();
   const { t } = useLanguage();
 
+  const isWorker = user?.role === 'worker';
   const pendingBookingsCount = bookings.filter(b => b.status !== 'Confirmed & Paid').length;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-slate-950 border-t border-slate-800/90 shadow-2xl safe-area-bottom">
-      <div className="max-w-md mx-auto grid grid-cols-4 items-center text-center px-2 py-1.5">
+      <div className={`max-w-md mx-auto grid ${isWorker ? 'grid-cols-3' : 'grid-cols-4'} items-center text-center px-2 py-1.5`}>
         
         {/* TAB 1: HOME */}
         <button
@@ -123,16 +124,19 @@ export const MobileBottomNav = ({ activeTab, setActiveTab }) => {
           )}
         </button>
 
-        {/* TAB 3: EMERGENCY SOS (HIGHLIGHTED RED) */}
-        <button
-          onClick={() => setEmergencyModalOpen(true)}
-          className="flex flex-col items-center justify-center py-1 text-rose-400 font-black transition-all"
-        >
-          <div className="p-2 rounded-2xl bg-gradient-to-tr from-rose-600 to-red-500 text-white shadow-lg shadow-rose-600/40 sos-pulse-btn">
-            <AlertTriangle className="w-5 h-5" />
-          </div>
-          <span className="text-[9px] mt-0.5 text-rose-400 font-black">{t('sosEmergency') || 'SOS 15M'}</span>
-        </button>
+        {/* TAB 3: EMERGENCY SOS (CUSTOMERS ONLY - EXCLUDED FOR WORKERS) */}
+        {!isWorker && (
+          <button
+            onClick={() => setEmergencyModalOpen(true)}
+            className="flex flex-col items-center justify-center py-1 text-rose-400 font-black transition-all"
+            title="Emergency SOS Dispatch"
+          >
+            <div className="p-2 rounded-2xl bg-gradient-to-tr from-rose-600 to-red-500 text-white shadow-lg shadow-rose-600/40 sos-pulse-btn">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <span className="text-[9px] mt-0.5 text-rose-400 font-black">{t('sosEmergency') || 'SOS 15M'}</span>
+          </button>
+        )}
 
         {/* TAB 4: ACCOUNT / LOGIN */}
         <button
