@@ -491,7 +491,7 @@ export const AuthModal = () => {
                     custNameAnalysis.isValid ? (
                       <span className="text-xs font-bold text-emerald-600">âœ“ Valid Name</span>
                     ) : (
-                      <span className="text-xs font-bold text-red-500">âœ— {custNameAnalysis.error}</span>
+                      <span className="text-xs font-bold text-red-500">x {custNameAnalysis.error}</span>
                     )
                   ) : null}
                 />
@@ -513,7 +513,7 @@ export const AuthModal = () => {
                     custPhoneAnalysis.isValid ? (
                       <span className="text-xs font-bold text-emerald-600">âœ“ Valid (10 Digits)</span>
                     ) : (
-                      <span className="text-xs font-bold text-red-500">âœ— {custPhoneAnalysis.error}</span>
+                      <span className="text-xs font-bold text-red-500">x {custPhoneAnalysis.error}</span>
                     )
                   ) : (
                     <span className="text-xs text-slate-400">10 digits (starts 6-9)</span>
@@ -531,9 +531,9 @@ export const AuthModal = () => {
                   isInvalid={Boolean(custEmail && !custEmailAnalysis.isValid)}
                   badge={custEmail ? (
                     custEmailAnalysis.isValid ? (
-                      <span className="text-xs font-bold text-emerald-600">âœ“ Valid Email</span>
+                      <span className="text-xs font-bold text-emerald-600">&#10003; Valid Email</span>
                     ) : (
-                      <span className="text-xs font-bold text-red-500">âœ— Invalid Format</span>
+                      <span className="text-xs font-bold text-red-500">&#10005; Invalid Format</span>
                     )
                   ) : (
                     <span className="text-xs text-slate-400">Optional</span>
@@ -553,7 +553,7 @@ export const AuthModal = () => {
                   isInvalid={Boolean(custPassword && !custPassAnalysis.isValid)}
                   badge={custPassword ? (
                     custPassAnalysis.isValid ? (
-                      <span className="text-xs font-bold text-emerald-600">âœ“ Strong Password</span>
+                      <span className="text-xs font-bold text-emerald-600">&#10003; Strong Password</span>
                     ) : (
                       <span className="text-xs font-bold text-amber-600">Incomplete</span>
                     )
@@ -633,7 +633,7 @@ export const AuthModal = () => {
                         wrkNameAnalysis.isValid ? (
                           <span className="text-xs font-bold text-emerald-600">âœ“ Valid Name</span>
                         ) : (
-                          <span className="text-xs font-bold text-red-500">âœ— {wrkNameAnalysis.error}</span>
+                          <span className="text-xs font-bold text-red-500">x {wrkNameAnalysis.error}</span>
                         )
                       ) : null}
                     />
@@ -653,7 +653,7 @@ export const AuthModal = () => {
                         wrkPhoneAnalysis.isValid ? (
                           <span className="text-xs font-bold text-emerald-600">âœ“ Valid (10 Digits)</span>
                         ) : (
-                          <span className="text-xs font-bold text-red-500">âœ— {wrkPhoneAnalysis.error}</span>
+                          <span className="text-xs font-bold text-red-500">x {wrkPhoneAnalysis.error}</span>
                         )
                       ) : (
                         <span className="text-xs text-slate-400">10 digits (starts 6-9)</span>
@@ -670,9 +670,9 @@ export const AuthModal = () => {
                       isInvalid={Boolean(wrkEmail && !wrkEmailAnalysis.isValid)}
                       badge={wrkEmail ? (
                         wrkEmailAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">âœ“ Valid Email</span>
+                          <span className="text-xs font-bold text-emerald-600">&#10003; Valid Email</span>
                         ) : (
-                          <span className="text-xs font-bold text-red-500">âœ— Invalid Format</span>
+                          <span className="text-xs font-bold text-red-500">&#10005; Invalid Format</span>
                         )
                       ) : (
                         <span className="text-xs text-slate-400">Optional</span>
@@ -712,7 +712,7 @@ export const AuthModal = () => {
                         wrkAadhaarAnalysis.isValid ? (
                           <span className="text-xs font-bold text-emerald-600">âœ“ Valid Aadhaar</span>
                         ) : (
-                          <span className="text-xs font-bold text-red-500">âœ— {wrkAadhaarAnalysis.error}</span>
+                          <span className="text-xs font-bold text-red-500">x {wrkAadhaarAnalysis.error}</span>
                         )
                       ) : (
                         <span className="text-xs text-slate-400">12 numeric digits</span>
@@ -879,7 +879,7 @@ export const AuthModal = () => {
                       isInvalid={Boolean(wrkPassword && !wrkPassAnalysis.isValid)}
                       badge={wrkPassword ? (
                         wrkPassAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">âœ“ Strong Password</span>
+                          <span className="text-xs font-bold text-emerald-600">&#10003; Strong Password</span>
                         ) : (
                           <span className="text-xs font-bold text-amber-600">Incomplete</span>
                         )
