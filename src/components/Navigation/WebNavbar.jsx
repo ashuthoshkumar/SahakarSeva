@@ -47,38 +47,6 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
 
   return (
     <header className="sticky top-0 z-40 w-full font-sans shadow-md">
-      
-      {/* Top Govt / SIH Trust Bar */}
-      <div className="bg-slate-950 text-slate-300 text-xs border-b border-slate-800/80 px-4 sm:px-8 py-1.5 hidden md:flex items-center justify-between">
-        <div className="flex items-center gap-4 text-[11px] font-medium">
-          <span className="flex items-center gap-1.5 text-teal-400 font-bold">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>Smart India Hackathon (SIH 2026)</span>
-          </span>
-          <span className="text-slate-600">•</span>
-          <span className="text-slate-400">Under Ministry of Cooperation & NCCT</span>
-          <span className="text-slate-600">•</span>
-          <span className="text-emerald-400 font-bold flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            100% Direct Cooperative Payouts (Zero Exploitation)
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4 text-[11px]">
-          <span className="flex items-center gap-1 text-slate-300">
-            <PhoneCall className="w-3 h-3 text-teal-400" />
-            <span>24x7 Cooperative Helpline: <strong>1800-SAHAKAR</strong></span>
-          </span>
-          <span className="text-slate-600">•</span>
-          <button
-            onClick={openLanguageModal}
-            className="flex items-center gap-1 text-teal-300 hover:text-teal-200 transition-colors uppercase font-mono font-bold"
-          >
-            <Globe className="w-3 h-3 text-teal-400" />
-            <span>{lang}</span>
-          </button>
-        </div>
-      </div>
 
       {/* Main Desktop Navbar */}
       <div className="bg-slate-900/95 backdrop-blur-xl border-b border-slate-800 text-white px-4 sm:px-6 lg:px-8 py-3 transition-all">
