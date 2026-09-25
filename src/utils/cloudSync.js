@@ -35,19 +35,9 @@ export const setSavedBackendUrl = (url) => {
   } catch (e) {}
 };
 
-// ─── Fetch Workers from Public Cloud Hub ───
+// ─── Fetch Workers from Public Cloud Hub (Disabled synthetic / mock data) ───
 export const fetchCloudWorkers = async () => {
-  try {
-    const res = await fetch(`${CLOUD_API_BASE}/${CLOUD_WORKERS_ID}`, {
-      cache: 'no-store'
-    });
-    if (!res.ok) return [];
-    const json = await res.json();
-    return Array.isArray(json?.data?.workers) ? json.data.workers : [];
-  } catch (err) {
-    console.warn('Cloud worker fetch notice (offline/restricted):', err.message);
-    return [];
-  }
+  return [];
 };
 
 // ─── Push a New Registered Worker to Cloud Hub ───

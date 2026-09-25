@@ -37,9 +37,9 @@ async function wipeDatabase() {
   const resUsers = await dbRun("DELETE FROM users WHERE role = 'customer' OR role = 'worker'");
   console.log(`Deleted customer and worker users. Changes: ${resUsers.changes}`);
 
-  // 3. Delete any extra registered workers created during testing (preserve only seed worker templates 101-106)
-  const resWorkers = await dbRun("DELETE FROM workers WHERE id NOT IN ('wrk_101', 'wrk_102', 'wrk_103', 'wrk_104', 'wrk_105', 'wrk_106')");
-  console.log(`Cleaned registered workers. Changes: ${resWorkers.changes}`);
+  // 3. Delete all worker profiles (0 fake workers)
+  const resWorkers = await dbRun('DELETE FROM workers');
+  console.log(`Deleted all workers. Changes: ${resWorkers.changes}`);
 
   // 4. Vacuum database to reclaim space and clean up journal
   await dbRun('VACUUM');

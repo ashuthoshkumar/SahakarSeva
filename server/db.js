@@ -154,25 +154,6 @@ export const initDB = async () => {
     `);
   }
 
-  // Seed Initial Workers if empty
-  const workerCount = await dbGet('SELECT COUNT(*) as count FROM workers');
-  if (workerCount.count === 0) {
-    const seedWorkers = [
-      ['wrk_101', 'Ramesh Sharma', 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=250', 'electrician', 'soc_delhi_1', 'Delhi NCR Shramik Sahakari Samiti', 4.9, 142, 310, 8, 350, 28.6139, 77.2090, 'Level 3 Master Craftsman', 'Aadhaar Verified', 'Clear (Verified by Delhi Police)', 'AB-8829-1029-4411', 'DL/CPM/88219/101', 1, JSON.stringify(['MCB Wiring', 'Inverter Repair', 'Smart Switches', 'Industrial Solar Panels']), '+91 98765 43210'],
-      ['wrk_102', 'Sunita Devi', 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=250', 'caregiver', 'soc_delhi_1', 'Delhi NCR Shramik Sahakari Samiti', 4.95, 98, 215, 6, 320, 28.6250, 77.2180, 'Level 2 Certified Nursing Assistant', 'Aadhaar Verified', 'Clear', 'AB-4410-9921-1029', 'DL/CPM/88219/102', 1, JSON.stringify(['Elderly Care', 'Blood Pressure & Sugar Monitor', 'Physiotherapy Assist', 'Post-Op Care']), '+91 98111 22334'],
-      ['wrk_103', 'Vikram Singh', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250', 'plumber', 'soc_delhi_1', 'Delhi NCR Shramik Sahakari Samiti', 4.8, 110, 190, 7, 350, 28.6080, 77.2300, 'Level 2 Hydro Technician', 'Aadhaar Verified', 'Clear', 'AB-7711-3092-8812', 'DL/CPM/88219/103', 1, JSON.stringify(['High Pressure Leak Fix', 'CPVC Fitting', 'Geyser Installation', 'Motor Pump Overhaul']), '+91 97123 45678'],
-      ['wrk_104', 'Mohammed Mansoor', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=250', 'carpenter', 'soc_delhi_1', 'Delhi NCR Shramik Sahakari Samiti', 4.85, 76, 145, 9, 380, 28.6300, 77.2000, 'Level 3 Wood Craftsman', 'Aadhaar Verified', 'Clear', 'AB-5590-1120-7733', 'DL/CPM/88219/104', 1, JSON.stringify(['Modular Kitchen Repair', 'Custom Shelving', 'Door Frame Realignment', 'Furniture Polishing']), '+91 99887 76655'],
-      ['wrk_105', 'Pooja Patil', 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=250', 'domestic_helper', 'soc_mh_1', 'Maharashtra Household & Skilled Workers Coop', 4.9, 160, 340, 5, 300, 19.0760, 72.8777, 'Level 2 Sanitation Specialist', 'Aadhaar Verified', 'Clear (Mumbai Police)', 'AB-3392-8819-0012', 'MH/BOM/55120/105', 1, JSON.stringify(['Nutritious Meal Prep', 'Utensil Washing Machine', 'Floor Sanitization', 'Laundry Care']), '+91 98222 33445'],
-      ['wrk_106', 'Ganesh Shinde', 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=250', 'technician', 'soc_mh_1', 'Maharashtra Household & Skilled Workers Coop', 4.75, 88, 175, 6, 400, 19.0820, 72.8900, 'Level 2 HVAC & Electronics', 'Aadhaar Verified', 'Clear', 'AB-9921-4412-5501', 'MH/BOM/55120/106', 0, JSON.stringify(['Inverter AC Gas Refill', 'PCB Washing Machine Fix', 'Double Door Fridge Repair']), '+91 97654 32109']
-    ];
-
-    for (const w of seedWorkers) {
-      await dbRun(`
-        INSERT INTO workers (id, name, photo, category, societyId, societyName, rating, reviewsCount, jobsCompleted, experienceYears, hourlyRate, lat, lng, ncctLevel, kycStatus, policeVerification, ayushmanCard, pfAccountNumber, onDuty, skills, phone)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, w);
-    }
-  }
-
+  // Workers table starts 100% clean and empty (0 workers until real workers register)
   // Bookings are 100% clean and empty by default (0 transactions)
 };

@@ -732,7 +732,7 @@ app.post('/api/admin/reset-database', async (req, res) => {
 
     const resBookings = await dbRun('DELETE FROM bookings');
     const resUsers = await dbRun("DELETE FROM users WHERE role = 'customer' OR role = 'worker'");
-    const resWorkers = await dbRun("DELETE FROM workers WHERE id NOT IN ('wrk_101', 'wrk_102', 'wrk_103', 'wrk_104', 'wrk_105', 'wrk_106')");
+    const resWorkers = await dbRun('DELETE FROM workers');
     await dbRun('VACUUM');
     res.json({
       success: true,

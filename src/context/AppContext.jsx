@@ -1,12 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import {
-  fetchCloudWorkers,
   pushCloudWorker,
   getSavedBackendUrl,
   setSavedBackendUrl,
   DEFAULT_LAN_IP
 } from '../utils/cloudSync';
-import { DEFAULT_WORKERS } from '../data/defaultWorkers';
 
 const AppContext = createContext();
 
@@ -20,11 +18,22 @@ const STORAGE_KEYS = {
   LAST_GPS: 'sahakar_last_gps'
 };
 
-// Helper: read JSON array from localStorage
+// Helper: read JSON array from localStorage with automatic synthetic data purge
 const readStorage = (key, fallback = []) => {
   try {
     const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw);
+    if (key === STORAGE_KEYS.WORKERS && Array.isArray(parsed)) {
+      // Purge any legacy synthetic or mock worker templates
+      const syntheticNames = new Set(['Ramesh Kumar', 'Sunita Devi', 'Vikram Singh', 'Pooja Sharma', 'Mohd. Imran', 'Kavita Patil']);
+      const sanitized = parsed.filter(w => !syntheticNames.has(w.name) && !w.id?.startsWith('worker_') && !w.id?.startsWith('w'));
+      if (sanitized.length !== parsed.length) {
+        localStorage.setItem(key, JSON.stringify(sanitized));
+      }
+      return sanitized;
+    }
+    return parsed;
   } catch { return fallback; }
 };
 
@@ -132,13 +141,8 @@ const haversineKm = (lat1, lng1, lat2, lng2) => {
 export const AppProvider = ({ children }) => {
   const [currentRole, setCurrentRole] = useState('customer');
 
-  // Dynamic data from localStorage with reliable fallback
-  const [workers, setWorkers] = useState(() => {
-    const saved = readStorage(STORAGE_KEYS.WORKERS);
-    if (saved && saved.length > 0) return saved;
-    writeStorage(STORAGE_KEYS.WORKERS, DEFAULT_WORKERS);
-    return DEFAULT_WORKERS;
-  });
+  // Dynamic data: starts strictly with 0 workers (no fake / synthetic data)
+  const [workers, setWorkers] = useState([]);
   const [bookings, setBookings] = useState(() => {
     writeStorage(STORAGE_KEYS.BOOKINGS, []);
     return [];
@@ -259,7 +263,7 @@ export const AppProvider = ({ children }) => {
     detectUserLocation();
   }, []);
 
-  // ─── Fetch Workers — Hybrid Sync (Express Backend + Multi-Device Cloud Hub + Local Storage) ───
+  // ─── Fetch Workers — Real Database Only (Strictly 0 Synthetic / Fake Workers) ───
   const fetchWorkers = async () => {
     if (!userCoords) return;
     const queryParams = new URLSearchParams({
@@ -270,67 +274,18 @@ export const AppProvider = ({ children }) => {
       search: searchQuery
     });
 
-    // 1. Fetch from Express SQLite backend
-    let backendWorkers = [];
     try {
       const data = await apiFetch(`/workers?${queryParams.toString()}`);
       if (data && data.success && Array.isArray(data.workers)) {
-        backendWorkers = data.workers;
+        setWorkers(data.workers);
+        writeStorage(STORAGE_KEYS.WORKERS, data.workers);
+        return;
       }
     } catch (e) {}
 
-    // 2. Fetch from Multi-Device Cloud Sync Hub (cross-phone synchronization)
-    let cloudWorkers = [];
-    try {
-      cloudWorkers = await fetchCloudWorkers();
-    } catch (e) {}
-
-    // 3. Read locally registered workers
-    const localRegistered = readStorage(STORAGE_KEYS.WORKERS, DEFAULT_WORKERS);
-
-    // 4. Merge all sources into unified master pool without duplicates
-    const combinedMap = new Map();
-
-    const addWorkerToMap = (w) => {
-      if (!w || !w.id) return;
-      const cleanP = (w.phone || '').replace(/\D/g, '').slice(-10);
-      const key = cleanP ? `phone_${cleanP}` : `id_${w.id}`;
-
-      let dist = (w.distanceKm !== undefined && !isNaN(w.distanceKm)) ? w.distanceKm : 0.5;
-      if (w.lat && w.lng && userCoords) {
-        dist = parseFloat(haversineKm(userCoords[0], userCoords[1], w.lat, w.lng).toFixed(1));
-      }
-
-      const existing = combinedMap.get(key);
-      if (!existing) {
-        combinedMap.set(key, { ...w, distanceKm: dist });
-      } else {
-        combinedMap.set(key, { ...existing, ...w, distanceKm: dist });
-      }
-    };
-
-    DEFAULT_WORKERS.forEach(addWorkerToMap);
-    localRegistered.forEach(addWorkerToMap);
-    cloudWorkers.forEach(addWorkerToMap);
-    backendWorkers.forEach(addWorkerToMap);
-
-    const mergedMasterPool = Array.from(combinedMap.values());
-
-    // Update master pool in localStorage
-    writeStorage(STORAGE_KEYS.WORKERS, mergedMasterPool);
-
-    // Apply active filter (category, search, radius) for display
-    const filtered = mergedMasterPool.filter(w => {
-      const matchCat = selectedCategory === 'all' || w.category === selectedCategory;
-      const matchSearch = !searchQuery ||
-        (w.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (w.skills || []).some(s => s.toLowerCase().includes(searchQuery.toLowerCase())) ||
-        (w.societyName || '').toLowerCase().includes(searchQuery.toLowerCase());
-      const matchRadius = (w.distanceKm || 0) <= (radiusKm || 50);
-      return matchCat && matchSearch && matchRadius;
-    });
-
-    setWorkers(filtered.length > 0 ? filtered : mergedMasterPool);
+    // Fallback: only real workers previously saved to storage (default 0)
+    const local = readStorage(STORAGE_KEYS.WORKERS, []);
+    setWorkers(local);
   };
 
   // Fetch Active Bookings
@@ -368,37 +323,12 @@ export const AppProvider = ({ children }) => {
     Promise.all([fetchWorkers(), fetchBookings(), fetchSocieties(), fetchPlatformStats(), fetchCategoryCounts()]).then(() => setLoading(false));
   }, [userCoords, selectedCategory, searchQuery, radiusKm]);
 
-  // ─── Real-Time Multi-Device Background Sync (polls cloud every 8 seconds) ───
-  useEffect(() => {
-    const syncInterval = setInterval(() => {
-      fetchCloudWorkers().then(remoteWorkers => {
-        if (Array.isArray(remoteWorkers) && remoteWorkers.length > 0) {
-          const currentPool = readStorage(STORAGE_KEYS.WORKERS, DEFAULT_WORKERS);
-          const currentIds = new Set(currentPool.map(w => w.id));
-          const currentPhones = new Set(currentPool.map(w => (w.phone || '').replace(/\D/g, '').slice(-10)));
-
-          const hasNew = remoteWorkers.some(rw => {
-            const cleanP = (rw.phone || '').replace(/\D/g, '').slice(-10);
-            return !currentIds.has(rw.id) && (!cleanP || !currentPhones.has(cleanP));
-          });
-
-          if (hasNew) {
-            // New worker registered from another phone! Refresh workers list
-            fetchWorkers();
-          }
-        }
-      }).catch(() => {});
-    }, 8000);
-
-    return () => clearInterval(syncInterval);
-  }, [userCoords, selectedCategory, searchQuery, radiusKm]);
-
-  // ─── Manual Multi-Device Instant Sync Action ───
+  // ─── Manual Refresh Action ───
   const syncNow = async () => {
-    addNotification('Syncing with multi-device network...', 'info');
+    addNotification('Refreshing live data...', 'info');
     await fetchWorkers();
     await fetchBookings();
-    addNotification('Synced with cloud & all devices successfully!', 'success');
+    addNotification('Refreshed successfully!', 'success');
   };
 
   // ─── Add a new registered worker to the dynamic pool & broadcast to cloud ───
@@ -411,7 +341,7 @@ export const AppProvider = ({ children }) => {
     }
 
     // 2. Save into local master pool
-    const allWorkers = readStorage(STORAGE_KEYS.WORKERS, DEFAULT_WORKERS);
+    const allWorkers = readStorage(STORAGE_KEYS.WORKERS, []);
     const cleanP = (workerData.phone || '').replace(/\D/g, '').slice(-10);
     const filtered = allWorkers.filter(w => {
       const wCleanP = (w.phone || '').replace(/\D/g, '').slice(-10);
