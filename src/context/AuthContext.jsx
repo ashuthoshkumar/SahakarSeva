@@ -31,7 +31,7 @@ const DEFAULT_ACCOUNTS = [
   },
   {
     id: 'usr_fed_1',
-    name: 'State Federation Officer',
+    name: 'Northern Federation Officer',
     phone: '+91 98000 33344',
     email: 'federation@sahakar.in',
     password: 'admin123',
@@ -40,14 +40,28 @@ const DEFAULT_ACCOUNTS = [
   {
     id: 'usr_sup_1',
     name: 'NCCT National Director',
-    phone: '+91 99999 99999',
-    email: 'admin@sahakar.in',
+    phone: '+91 98000 55566',
+    email: 'superadmin@sahakar.in',
     password: 'admin123',
     role: 'super_admin'
   }
 ];
 
 const ACCOUNT_STORE_KEY = 'sahakar_registered_accounts';
+const WIPE_VERSION_KEY = 'sahakar_wipe_v4_clean_start';
+
+// Auto-wipe stale accounts from localStorage so users start fresh with 0 fake/old accounts
+if (typeof window !== 'undefined') {
+  try {
+    if (localStorage.getItem(WIPE_VERSION_KEY) !== 'done') {
+      localStorage.removeItem('sahakar_local_user');
+      localStorage.removeItem('sahakar_token');
+      localStorage.removeItem('sahakar_registered_workers');
+      localStorage.setItem(ACCOUNT_STORE_KEY, JSON.stringify(DEFAULT_ACCOUNTS));
+      localStorage.setItem(WIPE_VERSION_KEY, 'done');
+    }
+  } catch (e) {}
+}
 
 // Read account registry from localStorage, initializing with defaults if missing
 const getAccountRegistry = () => {
@@ -58,7 +72,6 @@ const getAccountRegistry = () => {
       return DEFAULT_ACCOUNTS;
     }
     const parsed = JSON.parse(raw);
-    // Ensure all default accounts are present
     let updated = [...parsed];
     let changed = false;
     for (const defAcc of DEFAULT_ACCOUNTS) {
@@ -80,7 +93,6 @@ const getAccountRegistry = () => {
 // Save updated account list to localStorage
 const saveAccountToRegistry = (account) => {
   const accounts = getAccountRegistry();
-  // Avoid duplicates
   const existingIdx = accounts.findIndex(a => a.phone === account.phone || (account.email && a.email === account.email));
   if (existingIdx >= 0) {
     accounts[existingIdx] = { ...accounts[existingIdx], ...account };
@@ -94,34 +106,27 @@ const safeFetchJson = async (endpoint, options = {}) => {
   let cleanEndpoint = endpoint.startsWith('/api') ? endpoint : `/api${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
   const backendBase = getSavedBackendUrl();
 
-  // 1. Try relative URL
-  try {
-    const res = await fetch(cleanEndpoint, options);
-    const contentType = res.headers.get('content-type');
-    if (res.ok && contentType && contentType.includes('application/json')) {
-      return await res.json();
-    }
-  } catch (err) {}
+  const candidateUrls = [
+    cleanEndpoint,
+    `${backendBase.replace(/\/api\/?$/, '')}${cleanEndpoint}`,
+    `http://localhost:5050${cleanEndpoint}`
+  ];
 
-  // 2. Try configured backend / LAN IP URL (e.g. http://192.168.7.8:5050)
-  try {
-    const rootBase = backendBase.replace(/\/api\/?$/, '');
-    const res = await fetch(`${rootBase}${cleanEndpoint}`, options);
-    const contentType = res.headers.get('content-type');
-    if (res.ok && contentType && contentType.includes('application/json')) {
-      return await res.json();
+  for (const url of candidateUrls) {
+    try {
+      const res = await fetch(url, options);
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const json = await res.json();
+        return { ...json, httpStatus: res.status };
+      }
+      if (res.ok) {
+        return { success: true, httpStatus: res.status };
+      }
+    } catch (networkErr) {
+      // Unreachable candidate, try next
     }
-  } catch (e) {}
-
-  // 3. Try localhost fallback
-  try {
-    const fallbackUrl = `http://localhost:5050${cleanEndpoint}`;
-    const res = await fetch(fallbackUrl, options);
-    const contentType = res.headers.get('content-type');
-    if (res.ok && contentType && contentType.includes('application/json')) {
-      return await res.json();
-    }
-  } catch (e) {}
+  }
 
   return { success: false, offlineFallback: true };
 };
@@ -322,8 +327,13 @@ export const AuthProvider = ({ children }) => {
         saveAccountToRegistry({ ...data.user, password: cleanPass });
         setIsAuthModalOpen(false);
         return { success: true, message: data.message };
-      } else if (data && data.alreadyRegistered) {
-        return { success: false, alreadyRegistered: true, error: data.error || 'Phone/Email already registered.' };
+      } else if (data && !data.success && !data.offlineFallback) {
+        // Live server explicitly rejected registration (e.g. 409 Conflict duplicate phone/email)
+        return {
+          success: false,
+          alreadyRegistered: Boolean(data.alreadyRegistered),
+          error: data.error || 'Registration failed'
+        };
       }
     } catch (e) {
       console.warn('Network registration unavailable, performing offline registry registration');
@@ -331,18 +341,35 @@ export const AuthProvider = ({ children }) => {
 
     // Offline Registry Customer Registration
     const accounts = getAccountRegistry();
-    const cleanPhoneDigits = cleanPhone.replace(/\D/g, '');
-    const existing = accounts.find(a =>
-      (a.phone && a.phone.replace(/\D/g, '').endsWith(cleanPhoneDigits.slice(-10))) ||
-      (cleanEmail && a.email && a.email.toLowerCase() === cleanEmail)
-    );
+    const cleanPhoneDigits = cleanPhone.replace(/\D/g, '').slice(-10);
 
-    if (existing) {
+    // Strict duplicate check across all roles (Worker, Customer, Admin)
+    const existingByPhone = accounts.find(a => {
+      const aDigits = (a.phone || '').replace(/\D/g, '').slice(-10);
+      return aDigits.length === 10 && aDigits === cleanPhoneDigits;
+    });
+
+    if (existingByPhone) {
+      const roleName = existingByPhone.role === 'worker' ? 'Worker' : existingByPhone.role === 'customer' ? 'Customer' : existingByPhone.role;
       return {
         success: false,
         alreadyRegistered: true,
-        error: 'An account with this Phone or Email already exists. Please log in.'
+        error: `Mobile number ${cleanPhone} is already registered (${roleName} account). The same mobile number cannot be registered again in either customer or worker role. Please log in instead.`
       };
+    }
+
+    if (cleanEmail) {
+      const existingByEmail = accounts.find(a =>
+        a.email && a.email.toLowerCase().trim() === cleanEmail.toLowerCase().trim()
+      );
+      if (existingByEmail) {
+        const roleName = existingByEmail.role === 'worker' ? 'Worker' : existingByEmail.role === 'customer' ? 'Customer' : existingByEmail.role;
+        return {
+          success: false,
+          alreadyRegistered: true,
+          error: `Email address ${cleanEmail} is already registered (${roleName} account). The same email cannot be registered again. Please log in or use a different email.`
+        };
+      }
     }
 
     const newCustomer = {
@@ -463,8 +490,13 @@ export const AuthProvider = ({ children }) => {
 
         setIsAuthModalOpen(false);
         return { success: true, message: data.message, worker: data.worker };
-      } else if (data && data.alreadyRegistered) {
-        return { success: false, alreadyRegistered: true, error: data.error || 'Account already registered.' };
+      } else if (data && !data.success && !data.offlineFallback) {
+        // Live server explicitly rejected registration (e.g. 409 Conflict duplicate phone/email)
+        return {
+          success: false,
+          alreadyRegistered: Boolean(data.alreadyRegistered),
+          error: data.error || 'Worker registration failed'
+        };
       }
     } catch (e) {
       console.warn('Network registration unavailable, performing offline worker registration');
@@ -472,18 +504,50 @@ export const AuthProvider = ({ children }) => {
 
     // Offline Registry Worker Registration
     const accounts = getAccountRegistry();
-    const cleanPhoneDigits = cleanPhone.replace(/\D/g, '');
-    const existing = accounts.find(a =>
-      (a.phone && a.phone.replace(/\D/g, '').endsWith(cleanPhoneDigits.slice(-10))) ||
-      (cleanEmail && a.email && a.email.toLowerCase() === cleanEmail)
-    );
+    const cleanPhoneDigits = cleanPhone.replace(/\D/g, '').slice(-10);
 
-    if (existing) {
+    // Strict duplicate check across all roles (Worker, Customer, Admin)
+    const existingByPhone = accounts.find(a => {
+      const aDigits = (a.phone || '').replace(/\D/g, '').slice(-10);
+      return aDigits.length === 10 && aDigits === cleanPhoneDigits;
+    });
+
+    if (existingByPhone) {
+      const roleName = existingByPhone.role === 'worker' ? 'Worker' : existingByPhone.role === 'customer' ? 'Customer' : existingByPhone.role;
       return {
         success: false,
         alreadyRegistered: true,
-        error: 'An account with this Phone or Email already exists. Please log in.'
+        error: `Mobile number ${cleanPhone} is already registered (${roleName} account). The same mobile number cannot be registered again in either customer or worker role. Please log in instead.`
       };
+    }
+
+    if (cleanEmail) {
+      const existingByEmail = accounts.find(a =>
+        a.email && a.email.toLowerCase().trim() === cleanEmail.toLowerCase().trim()
+      );
+      if (existingByEmail) {
+        const roleName = existingByEmail.role === 'worker' ? 'Worker' : existingByEmail.role === 'customer' ? 'Customer' : existingByEmail.role;
+        return {
+          success: false,
+          alreadyRegistered: true,
+          error: `Email address ${cleanEmail} is already registered (${roleName} account). The same email cannot be registered again. Please log in or use a different email.`
+        };
+      }
+    }
+
+    if (cleanAadhaar) {
+      const cleanAadhaarDigits = cleanAadhaar.replace(/\D/g, '');
+      const existingByAadhaar = accounts.find(a => {
+        if (!a.aadhaarNo) return false;
+        return a.aadhaarNo.replace(/\D/g, '') === cleanAadhaarDigits;
+      });
+      if (existingByAadhaar) {
+        return {
+          success: false,
+          alreadyRegistered: true,
+          error: 'This Aadhaar number is already registered with an existing worker profile.'
+        };
+      }
     }
 
     const workerId = 'wrk_' + Date.now();

@@ -175,141 +175,27 @@ export const initDB = async () => {
     `);
   }
 
-  // Seed certified NCCT cooperative benchmark workers for trades without workers
-  const existingCategories = await dbAll('SELECT DISTINCT LOWER(category) as cat FROM workers');
-  const catSet = new Set(existingCategories.map(r => r.cat));
+  // Strictly 0 synthetic/benchmark workers: Workers will only be populated through genuine registrations
+  const SEED_BENCHMARK_WORKERS = false;
+  if (SEED_BENCHMARK_WORKERS) {
+    const existingCategories = await dbAll('SELECT DISTINCT LOWER(category) as cat FROM workers');
+    const catSet = new Set(existingCategories.map(r => r.cat));
 
-  const benchmarkWorkers = [
-    {
-      id: 'wrk_seed_elec',
-      name: 'Rajesh Sharma',
-      photo: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=250',
-      category: 'electrician',
-      societyId: 'soc_delhi_1',
-      societyName: 'Delhi NCR Shramik Sahakari Samiti Ltd.',
-      rating: 4.9,
-      reviewsCount: 38,
-      jobsCompleted: 142,
-      experienceYears: 8,
-      hourlyRate: 350,
-      lat: 17.2150,
-      lng: 78.6080,
-      ncctLevel: 'Level 3 Master Craftsman',
-      kycStatus: 'Aadhaar & NCCT Verified',
-      policeVerification: 'Clear (Verified by Police)',
-      ayushmanCard: 'AB-8821-3940-1120',
-      pfAccountNumber: 'DL/CPM/09812',
-      onDuty: 1,
-      skills: 'Circuit Tripping, MCB Replacement, Switchboard Rewiring, Short Circuit Isolation',
-      phone: '+91 98112 34567'
-    },
-    {
-      id: 'wrk_seed_tech',
-      name: 'Mohammed Arif',
-      photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=250',
-      category: 'technician',
-      societyId: 'soc_delhi_1',
-      societyName: 'Delhi NCR Shramik Sahakari Samiti Ltd.',
-      rating: 4.9,
-      reviewsCount: 45,
-      jobsCompleted: 180,
-      experienceYears: 7,
-      hourlyRate: 450,
-      lat: 17.2180,
-      lng: 78.6010,
-      ncctLevel: 'Level 3 Certified HVAC Specialist',
-      kycStatus: 'Aadhaar & NCCT Verified',
-      policeVerification: 'Clear (Verified by Police)',
-      ayushmanCard: 'AB-4491-1029-4412',
-      pfAccountNumber: 'DL/CPM/10928',
-      onDuty: 1,
-      skills: 'AC Gas Refill, Compressor Diagnostic, PCB Inverter Repair, Appliance Servicing',
-      phone: '+91 98711 55678'
-    },
-    {
-      id: 'wrk_seed_carp',
-      name: 'Harpreet Singh',
-      photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250',
-      category: 'carpenter',
-      societyId: 'soc_delhi_1',
-      societyName: 'Delhi NCR Shramik Sahakari Samiti Ltd.',
-      rating: 4.8,
-      reviewsCount: 29,
-      jobsCompleted: 98,
-      experienceYears: 6,
-      hourlyRate: 380,
-      lat: 17.2110,
-      lng: 78.6050,
-      ncctLevel: 'Level 2 Certified Woodcraftsman',
-      kycStatus: 'Aadhaar & NCCT Verified',
-      policeVerification: 'Clear (Verified by Police)',
-      ayushmanCard: 'AB-7762-9901-3321',
-      pfAccountNumber: 'DL/CPM/08273',
-      onDuty: 1,
-      skills: 'Door Lock Replacement, Hinge Realignment, Modular Furniture Repair',
-      phone: '+91 98223 44556'
-    },
-    {
-      id: 'wrk_seed_clean',
-      name: 'Sunita Devi',
-      photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=250',
-      category: 'cleaner',
-      societyId: 'soc_delhi_1',
-      societyName: 'Delhi NCR Shramik Sahakari Samiti Ltd.',
-      rating: 4.9,
-      reviewsCount: 52,
-      jobsCompleted: 210,
-      experienceYears: 5,
-      hourlyRate: 300,
-      lat: 17.2140,
-      lng: 78.6020,
-      ncctLevel: 'Level 2 Deep Sanitation Expert',
-      kycStatus: 'Aadhaar & NCCT Verified',
-      policeVerification: 'Clear (Verified by Police)',
-      ayushmanCard: 'AB-3321-7789-5561',
-      pfAccountNumber: 'DL/CPM/06519',
-      onDuty: 1,
-      skills: 'Post-Renovation Cleaning, Bathroom Deep Sanitization, Floor Buffing',
-      phone: '+91 98334 55667'
-    },
-    {
-      id: 'wrk_seed_paint',
-      name: 'Santosh Yadav',
-      photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=250',
-      category: 'painter',
-      societyId: 'soc_delhi_1',
-      societyName: 'Delhi NCR Shramik Sahakari Samiti Ltd.',
-      rating: 4.8,
-      reviewsCount: 31,
-      jobsCompleted: 115,
-      experienceYears: 7,
-      hourlyRate: 350,
-      lat: 17.2160,
-      lng: 78.6090,
-      ncctLevel: 'Level 2 Wall Texture Specialist',
-      kycStatus: 'Aadhaar & NCCT Verified',
-      policeVerification: 'Clear (Verified by Police)',
-      ayushmanCard: 'AB-9981-2234-8871',
-      pfAccountNumber: 'DL/CPM/07712',
-      onDuty: 1,
-      skills: 'Damp Proofing, Putty & Acrylic Emulsion, Water Seepage Seal',
-      phone: '+91 98445 66778'
-    }
-  ];
-
-  for (const bw of benchmarkWorkers) {
-    if (!catSet.has(bw.category)) {
-      await dbRun(`
-        INSERT OR IGNORE INTO workers (
-          id, name, photo, category, societyId, societyName, rating, reviewsCount,
-          jobsCompleted, experienceYears, hourlyRate, lat, lng, ncctLevel,
-          kycStatus, policeVerification, ayushmanCard, pfAccountNumber, onDuty, skills, phone
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [
-        bw.id, bw.name, bw.photo, bw.category, bw.societyId, bw.societyName, bw.rating, bw.reviewsCount,
-        bw.jobsCompleted, bw.experienceYears, bw.hourlyRate, bw.lat, bw.lng, bw.ncctLevel,
-        bw.kycStatus, bw.policeVerification, bw.ayushmanCard, bw.pfAccountNumber, bw.onDuty, bw.skills, bw.phone
-      ]);
+    const benchmarkWorkers = [];
+    for (const bw of benchmarkWorkers) {
+      if (!catSet.has(bw.category)) {
+        await dbRun(`
+          INSERT OR IGNORE INTO workers (
+            id, name, photo, category, societyId, societyName, rating, reviewsCount,
+            jobsCompleted, experienceYears, hourlyRate, lat, lng, ncctLevel,
+            kycStatus, policeVerification, ayushmanCard, pfAccountNumber, onDuty, skills, phone
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [
+          bw.id, bw.name, bw.photo, bw.category, bw.societyId, bw.societyName, bw.rating, bw.reviewsCount,
+          bw.jobsCompleted, bw.experienceYears, bw.hourlyRate, bw.lat, bw.lng, bw.ncctLevel,
+          bw.kycStatus, bw.policeVerification, bw.ayushmanCard, bw.pfAccountNumber, bw.onDuty, bw.skills, bw.phone
+        ]);
+      }
     }
   }
 };

@@ -14,7 +14,8 @@ const app = express();
 const PORT = process.env.PORT || 5050;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
 // Serve static assets from Vite production build if dist directory exists
 if (fs.existsSync(distPath)) {
@@ -153,6 +154,40 @@ export const validateStrictPassword = (password) => {
   return { isValid: true };
 };
 
+// Helper to reliably extract userId from multiple token formats
+export const extractUserIdFromToken = (token) => {
+  if (!token || typeof token !== 'string') return null;
+  const clean = token.replace(/^Bearer\s+/i, '').trim();
+  if (clean.startsWith('sahakar_jwt.')) {
+    try {
+      const payload = JSON.parse(Buffer.from(clean.split('.')[1], 'base64url').toString('utf8'));
+      return payload.userId || null;
+    } catch (e) {
+      return null;
+    }
+  }
+  if (clean.startsWith('token_jwt_')) {
+    const stripped = clean.slice('token_jwt_'.length);
+    const lastIdx = stripped.lastIndexOf('_');
+    return lastIdx > 0 ? stripped.slice(0, lastIdx) : stripped;
+  }
+  if (clean.startsWith('usr_')) {
+    return clean;
+  }
+  return null;
+};
+
+// Generate robust signed session token
+export const generateUserToken = (user) => {
+  const payload = {
+    userId: user.id,
+    role: user.role,
+    phone: user.phone,
+    timestamp: Date.now()
+  };
+  return `sahakar_jwt.${Buffer.from(JSON.stringify(payload)).toString('base64url')}`;
+};
+
 // Authentication Middleware to verify token and attach req.user
 export const authenticateToken = async (req, res, next) => {
   try {
@@ -160,9 +195,7 @@ export const authenticateToken = async (req, res, next) => {
     if (!authHeader) {
       return res.status(401).json({ success: false, error: 'Access denied: No authentication token provided.' });
     }
-    const token = authHeader.replace(/^Bearer\s+/i, '');
-    const parts = token.split('_');
-    const userId = parts[2];
+    const userId = extractUserIdFromToken(authHeader);
     if (!userId) {
       return res.status(401).json({ success: false, error: 'Invalid session token format.' });
     }
@@ -193,7 +226,7 @@ export const requireRoles = (...roles) => {
   };
 };
 
-// POST /api/auth/register - Register Customer, Worker, or Admin in SQLite with Strict Rules
+// POST /api/auth/register - Register Customer, Worker, or Admin in SQLite with Strict Duplicate Checks & Normalization
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, phone, email, password, role = 'customer', aadhaarNo, societyId, category, hourlyRate } = req.body;
@@ -227,14 +260,16 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     // 5. Strict Email validation (if provided)
-    if (email) {
-      const cleanEmail = email.trim().toLowerCase();
+    let cleanEmail = null;
+    if (email && typeof email === 'string' && email.trim()) {
+      cleanEmail = email.trim().toLowerCase();
       if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(cleanEmail)) {
         return res.status(400).json({ success: false, error: 'Please enter a valid email address.' });
       }
     }
 
     // 6. Strict Worker KYC & Wage Floor validation
+    let cleanAadhaar = null;
     if (role === 'worker') {
       if (!aadhaarNo || typeof aadhaarNo !== 'string') {
         return res.status(400).json({ success: false, error: 'Aadhaar Number is mandatory for Worker KYC.' });
@@ -242,7 +277,7 @@ app.post('/api/auth/register', async (req, res) => {
       if (/[a-zA-Z]/.test(aadhaarNo)) {
         return res.status(400).json({ success: false, error: 'Aadhaar Number cannot contain letters.' });
       }
-      const cleanAadhaar = aadhaarNo.replace(/\D/g, '');
+      cleanAadhaar = aadhaarNo.replace(/\D/g, '');
       if (cleanAadhaar.length !== 12 || /^(\d)\1{11}$/.test(cleanAadhaar)) {
         return res.status(400).json({ success: false, error: 'Aadhaar Number must be exactly 12 numeric digits.' });
       }
@@ -256,17 +291,66 @@ app.post('/api/auth/register', async (req, res) => {
       }
     }
 
-    // 7. Check if phone or email is already registered in SQLite
-    const existingUser = await dbGet(
-      'SELECT * FROM users WHERE phone = ? OR phone = ? OR phone LIKE ? OR (email = ? AND email IS NOT NULL AND email != "")',
-      [formattedPhone, phone, `%${cleanDigits}`, email ? email.trim().toLowerCase() : '']
-    );
-    if (existingUser) {
-      return res.status(400).json({
+    // 7. Strict Multi-Entity Uniqueness Check across ALL Roles (Customer, Worker, Admin)
+    const allUsers = await dbAll('SELECT id, name, phone, email, role, aadhaarNo FROM users');
+    const allWorkers = await dbAll('SELECT id, name, phone FROM workers');
+
+    // A. Check mobile phone duplicate across all accounts (Worker, Customer, Admin)
+    const duplicateUserByPhone = allUsers.find(u => {
+      if (!u.phone) return false;
+      const digits = u.phone.replace(/\D/g, '').slice(-10);
+      return digits.length === 10 && digits === cleanDigits;
+    });
+
+    const duplicateWorkerByPhone = allWorkers.find(w => {
+      if (!w.phone) return false;
+      const digits = w.phone.replace(/\D/g, '').slice(-10);
+      return digits.length === 10 && digits === cleanDigits;
+    });
+
+    if (duplicateUserByPhone || duplicateWorkerByPhone) {
+      const existingRole = duplicateUserByPhone ? duplicateUserByPhone.role : 'worker';
+      const roleDisplayName = existingRole === 'customer' ? 'Customer' : existingRole === 'worker' ? 'Worker' : existingRole;
+      return res.status(409).json({
         success: false,
         alreadyRegistered: true,
-        error: 'An account with this mobile number or email already exists. Please sign in.'
+        field: 'phone',
+        error: `Mobile number ${formattedPhone} is already registered (${roleDisplayName} account). You cannot register again with the same mobile number in either customer or worker role. Please sign in instead.`
       });
+    }
+
+    // B. Check email duplicate across all accounts (if email is provided)
+    if (cleanEmail) {
+      const duplicateUserByEmail = allUsers.find(u => {
+        if (!u.email) return false;
+        return u.email.trim().toLowerCase() === cleanEmail;
+      });
+      if (duplicateUserByEmail) {
+        const existingRole = duplicateUserByEmail.role;
+        const roleDisplayName = existingRole === 'customer' ? 'Customer' : existingRole === 'worker' ? 'Worker' : existingRole;
+        return res.status(409).json({
+          success: false,
+          alreadyRegistered: true,
+          field: 'email',
+          error: `Email address ${cleanEmail} is already registered (${roleDisplayName} account). You cannot register again with the same email. Please sign in or use a different email address.`
+        });
+      }
+    }
+
+    // C. Check Aadhaar duplicate across all worker accounts
+    if (role === 'worker' && cleanAadhaar) {
+      const duplicateUserByAadhaar = allUsers.find(u => {
+        if (!u.aadhaarNo) return false;
+        return u.aadhaarNo.replace(/\D/g, '') === cleanAadhaar;
+      });
+      if (duplicateUserByAadhaar) {
+        return res.status(409).json({
+          success: false,
+          alreadyRegistered: true,
+          field: 'aadhaar',
+          error: 'This Aadhaar number is already registered with an existing worker profile.'
+        });
+      }
     }
 
     const userId = `usr_${role}_${Date.now()}`;
@@ -276,7 +360,7 @@ app.post('/api/auth/register', async (req, res) => {
     await dbRun(`
       INSERT INTO users (id, name, phone, email, password, role, aadhaarNo, societyId, kycVerified, createdAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [userId, name.trim(), formattedPhone, email ? email.trim().toLowerCase() : null, password, role, aadhaarNo || null, societyId || null, aadhaarNo ? 1 : 0, createdAt]);
+    `, [userId, name.trim(), formattedPhone, cleanEmail, password, role, cleanAadhaar || null, societyId || null, cleanAadhaar ? 1 : 0, createdAt]);
 
     let createdWorker = null;
 
@@ -303,7 +387,7 @@ app.post('/api/auth/register', async (req, res) => {
       await dbRun(`
         INSERT INTO workers (id, name, photo, category, societyId, societyName, rating, reviewsCount, jobsCompleted, experienceYears, hourlyRate, lat, lng, ncctLevel, kycStatus, policeVerification, ayushmanCard, pfAccountNumber, onDuty, skills, phone)
         VALUES (?, ?, ?, ?, ?, ?, 5.0, 1, 1, 2, ?, ?, ?, 'Level 2 Certified Craftsman', 'Aadhaar & NCCT Verified', 'Clear (Verified by Police)', ?, ?, 1, ?, ?)
-      `, [workerId, name.trim(), photo, category || 'electrician', societyId || 'soc_delhi_1', societyName, hourlyRate || 350, lat, lng, `AB-${aadhaarNo || '2026'}`, `DL/CPM/${Date.now().toString().slice(-5)}`, JSON.stringify([category ? category.toUpperCase() + ' Specialist' : 'General Skilled Service']), formattedPhone]);
+      `, [workerId, name.trim(), photo, category || 'electrician', societyId || 'soc_delhi_1', societyName, hourlyRate || 350, lat, lng, `AB-${cleanAadhaar || '2026'}`, `DL/CPM/${Date.now().toString().slice(-5)}`, JSON.stringify([category ? category.toUpperCase() + ' Specialist' : 'General Skilled Service']), formattedPhone]);
 
       const wRow = await dbGet('SELECT * FROM workers WHERE id = ?', [workerId]);
       if (wRow) {
@@ -317,7 +401,7 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     const newUser = await dbGet('SELECT id, name, phone, email, role, aadhaarNo, societyId, kycVerified FROM users WHERE id = ?', [userId]);
-    const token = `token_jwt_${userId}_${Date.now()}`;
+    const token = generateUserToken(newUser);
 
     res.json({
       success: true,
@@ -356,7 +440,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ success: false, error: 'Invalid credentials. Please verify your Mobile/Email and Password.' });
     }
 
-    const token = `token_jwt_${user.id}_${Date.now()}`;
+    const token = generateUserToken(user);
     const userProfile = {
       id: user.id,
       name: user.name,
@@ -398,8 +482,8 @@ app.get('/api/auth/me', async (req, res) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(401).json({ success: false, error: 'No authentication token provided.' });
 
-    const parts = authHeader.split('_');
-    const userId = parts[2];
+    const userId = extractUserIdFromToken(authHeader);
+    if (!userId) return res.status(401).json({ success: false, error: 'Invalid token format.' });
 
     const user = await dbGet('SELECT id, name, phone, email, role, aadhaarNo, societyId, kycVerified FROM users WHERE id = ?', [userId]);
     if (!user) return res.status(401).json({ success: false, error: 'Session expired or user not found.' });

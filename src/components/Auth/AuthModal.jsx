@@ -40,19 +40,19 @@ const StrengthBar = ({ analysis }) => {
       </div>
       <div className="grid grid-cols-2 gap-1 text-[11px] pt-1">
         <span className={checks.minLength ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-          {checks.minLength ? 'âœ“' : 'â—‹'} Min 8 chars
+          {checks.minLength ? '&#10003;' : '&#9675;'} Min 8 chars
         </span>
         <span className={checks.hasUpper ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-          {checks.hasUpper ? 'âœ“' : 'â—‹'} Uppercase (A-Z)
+          {checks.hasUpper ? '&#10003;' : '&#9675;'} Uppercase (A-Z)
         </span>
         <span className={checks.hasLower ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-          {checks.hasLower ? 'âœ“' : 'â—‹'} Lowercase (a-z)
+          {checks.hasLower ? '&#10003;' : '&#9675;'} Lowercase (a-z)
         </span>
         <span className={checks.hasNumber ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-          {checks.hasNumber ? 'âœ“' : 'â—‹'} Number (0-9)
+          {checks.hasNumber ? '&#10003;' : '&#9675;'} Number (0-9)
         </span>
         <span className={`col-span-2 ${checks.hasSpecial ? 'text-emerald-700 font-semibold' : 'text-slate-400'}`}>
-          {checks.hasSpecial ? 'âœ“' : 'â—‹'} Special character (!@#$%^&*)
+          {checks.hasSpecial ? '&#10003;' : '&#9675;'} Special character (!@#$%^&*)
         </span>
       </div>
     </div>
@@ -119,7 +119,7 @@ export const AuthModal = () => {
   const [custPassword, setCustPassword] = useState('');
   const [showCustPassword, setShowCustPassword] = useState(false);
 
-  // Worker Signup form state â€” with stepper
+  // Worker Signup form state — with stepper
   const [wrkStep, setWrkStep] = useState(1);
   const [wrkName, setWrkName] = useState('');
   const [wrkPhone, setWrkPhone] = useState('');
@@ -341,7 +341,7 @@ export const AuthModal = () => {
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
 
-          {/* Tab Switcher â€” Clean Pill Design */}
+          {/* Tab Switcher — Clean Pill Design */}
           <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
             <button
               onClick={() => switchTab('login')}
@@ -388,7 +388,7 @@ export const AuthModal = () => {
                   onClick={() => handleSwitchToLoginWithCreds(custEmail || custPhone || wrkEmail || wrkPhone)}
                   className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors shrink-0"
                 >
-                  Log In â†’
+                  Log In →
                 </button>
               )}
             </div>
@@ -489,7 +489,7 @@ export const AuthModal = () => {
                   isInvalid={Boolean(custName && !custNameAnalysis.isValid)}
                   badge={custName ? (
                     custNameAnalysis.isValid ? (
-                      <span className="text-xs font-bold text-emerald-600">âœ“ Valid Name</span>
+                      <span className="text-xs font-bold text-emerald-600">&#10003; Valid Name</span>
                     ) : (
                       <span className="text-xs font-bold text-red-500">x {custNameAnalysis.error}</span>
                     )
@@ -511,7 +511,7 @@ export const AuthModal = () => {
                   isInvalid={Boolean(custPhone && !custPhoneAnalysis.isValid)}
                   badge={custPhone ? (
                     custPhoneAnalysis.isValid ? (
-                      <span className="text-xs font-bold text-emerald-600">âœ“ Valid (10 Digits)</span>
+                      <span className="text-xs font-bold text-emerald-600">&#10003; Valid (10 Digits)</span>
                     ) : (
                       <span className="text-xs font-bold text-red-500">x {custPhoneAnalysis.error}</span>
                     )
@@ -631,7 +631,7 @@ export const AuthModal = () => {
                       isInvalid={Boolean(wrkName && !wrkNameAnalysis.isValid)}
                       badge={wrkName ? (
                         wrkNameAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">âœ“ Valid Name</span>
+                          <span className="text-xs font-bold text-emerald-600">&#10003; Valid Name</span>
                         ) : (
                           <span className="text-xs font-bold text-red-500">x {wrkNameAnalysis.error}</span>
                         )
@@ -651,7 +651,7 @@ export const AuthModal = () => {
                       isInvalid={Boolean(wrkPhone && !wrkPhoneAnalysis.isValid)}
                       badge={wrkPhone ? (
                         wrkPhoneAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">âœ“ Valid (10 Digits)</span>
+                          <span className="text-xs font-bold text-emerald-600">&#10003; Valid (10 Digits)</span>
                         ) : (
                           <span className="text-xs font-bold text-red-500">x {wrkPhoneAnalysis.error}</span>
                         )
@@ -710,7 +710,7 @@ export const AuthModal = () => {
                       isInvalid={Boolean(wrkAadhaar && !wrkAadhaarAnalysis.isValid)}
                       badge={wrkAadhaar ? (
                         wrkAadhaarAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">âœ“ Valid Aadhaar</span>
+                          <span className="text-xs font-bold text-emerald-600">&#10003; Valid Aadhaar</span>
                         ) : (
                           <span className="text-xs font-bold text-red-500">x {wrkAadhaarAnalysis.error}</span>
                         )
@@ -741,7 +741,7 @@ export const AuthModal = () => {
                               </div>
                             </div>
                             <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-black text-[10px]">
-                              Verified ðŸŸ¢
+                              Verified ✓
                             </span>
                           </div>
                         )}
@@ -757,7 +757,7 @@ export const AuthModal = () => {
                         </label>
                         {pccVerified ? (
                           <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                            âœ“ Criminal Record Clean
+                            &#10003; Criminal Record Clean
                           </span>
                         ) : (
                           <span className="text-[10px] text-slate-400">Required</span>
@@ -785,7 +785,7 @@ export const AuthModal = () => {
                         </button>
                       ) : (
                         <div className="text-[11px] text-emerald-800 font-medium">
-                          Ref: <strong className="font-mono">PCC-DL-2024-88912</strong> â€¢ No Criminal History Found
+                          Ref: <strong className="font-mono">PCC-DL-2024-88912</strong> • No Criminal History Found
                         </div>
                       )}
                     </div>
@@ -849,7 +849,7 @@ export const AuthModal = () => {
                     </div>
 
                     <FormInput
-                      label="Hourly Rate (Min â‚¹300 - Legal Floor)"
+                      label="Hourly Rate (Min ₹300 - Legal Floor)"
                       type="number"
                       value={wrkRate}
                       onChange={(e) => setWrkRate(e.target.value)}
@@ -857,11 +857,11 @@ export const AuthModal = () => {
                       isInvalid={Number(wrkRate) < 300 || Number(wrkRate) > 5000}
                       badge={
                         Number(wrkRate) < 300 ? (
-                          <span className="text-xs font-bold text-red-500">Min â‚¹300/hr</span>
+                          <span className="text-xs font-bold text-red-500">Min ₹300/hr</span>
                         ) : Number(wrkRate) > 5000 ? (
-                          <span className="text-xs font-bold text-red-500">Max â‚¹5,000/hr</span>
+                          <span className="text-xs font-bold text-red-500">Max ₹5,000/hr</span>
                         ) : (
-                          <span className="text-xs font-bold text-emerald-600">âœ“ Fair Wage</span>
+                          <span className="text-xs font-bold text-emerald-600">&#10003; Fair Wage</span>
                         )
                       }
                     />
