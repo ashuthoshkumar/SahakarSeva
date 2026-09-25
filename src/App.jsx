@@ -26,15 +26,20 @@ import { LanguageSelectModal } from './components/Common/LanguageSelectModal';
 const MainContent = ({ activeTab, setActiveTab }) => {
   const { isAuthenticated, user } = useAuth();
 
-  // 1. Worker workspace (Strict role isolation)
-  if (isAuthenticated && user?.role === 'worker') {
+  // 1. Unauthenticated visitors: always show Landing Page
+  if (!isAuthenticated) {
+    return <LandingPage setActiveTab={setActiveTab} />;
+  }
+
+  // 2. Worker workspace (Strict role isolation)
+  if (user?.role === 'worker') {
     if (activeTab === 'account') return <AccountPage />;
     if (activeTab === 'bookings') return <BookingsPage setActiveTab={setActiveTab} />;
     return <WorkerDashboard />;
   }
 
-  // 2. Cooperative & Federation Admin workspace (Strict role isolation)
-  if (isAuthenticated && ['society_admin', 'federation_admin', 'super_admin'].includes(user?.role)) {
+  // 3. Cooperative & Federation Admin workspace (Strict role isolation)
+  if (['society_admin', 'federation_admin', 'super_admin'].includes(user?.role)) {
     if (activeTab === 'account') return <AccountPage />;
     return (
       <React.Suspense fallback={
@@ -49,22 +54,17 @@ const MainContent = ({ activeTab, setActiveTab }) => {
     );
   }
 
-  // 3. Explicit Bookings tab: Always render BookingsPage (never redirect to landing page)
+  // 4. Authenticated customer: Bookings tab
   if (activeTab === 'bookings') {
     return <BookingsPage setActiveTab={setActiveTab} />;
   }
 
-  // 4. Explicit Account tab
+  // 5. Authenticated customer: Account tab
   if (activeTab === 'account') {
     return <AccountPage />;
   }
 
-  // 5. Explicit Landing tab
-  if (activeTab === 'landing') {
-    return <LandingPage setActiveTab={setActiveTab} />;
-  }
-
-  // 6. Home tab (Default): The Main Bookings Page & Workspace (Service catalog, verified workers, interactive map, booking cards)
+  // 6. Authenticated customer: Default = CustomerDashboard (Services & Booking workspace)
   return <CustomerDashboard setActiveTab={setActiveTab} />;
 };
 

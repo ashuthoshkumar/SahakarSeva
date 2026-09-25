@@ -3,13 +3,13 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { 
-  Home, User, ShieldCheck, Globe, Menu, X, LogOut, AlertTriangle, Lock, Calendar
+  Home, User, ShieldCheck, Globe, Menu, X, LogOut, AlertTriangle, Lock
 } from 'lucide-react';
 import { translateRole } from '../../utils/translateHelpers';
 import { SahakarLogo } from '../Common/SahakarLogo';
 
 export const WebNavbar = ({ activeTab, setActiveTab }) => {
-  const { setEmergencyModalOpen, bookings } = useApp();
+  const { setEmergencyModalOpen } = useApp();
   const { isAuthenticated, user, openAuthModal, logout } = useAuth();
   const { t, lang, openLanguageModal } = useLanguage();
 
@@ -19,12 +19,6 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
     setActiveTab(tab);
     setMobileMenuOpen(false);
   };
-
-  const myBookingsCount = bookings ? bookings.filter(b => {
-    if (!user) return false;
-    if (user.role === 'worker') return (b.workerName === user.name || b.workerId === user.id);
-    return (!user.phone || b.customerPhone === user.phone || b.customerName === user.name);
-  }).length : 0;
 
   return (
     <header className="sticky top-0 z-40 w-full font-sans shadow-md">
@@ -51,67 +45,35 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
             </div>
           </button>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-1.5">
-            <button
-              onClick={() => handleTabClick('home')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                activeTab === 'home'
-                  ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
-              }`}
-            >
-              <Home className="w-4 h-4" />
-              <span>
-                {isAuthenticated && user?.role === 'worker'
-                  ? 'WORKER WORKSPACE'
-                  : isAuthenticated && ['society_admin', 'federation_admin', 'super_admin'].includes(user?.role)
-                  ? `${user.role.replace('_', ' ').toUpperCase()} WORKSPACE`
-                  : (t('home') || 'Services & Workers')}
-              </span>
-            </button>
-
-            {/* Bookings Tab */}
-            {(!isAuthenticated || user?.role === 'customer' || user?.role === 'worker') && (
+          {/* Desktop Navigation Links — only shown when logged in */}
+          {isAuthenticated && (
+            <nav className="hidden lg:flex items-center gap-2">
               <button
-                onClick={() => handleTabClick('bookings')}
+                onClick={() => handleTabClick('home')}
                 className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                  activeTab === 'bookings'
+                  activeTab === 'home' || activeTab === 'bookings'
                     ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
                     : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
                 }`}
               >
-                <Calendar className="w-4 h-4" />
-                <span>{user?.role === 'worker' ? (t('myJobs') || 'My Jobs') : (t('bookingsTab') || 'Bookings')}</span>
-                {myBookingsCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full bg-teal-400 text-slate-950 font-black text-[10px]">
-                    {myBookingsCount}
-                  </span>
-                )}
+                <Home className="w-4 h-4" />
+                <span>
+                  {user?.role === 'worker'
+                    ? 'WORKER WORKSPACE'
+                    : ['society_admin', 'federation_admin', 'super_admin'].includes(user?.role)
+                    ? `${user.role.replace(/_/g, ' ').toUpperCase()} WORKSPACE`
+                    : (t('home') || 'Services & Workers')}
+                </span>
               </button>
-            )}
 
-            {/* Overview / Landing Tab (Customer & Visitor) */}
-            {(!isAuthenticated || user?.role === 'customer') && (
-              <button
-                onClick={() => handleTabClick('landing')}
-                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  activeTab === 'landing'
-                    ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
-                }`}
-              >
-                <span>{t('landingTab') || 'Overview'}</span>
-              </button>
-            )}
-
-            {isAuthenticated && user?.role && (
-              <span className="px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-teal-300 text-[11px] font-bold flex items-center gap-1.5 shadow-sm ml-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-                <span>{translateRole(user.role, t)}</span>
-              </span>
-            )}
-          </nav>
+              {user?.role && (
+                <span className="px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-teal-300 text-[11px] font-bold flex items-center gap-1.5 shadow-sm">
+                  <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
+                  <span>{translateRole(user.role, t)}</span>
+                </span>
+              )}
+            </nav>
+          )}
 
           {/* Right Action Controls */}
           <div className="flex items-center gap-2.5">
@@ -126,7 +88,7 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
               <span className="uppercase font-mono text-xs">{lang}</span>
             </button>
 
-            {/* Emergency SOS Dispatch 15M (Visible for customers only, never workers) */}
+            {/* Emergency SOS — visible to visitors and customers */}
             {(!isAuthenticated || user?.role === 'customer') && (
               <button
                 onClick={() => setEmergencyModalOpen(true)}
@@ -200,56 +162,23 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
       {mobileMenuOpen && (
         <div className="lg:hidden bg-slate-950/98 backdrop-blur-2xl border-b border-slate-800 px-4 py-4 space-y-4 animate-fadeIn">
           <div className="space-y-1">
-            <button
-              onClick={() => handleTabClick('home')}
-              className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-left transition-colors ${
-                activeTab === 'home'
-                  ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
-                  : 'text-slate-300 hover:bg-slate-900'
-              }`}
-            >
-              <Home className="w-4 h-4 text-teal-400" />
-              <span>
-                {isAuthenticated && user?.role === 'worker'
-                  ? 'WORKER WORKSPACE'
-                  : isAuthenticated && ['society_admin', 'federation_admin', 'super_admin'].includes(user?.role)
-                  ? `${user.role.replace('_', ' ').toUpperCase()} WORKSPACE`
-                  : (t('home') || 'Services & Workers')}
-              </span>
-            </button>
-
-            {(!isAuthenticated || user?.role === 'customer' || user?.role === 'worker') && (
+            {isAuthenticated && (
               <button
-                onClick={() => handleTabClick('bookings')}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold text-left transition-colors ${
-                  activeTab === 'bookings'
-                    ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
-                    : 'text-slate-300 hover:bg-slate-900'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-4 h-4 text-teal-400" />
-                  <span>{user?.role === 'worker' ? (t('myJobs') || 'My Jobs') : (t('bookingsTab') || 'Bookings')}</span>
-                </div>
-                {myBookingsCount > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-teal-400 text-slate-950 font-black text-[10px]">
-                    {myBookingsCount}
-                  </span>
-                )}
-              </button>
-            )}
-
-            {(!isAuthenticated || user?.role === 'customer') && (
-              <button
-                onClick={() => handleTabClick('landing')}
+                onClick={() => handleTabClick('home')}
                 className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-left transition-colors ${
-                  activeTab === 'landing'
+                  activeTab === 'home'
                     ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
                     : 'text-slate-300 hover:bg-slate-900'
                 }`}
               >
-                <Globe className="w-4 h-4 text-teal-400" />
-                <span>{t('landingTab') || 'Overview'}</span>
+                <Home className="w-4 h-4 text-teal-400" />
+                <span>
+                  {user?.role === 'worker'
+                    ? 'WORKER WORKSPACE'
+                    : ['society_admin', 'federation_admin', 'super_admin'].includes(user?.role)
+                    ? `${user.role.replace(/_/g, ' ').toUpperCase()} WORKSPACE`
+                    : (t('home') || 'Services & Workers')}
+                </span>
               </button>
             )}
 
@@ -265,6 +194,24 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
                 <User className="w-4 h-4 text-teal-400" />
                 <span>{t('accountTab') || 'Account & Settings'}</span>
               </button>
+            )}
+
+            {!isAuthenticated && (
+              <>
+                <button
+                  onClick={() => { openAuthModal('login'); setMobileMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-left text-slate-300 hover:bg-slate-900 transition-colors"
+                >
+                  <Lock className="w-4 h-4 text-teal-400" />
+                  <span>{t('signIn')}</span>
+                </button>
+                <button
+                  onClick={() => { openAuthModal('register_customer'); setMobileMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-left text-teal-300 hover:bg-slate-900 transition-colors"
+                >
+                  <span>{t('getStarted')}</span>
+                </button>
+              </>
             )}
           </div>
 
