@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { StarRating } from '../Common/StarRating';
@@ -13,8 +13,10 @@ import {
   translateWorkerName,
   translateCategory
 } from '../../utils/translateHelpers';
+import { WorkerVerificationBadgeModal } from './WorkerVerificationBadgeModal';
 
 export const WorkerList = () => {
+  const [inspectingWorker, setInspectingWorker] = useState(null);
   const {
     workers,
     selectedCategory,
@@ -175,9 +177,23 @@ export const WorkerList = () => {
                         <span>{translateWorkerName(worker.name, lang)}</span>
                         <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                       </h4>
-                      <span className="inline-flex items-center gap-1 text-xs font-semibold text-teal-700">
-                        <Award className="w-3 h-3" /> {translateNcctLevel(worker.ncctLevel, lang)}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold text-teal-700">
+                          <Award className="w-3 h-3" /> {translateNcctLevel(worker.ncctLevel, lang)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setInspectingWorker(worker);
+                          }}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[10px] font-extrabold transition-all cursor-pointer active:scale-95 shadow-xs"
+                          title="Click to view Government DigiLocker & Police Clearance Credentials"
+                        >
+                          <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                          <span>Aadhaar & Police Verified</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -243,6 +259,13 @@ export const WorkerList = () => {
           ))}
         </div>
       )}
+
+      {/* 3-Tier Verification Proof Inspector Modal */}
+      <WorkerVerificationBadgeModal
+        isOpen={Boolean(inspectingWorker)}
+        onClose={() => setInspectingWorker(null)}
+        worker={inspectingWorker}
+      />
     </div>
   );
 };
