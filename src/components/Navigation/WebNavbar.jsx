@@ -3,7 +3,7 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { 
-  Home, User, ShieldCheck, Globe, Menu, X, LogOut 
+  Home, User, ShieldCheck, Globe, Menu, X, LogOut, AlertTriangle, Lock 
 } from 'lucide-react';
 import { translateRole } from '../../utils/translateHelpers';
 

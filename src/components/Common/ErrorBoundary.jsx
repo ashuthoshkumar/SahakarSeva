@@ -28,9 +28,14 @@ export class ErrorBoundary extends React.Component {
             <AlertTriangle className="w-8 h-8" />
           </div>
           <h2 className="text-xl font-black mb-2 text-white">Something went wrong</h2>
-          <p className="text-xs text-slate-400 max-w-sm mb-6 leading-relaxed">
+          <p className="text-xs text-slate-400 max-w-sm mb-4 leading-relaxed">
             The application encountered a temporary error. Tap below to reload safely without losing your account.
           </p>
+          {this.state.error && (
+            <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3 mb-6 max-w-md w-full text-left font-mono text-[11px] text-rose-400 overflow-x-auto">
+              {this.state.error.toString()}
+            </div>
+          )}
           <button
             onClick={this.handleReload}
             className="px-6 py-3 bg-teal-600 hover:bg-teal-700 active:scale-95 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all flex items-center gap-2"
