@@ -1,13 +1,25 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import fs from 'fs';
 import { initDB, dbAll, dbGet, dbRun } from './db.js';
 import { calculateDistanceKm, generateAIDemandForecast } from './aiEngine.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.join(__dirname, '..', 'dist');
 
 const app = express();
 const PORT = process.env.PORT || 5050;
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static assets from Vite production build if dist directory exists
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+}
 
 // Initialize SQLite tables & seeds on startup
 initDB().catch((err) => console.error('Failed to initialize database:', err));
@@ -808,6 +820,14 @@ app.post('/api/admin/reset-database', async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 });
+
+// Single Page Application (SPA) client-side routing fallback
+if (fs.existsSync(distPath)) {
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`SahakarSeva Express API Server is running on http://0.0.0.0:${PORT}`);

@@ -10,6 +10,11 @@ export const CLOUD_ACCOUNTS_ID = 'ff808181a067127101a0763bded52729';
 export const DEFAULT_LAN_IP = '192.168.7.8';
 
 export const getSavedBackendUrl = () => {
+  if (import.meta.env && import.meta.env.VITE_API_URL) {
+    const envUrl = import.meta.env.VITE_API_URL.trim();
+    return envUrl.endsWith('/api') ? envUrl : `${envUrl.replace(/\/+$/, '')}/api`;
+  }
+
   try {
     const custom = localStorage.getItem('sahakar_custom_backend');
     if (custom && custom.trim()) return custom.trim();
@@ -18,7 +23,10 @@ export const getSavedBackendUrl = () => {
   if (typeof window !== 'undefined' && window.location) {
     const host = window.location.hostname;
     if (host && host !== 'localhost' && host !== '127.0.0.1') {
-      return `http://${host}:5050/api`;
+      if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) {
+        return `http://${host}:5050/api`;
+      }
+      return `${window.location.origin}/api`;
     }
   }
 
