@@ -23,10 +23,11 @@ const StrengthBar = ({ analysis }) => {
   const pct = (analysis.score / 5) * 100;
   const color = analysis.score <= 2 ? 'bg-red-500' : analysis.score <= 4 ? 'bg-amber-500' : 'bg-emerald-500';
   const label = analysis.score <= 2 ? 'Weak' : analysis.score <= 4 ? 'Medium' : 'Strong';
+  const checks = analysis.checks || {};
   return (
-    <div className="space-y-1">
+    <div className="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
       <div className="flex items-center justify-between">
-        <span className="text-xs text-slate-500">Password strength</span>
+        <span className="text-xs font-semibold text-slate-600">Password Requirements</span>
         <span className={`text-xs font-bold ${analysis.score <= 2 ? 'text-red-600' : analysis.score <= 4 ? 'text-amber-600' : 'text-emerald-600'}`}>
           {label} ({analysis.score}/5)
         </span>
@@ -34,19 +35,36 @@ const StrengthBar = ({ analysis }) => {
       <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
         <div className={`h-full transition-all duration-300 rounded-full ${color}`} style={{ width: `${pct}%` }}></div>
       </div>
+      <div className="grid grid-cols-2 gap-1 text-[11px] pt-1">
+        <span className={checks.minLength ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
+          {checks.minLength ? '✓' : '○'} Min 8 chars
+        </span>
+        <span className={checks.hasUpper ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
+          {checks.hasUpper ? '✓' : '○'} Uppercase (A-Z)
+        </span>
+        <span className={checks.hasLower ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
+          {checks.hasLower ? '✓' : '○'} Lowercase (a-z)
+        </span>
+        <span className={checks.hasNumber ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
+          {checks.hasNumber ? '✓' : '○'} Number (0-9)
+        </span>
+        <span className={`col-span-2 ${checks.hasSpecial ? 'text-emerald-700 font-semibold' : 'text-slate-400'}`}>
+          {checks.hasSpecial ? '✓' : '○'} Special character (!@#$%^&*)
+        </span>
+      </div>
     </div>
   );
 };
 
 // --- Shared input component (defined outside AuthModal to prevent keyboard dismiss on re-render) ---
-const FormInput = ({ label, icon: Icon, type = 'text', value, onChange, placeholder, required = true, badge, maxLength, showToggle, isPassword, onToggle, showPassword }) => (
+const FormInput = ({ label, icon: Icon, type = 'text', value, onChange, placeholder, required = true, badge, maxLength, showToggle, isPassword, onToggle, showPassword, isInvalid = false }) => (
   <div className="space-y-1.5">
     <div className="flex items-center justify-between">
       <label className="text-sm font-semibold text-slate-700">{label}</label>
       {badge}
     </div>
     <div className="relative">
-      {Icon && <Icon className="w-4.5 h-4.5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />}
+      {Icon && <Icon className={`w-4.5 h-4.5 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none transition-colors ${isInvalid ? 'text-red-400' : 'text-slate-400'}`} />}
       <input
         type={isPassword ? (showPassword ? 'text' : 'password') : type}
         value={value}
@@ -54,7 +72,11 @@ const FormInput = ({ label, icon: Icon, type = 'text', value, onChange, placehol
         required={required}
         placeholder={placeholder}
         maxLength={maxLength}
-        className={`w-full ${Icon ? 'pl-10' : 'pl-4'} ${showToggle ? 'pr-12' : 'pr-4'} py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 focus:outline-none text-sm font-medium text-slate-900 bg-white transition-all placeholder:text-slate-400`}
+        className={`w-full ${Icon ? 'pl-10' : 'pl-4'} ${showToggle ? 'pr-12' : 'pr-4'} py-3 rounded-xl border text-sm font-medium text-slate-900 bg-white transition-all placeholder:text-slate-400 ${
+          isInvalid 
+            ? 'border-red-400 focus:ring-2 focus:ring-red-400 focus:border-red-500' 
+            : 'border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500'
+        } focus:outline-none`}
       />
       {showToggle && (
         <button
@@ -111,11 +133,15 @@ export const AuthModal = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Validators
+  const custNameAnalysis = validateFullName(custName);
+  const wrkNameAnalysis = validateFullName(wrkName);
   const custPassAnalysis = validatePassword(custPassword);
   const wrkPassAnalysis = validatePassword(wrkPassword);
   const custPhoneAnalysis = validatePhoneNumber(custPhone);
   const wrkPhoneAnalysis = validatePhoneNumber(wrkPhone);
   const wrkAadhaarAnalysis = validateAadhaar(wrkAadhaar);
+  const custEmailAnalysis = validateEmail(custEmail);
+  const wrkEmailAnalysis = validateEmail(wrkEmail);
 
   if (!isAuthModalOpen) return null;
 
@@ -257,10 +283,11 @@ export const AuthModal = () => {
     if (tab === 'register_worker') setWrkStep(1);
   };
 
-  // Worker step validation
-  const isWrkStep1Valid = wrkName.trim().length >= 2 && wrkPhoneAnalysis.isValid;
-  const isWrkStep2Valid = wrkAadhaarAnalysis.isValid && wrkSocietyId;
-  const isWrkStep3Valid = wrkCategory && wrkRate >= 300 && wrkPassAnalysis.isValid;
+  // Strict form & step validation guards
+  const isCustFormValid = custNameAnalysis.isValid && custPhoneAnalysis.isValid && custPassAnalysis.isValid && (!custEmail || custEmailAnalysis.isValid);
+  const isWrkStep1Valid = wrkNameAnalysis.isValid && wrkPhoneAnalysis.isValid && (!wrkEmail || wrkEmailAnalysis.isValid);
+  const isWrkStep2Valid = wrkAadhaarAnalysis.isValid && Boolean(wrkSocietyId);
+  const isWrkStep3Valid = Boolean(wrkCategory) && Number(wrkRate) >= 300 && Number(wrkRate) <= 5000 && wrkPassAnalysis.isValid;
 
   return (
     <div 
@@ -438,6 +465,14 @@ export const AuthModal = () => {
                   value={custName}
                   onChange={(e) => setCustName(e.target.value)}
                   placeholder="e.g. Ashuthosh Kumar"
+                  isInvalid={Boolean(custName && !custNameAnalysis.isValid)}
+                  badge={custName ? (
+                    custNameAnalysis.isValid ? (
+                      <span className="text-xs font-bold text-emerald-600">✓ Valid Name</span>
+                    ) : (
+                      <span className="text-xs font-bold text-red-500">✗ {custNameAnalysis.error}</span>
+                    )
+                  ) : null}
                 />
 
                 <FormInput
@@ -445,13 +480,22 @@ export const AuthModal = () => {
                   icon={Phone}
                   type="tel"
                   value={custPhone}
-                  onChange={(e) => setCustPhone(e.target.value)}
+                  onChange={(e) => {
+                    // Strictly allow only numbers, +, space, and hyphens (reject letters immediately)
+                    const sanitized = e.target.value.replace(/[^0-9+\s-]/g, '');
+                    setCustPhone(sanitized);
+                  }}
                   placeholder="e.g. 9701392418"
                   maxLength={14}
-                  badge={custPhone && (
-                    <span className={`text-xs font-bold ${custPhoneAnalysis.isValid ? 'text-emerald-600' : 'text-slate-400'}`}>
-                      {custPhoneAnalysis.isValid ? '✓ Valid' : '10 digits required'}
-                    </span>
+                  isInvalid={Boolean(custPhone && !custPhoneAnalysis.isValid)}
+                  badge={custPhone ? (
+                    custPhoneAnalysis.isValid ? (
+                      <span className="text-xs font-bold text-emerald-600">✓ Valid (10 Digits)</span>
+                    ) : (
+                      <span className="text-xs font-bold text-red-500">✗ {custPhoneAnalysis.error}</span>
+                    )
+                  ) : (
+                    <span className="text-xs text-slate-400">10 digits (starts 6-9)</span>
                   )}
                 />
 
@@ -463,6 +507,16 @@ export const AuthModal = () => {
                   onChange={(e) => setCustEmail(e.target.value)}
                   placeholder="e.g. name@email.com"
                   required={false}
+                  isInvalid={Boolean(custEmail && !custEmailAnalysis.isValid)}
+                  badge={custEmail ? (
+                    custEmailAnalysis.isValid ? (
+                      <span className="text-xs font-bold text-emerald-600">✓ Valid Email</span>
+                    ) : (
+                      <span className="text-xs font-bold text-red-500">✗ Invalid Format</span>
+                    )
+                  ) : (
+                    <span className="text-xs text-slate-400">Optional</span>
+                  )}
                 />
 
                 <FormInput
@@ -475,16 +529,24 @@ export const AuthModal = () => {
                   showToggle
                   showPassword={showCustPassword}
                   onToggle={() => setShowCustPassword(!showCustPassword)}
+                  isInvalid={Boolean(custPassword && !custPassAnalysis.isValid)}
+                  badge={custPassword ? (
+                    custPassAnalysis.isValid ? (
+                      <span className="text-xs font-bold text-emerald-600">✓ Strong Password</span>
+                    ) : (
+                      <span className="text-xs font-bold text-amber-600">Incomplete</span>
+                    )
+                  ) : null}
                 />
 
                 {custPassword.length > 0 && <StrengthBar analysis={custPassAnalysis} />}
 
                 <button
                   type="submit"
-                  disabled={isSubmitting || (custPassword.length > 0 && !custPassAnalysis.isValid)}
+                  disabled={isSubmitting || !isCustFormValid}
                   className={`w-full py-3.5 rounded-xl font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 ${
-                    custPassAnalysis.isValid && custPhoneAnalysis.isValid
-                      ? 'bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white'
+                    isCustFormValid
+                      ? 'bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white shadow-emerald-600/20'
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                   }`}
                 >
@@ -545,19 +607,35 @@ export const AuthModal = () => {
                       value={wrkName}
                       onChange={(e) => setWrkName(e.target.value)}
                       placeholder="e.g. Ramesh Sharma"
+                      isInvalid={Boolean(wrkName && !wrkNameAnalysis.isValid)}
+                      badge={wrkName ? (
+                        wrkNameAnalysis.isValid ? (
+                          <span className="text-xs font-bold text-emerald-600">✓ Valid Name</span>
+                        ) : (
+                          <span className="text-xs font-bold text-red-500">✗ {wrkNameAnalysis.error}</span>
+                        )
+                      ) : null}
                     />
                     <FormInput
                       label="Mobile Number"
                       icon={Phone}
                       type="tel"
                       value={wrkPhone}
-                      onChange={(e) => setWrkPhone(e.target.value)}
+                      onChange={(e) => {
+                        const sanitized = e.target.value.replace(/[^0-9+\s-]/g, '');
+                        setWrkPhone(sanitized);
+                      }}
                       placeholder="e.g. 9876543210"
                       maxLength={14}
-                      badge={wrkPhone && (
-                        <span className={`text-xs font-bold ${wrkPhoneAnalysis.isValid ? 'text-emerald-600' : 'text-slate-400'}`}>
-                          {wrkPhoneAnalysis.isValid ? '✓ Valid' : '10 digits required'}
-                        </span>
+                      isInvalid={Boolean(wrkPhone && !wrkPhoneAnalysis.isValid)}
+                      badge={wrkPhone ? (
+                        wrkPhoneAnalysis.isValid ? (
+                          <span className="text-xs font-bold text-emerald-600">✓ Valid (10 Digits)</span>
+                        ) : (
+                          <span className="text-xs font-bold text-red-500">✗ {wrkPhoneAnalysis.error}</span>
+                        )
+                      ) : (
+                        <span className="text-xs text-slate-400">10 digits (starts 6-9)</span>
                       )}
                     />
                     <FormInput
@@ -568,6 +646,16 @@ export const AuthModal = () => {
                       onChange={(e) => setWrkEmail(e.target.value)}
                       placeholder="e.g. name@email.com"
                       required={false}
+                      isInvalid={Boolean(wrkEmail && !wrkEmailAnalysis.isValid)}
+                      badge={wrkEmail ? (
+                        wrkEmailAnalysis.isValid ? (
+                          <span className="text-xs font-bold text-emerald-600">✓ Valid Email</span>
+                        ) : (
+                          <span className="text-xs font-bold text-red-500">✗ Invalid Format</span>
+                        )
+                      ) : (
+                        <span className="text-xs text-slate-400">Optional</span>
+                      )}
                     />
                     <button
                       type="button"
@@ -598,10 +686,15 @@ export const AuthModal = () => {
                         setWrkAadhaar(formatted);
                       }}
                       placeholder="e.g. 8829-1029-4411"
-                      badge={wrkAadhaar && (
-                        <span className={`text-xs font-bold ${wrkAadhaarAnalysis.isValid ? 'text-emerald-600' : 'text-slate-400'}`}>
-                          {wrkAadhaarAnalysis.isValid ? '✓ Verified Format' : '12 digits needed'}
-                        </span>
+                      isInvalid={Boolean(wrkAadhaar && !wrkAadhaarAnalysis.isValid)}
+                      badge={wrkAadhaar ? (
+                        wrkAadhaarAnalysis.isValid ? (
+                          <span className="text-xs font-bold text-emerald-600">✓ Valid Aadhaar</span>
+                        ) : (
+                          <span className="text-xs font-bold text-red-500">✗ {wrkAadhaarAnalysis.error}</span>
+                        )
+                      ) : (
+                        <span className="text-xs text-slate-400">12 numeric digits</span>
                       )}
                     />
 
@@ -664,11 +757,21 @@ export const AuthModal = () => {
                     </div>
 
                     <FormInput
-                      label="Hourly Rate (Min ₹300)"
+                      label="Hourly Rate (Min ₹300 - Legal Floor)"
                       type="number"
                       value={wrkRate}
                       onChange={(e) => setWrkRate(e.target.value)}
                       placeholder="e.g. 350"
+                      isInvalid={Number(wrkRate) < 300 || Number(wrkRate) > 5000}
+                      badge={
+                        Number(wrkRate) < 300 ? (
+                          <span className="text-xs font-bold text-red-500">Min ₹300/hr</span>
+                        ) : Number(wrkRate) > 5000 ? (
+                          <span className="text-xs font-bold text-red-500">Max ₹5,000/hr</span>
+                        ) : (
+                          <span className="text-xs font-bold text-emerald-600">✓ Fair Wage</span>
+                        )
+                      }
                     />
 
                     <FormInput
@@ -676,11 +779,19 @@ export const AuthModal = () => {
                       icon={Lock}
                       value={wrkPassword}
                       onChange={(e) => setWrkPassword(e.target.value)}
-                      placeholder="Min 8 characters"
+                      placeholder="Min 8 characters with uppercase & number"
                       isPassword
                       showToggle
                       showPassword={showWrkPassword}
                       onToggle={() => setShowWrkPassword(!showWrkPassword)}
+                      isInvalid={Boolean(wrkPassword && !wrkPassAnalysis.isValid)}
+                      badge={wrkPassword ? (
+                        wrkPassAnalysis.isValid ? (
+                          <span className="text-xs font-bold text-emerald-600">✓ Strong Password</span>
+                        ) : (
+                          <span className="text-xs font-bold text-amber-600">Incomplete</span>
+                        )
+                      ) : null}
                     />
 
                     {wrkPassword.length > 0 && <StrengthBar analysis={wrkPassAnalysis} />}

@@ -18,66 +18,188 @@ app.get('/api/health', (req, res) => {
 });
 
 /* ==========================================================================
-   AUTHENTICATION ENDPOINTS (Customer, Worker, Society Admin, Federation, Super Admin)
+   AUTHENTICATION & AUTHORIZATION STRICT VALIDATION HELPERS & RBAC MIDDLEWARE
    ========================================================================== */
 
-// POST /api/auth/register - Register Customer, Worker, or Admin in SQLite
+// Strict Indian Mobile Phone Validator
+export const validateIndianMobile = (phone) => {
+  if (!phone || typeof phone !== 'string') {
+    return { isValid: false, error: 'Mobile phone number is required.' };
+  }
+  const raw = phone.trim();
+
+  // Strictly reject letters (e.g. '9701392418hhhe')
+  if (/[a-zA-Z]/.test(raw)) {
+    return { isValid: false, error: 'Invalid phone number: mobile numbers cannot contain letters.' };
+  }
+
+  // Reject invalid symbols
+  if (!/^\+?[0-9\s\-()]+$/.test(raw)) {
+    return { isValid: false, error: 'Invalid phone number: forbidden characters detected. Only digits and standard formatting allowed.' };
+  }
+
+  let digits = raw.replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) {
+    digits = digits.slice(2);
+  } else if (digits.length === 11 && digits.startsWith('0')) {
+    digits = digits.slice(1);
+  }
+
+  if (digits.length !== 10) {
+    return { isValid: false, error: `Mobile number must be exactly 10 digits (received ${digits.length}).` };
+  }
+
+  if (!/^[6-9]/.test(digits)) {
+    return { isValid: false, error: 'Invalid Indian mobile number: must begin with 6, 7, 8, or 9.' };
+  }
+
+  if (/^(\d)\1{9}$/.test(digits)) {
+    return { isValid: false, error: 'Invalid mobile number: cannot be all identical repeated digits.' };
+  }
+
+  return {
+    isValid: true,
+    digits,
+    formattedPhone: `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`
+  };
+};
+
+// Strict Password Validator
+export const validateStrictPassword = (password) => {
+  if (!password || typeof password !== 'string') {
+    return { isValid: false, error: 'Password is required.' };
+  }
+  if (password.length < 8) {
+    return { isValid: false, error: 'Password must be at least 8 characters long.' };
+  }
+  if (!/[A-Z]/.test(password)) {
+    return { isValid: false, error: 'Password must contain at least one uppercase letter (A-Z).' };
+  }
+  if (!/[a-z]/.test(password)) {
+    return { isValid: false, error: 'Password must contain at least one lowercase letter (a-z).' };
+  }
+  if (!/[0-9]/.test(password)) {
+    return { isValid: false, error: 'Password must contain at least one number (0-9).' };
+  }
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
+    return { isValid: false, error: 'Password must contain at least one special character (!@#$%^&*).' };
+  }
+  return { isValid: true };
+};
+
+// Authentication Middleware to verify token and attach req.user
+export const authenticateToken = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Access denied: No authentication token provided.' });
+    }
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    const parts = token.split('_');
+    const userId = parts[2];
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'Invalid session token format.' });
+    }
+    const user = await dbGet('SELECT id, name, phone, email, role, aadhaarNo, societyId, kycVerified FROM users WHERE id = ?', [userId]);
+    if (!user) {
+      return res.status(401).json({ success: false, error: 'Session expired or user account not found.' });
+    }
+    req.user = user;
+    next();
+  } catch (err) {
+    return res.status(500).json({ success: false, error: 'Authentication verification failed: ' + err.message });
+  }
+};
+
+// Authorization Guard Middleware for Role-Based Access Control (RBAC)
+export const requireRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ success: false, error: 'Authentication required for this operation.' });
+    }
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        success: false,
+        error: `Forbidden: User role '${req.user.role}' lacks permissions for this resource (Required: ${roles.join(', ')}).`
+      });
+    }
+    next();
+  };
+};
+
+// POST /api/auth/register - Register Customer, Worker, or Admin in SQLite with Strict Rules
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, phone, email, password, role = 'customer', aadhaarNo, societyId, category, hourlyRate } = req.body;
 
-    // Strict validation
+    // 1. Role validation
+    const allowedRoles = ['customer', 'worker', 'society_admin', 'federation_admin', 'super_admin'];
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({ success: false, error: `Invalid role '${role}'. Allowed roles: ${allowedRoles.join(', ')}` });
+    }
+
+    // 2. Strict Full Name validation
     if (!name || typeof name !== 'string' || name.trim().length < 3) {
       return res.status(400).json({ success: false, error: 'Full name must be at least 3 characters long.' });
     }
-
-    // Strict Indian Mobile Validation (10 digits starting with 6-9)
-    let cleanPhoneDigits = (phone || '').replace(/\D/g, '');
-    if (cleanPhoneDigits.length === 12 && cleanPhoneDigits.startsWith('91')) cleanPhoneDigits = cleanPhoneDigits.slice(2);
-    else if (cleanPhoneDigits.length === 11 && cleanPhoneDigits.startsWith('0')) cleanPhoneDigits = cleanPhoneDigits.slice(1);
-    
-    if (cleanPhoneDigits.length !== 10 || !/^[6-9]/.test(cleanPhoneDigits)) {
-      return res.status(400).json({ success: false, error: 'Invalid phone number. Must be a valid 10-digit Indian mobile number starting with 6, 7, 8, or 9.' });
-    }
-    const formattedPhone = `+91 ${cleanPhoneDigits.slice(0, 5)} ${cleanPhoneDigits.slice(5)}`;
-
-    // Strict Password Validation (8+ chars, upper, lower, number, special char)
-    if (!password || typeof password !== 'string' || password.length < 8) {
-      return res.status(400).json({ success: false, error: 'Password must be at least 8 characters long.' });
-    }
-    if (!/[A-Z]/.test(password)) {
-      return res.status(400).json({ success: false, error: 'Password must contain at least one uppercase letter (A-Z).' });
-    }
-    if (!/[a-z]/.test(password)) {
-      return res.status(400).json({ success: false, error: 'Password must contain at least one lowercase letter (a-z).' });
-    }
-    if (!/[0-9]/.test(password)) {
-      return res.status(400).json({ success: false, error: 'Password must contain at least one number (0-9).' });
-    }
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
-      return res.status(400).json({ success: false, error: 'Password must contain at least one special character (!@#$%^&*).' });
+    if (!/^[a-zA-Z\s.'-]+$/.test(name.trim())) {
+      return res.status(400).json({ success: false, error: 'Full name can only contain letters, spaces, and hyphens.' });
     }
 
-    // Strict Email Validation (if provided)
-    if (email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email.trim())) {
-      return res.status(400).json({ success: false, error: 'Please enter a valid email address.' });
+    // 3. Strict Phone validation (Strictly rejects letters like 9701392418hhhe)
+    const phoneCheck = validateIndianMobile(phone);
+    if (!phoneCheck.isValid) {
+      return res.status(400).json({ success: false, error: phoneCheck.error });
+    }
+    const formattedPhone = phoneCheck.formattedPhone;
+    const cleanDigits = phoneCheck.digits;
+
+    // 4. Strict Password validation (8+ chars, upper, lower, number, special char)
+    const passCheck = validateStrictPassword(password);
+    if (!passCheck.isValid) {
+      return res.status(400).json({ success: false, error: passCheck.error });
     }
 
-    // Strict Worker Aadhaar Validation
-    if (role === 'worker') {
-      const cleanAadhaar = (aadhaarNo || '').replace(/\D/g, '');
-      if (cleanAadhaar.length !== 12 || /^(\d)\1{11}$/.test(cleanAadhaar)) {
-        return res.status(400).json({ success: false, error: 'Aadhaar Number must be exactly 12 numeric digits.' });
+    // 5. Strict Email validation (if provided)
+    if (email) {
+      const cleanEmail = email.trim().toLowerCase();
+      if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(cleanEmail)) {
+        return res.status(400).json({ success: false, error: 'Please enter a valid email address.' });
       }
     }
 
-    // Check if email or phone already exists
-    const existingUser = await dbGet('SELECT * FROM users WHERE phone = ? OR phone = ? OR (email = ? AND email IS NOT NULL AND email != "")', [formattedPhone, phone, email || '']);
+    // 6. Strict Worker KYC & Wage Floor validation
+    if (role === 'worker') {
+      if (!aadhaarNo || typeof aadhaarNo !== 'string') {
+        return res.status(400).json({ success: false, error: 'Aadhaar Number is mandatory for Worker KYC.' });
+      }
+      if (/[a-zA-Z]/.test(aadhaarNo)) {
+        return res.status(400).json({ success: false, error: 'Aadhaar Number cannot contain letters.' });
+      }
+      const cleanAadhaar = aadhaarNo.replace(/\D/g, '');
+      if (cleanAadhaar.length !== 12 || /^(\d)\1{11}$/.test(cleanAadhaar)) {
+        return res.status(400).json({ success: false, error: 'Aadhaar Number must be exactly 12 numeric digits.' });
+      }
+
+      const rateNum = Number(hourlyRate);
+      if (isNaN(rateNum) || rateNum < 300) {
+        return res.status(400).json({ success: false, error: 'Cooperative wage floor is ₹300/hr minimum as per standards.' });
+      }
+      if (rateNum > 5000) {
+        return res.status(400).json({ success: false, error: 'Hourly rate cannot exceed ₹5,000/hr.' });
+      }
+    }
+
+    // 7. Check if phone or email is already registered in SQLite
+    const existingUser = await dbGet(
+      'SELECT * FROM users WHERE phone = ? OR phone = ? OR phone LIKE ? OR (email = ? AND email IS NOT NULL AND email != "")',
+      [formattedPhone, phone, `%${cleanDigits}`, email ? email.trim().toLowerCase() : '']
+    );
     if (existingUser) {
       return res.status(400).json({
         success: false,
         alreadyRegistered: true,
-        error: 'Account already registered. Please log in.'
+        error: 'An account with this mobile number or email already exists. Please sign in.'
       });
     }
 
@@ -133,7 +255,7 @@ app.post('/api/auth/register', async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Account registered successfully in SQLite database!',
+      message: 'Account registered successfully with verified credentials!',
       user: newUser,
       token,
       worker: createdWorker
@@ -143,19 +265,29 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// POST /api/auth/login - Authenticate user against SQLite users table
+// POST /api/auth/login - Authenticate user against SQLite users table with normalized phone & email support
 app.post('/api/auth/login', async (req, res) => {
   try {
-    const { loginInput, password } = req.body; // loginInput can be phone or email
+    const { loginInput, password } = req.body;
 
     if (!loginInput || !password) {
       return res.status(400).json({ success: false, error: 'Please enter Phone/Email and Password.' });
     }
 
-    const user = await dbGet('SELECT * FROM users WHERE phone = ? OR email = ?', [loginInput, loginInput]);
+    const trimmedInput = loginInput.trim();
+    let phoneDigits = trimmedInput.replace(/\D/g, '');
+    if (phoneDigits.length === 12 && phoneDigits.startsWith('91')) phoneDigits = phoneDigits.slice(2);
+    else if (phoneDigits.length === 11 && phoneDigits.startsWith('0')) phoneDigits = phoneDigits.slice(1);
+
+    const formattedPhone = phoneDigits.length === 10 ? `+91 ${phoneDigits.slice(0, 5)} ${phoneDigits.slice(5)}` : null;
+
+    const user = await dbGet(
+      'SELECT * FROM users WHERE phone = ? OR phone = ? OR phone LIKE ? OR email = ?',
+      [trimmedInput, formattedPhone || trimmedInput, `%${phoneDigits || 'none'}`, trimmedInput.toLowerCase()]
+    );
 
     if (!user || user.password !== password) {
-      return res.status(401).json({ success: false, error: 'Invalid credentials. Please check your Phone/Email and Password.' });
+      return res.status(401).json({ success: false, error: 'Invalid credentials. Please verify your Mobile/Email and Password.' });
     }
 
     const token = `token_jwt_${user.id}_${Date.now()}`;
@@ -575,9 +707,29 @@ app.get('/api/admin/state-metrics', async (req, res) => {
   }
 });
 
-// POST /api/admin/reset-database — Clean wipe of all bookings and registered customer/worker accounts
+// POST /api/admin/reset-database — Clean wipe of all bookings and registered accounts (Strict SuperAdmin Authorization Guard)
 app.post('/api/admin/reset-database', async (req, res) => {
   try {
+    const adminKey = req.headers['x-admin-key'];
+    const authHeader = req.headers.authorization;
+    let isAuthorized = adminKey === 'sahakar-secret-reset';
+
+    if (!isAuthorized && authHeader) {
+      const token = authHeader.replace(/^Bearer\s+/i, '');
+      const parts = token.split('_');
+      const userId = parts[2];
+      if (userId) {
+        const user = await dbGet('SELECT role FROM users WHERE id = ?', [userId]);
+        if (user && user.role === 'super_admin') {
+          isAuthorized = true;
+        }
+      }
+    }
+
+    if (!isAuthorized) {
+      return res.status(403).json({ success: false, error: 'Forbidden: SuperAdmin authorization required to reset database.' });
+    }
+
     const resBookings = await dbRun('DELETE FROM bookings');
     const resUsers = await dbRun("DELETE FROM users WHERE role = 'customer' OR role = 'worker'");
     const resWorkers = await dbRun("DELETE FROM workers WHERE id NOT IN ('wrk_101', 'wrk_102', 'wrk_103', 'wrk_104', 'wrk_105', 'wrk_106')");

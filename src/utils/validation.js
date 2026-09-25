@@ -5,45 +5,91 @@
 
 /**
  * Validates and normalizes Indian 10-digit mobile phone numbers
+ * Strictly rejects any letters, invalid symbols, incorrect digit counts, or non-(6-9) prefixes
  * @param {string} phone 
- * @returns {{ isValid: boolean, normalizedPhone: string, error?: string }}
+ * @returns {{ isValid: boolean, normalizedPhone: string, digits?: string, error?: string }}
  */
 export const validatePhoneNumber = (phone) => {
   if (!phone || typeof phone !== 'string') {
     return { isValid: false, normalizedPhone: '', error: 'Phone number is required.' };
   }
 
-  // Strip non-digit characters
-  let digits = phone.replace(/\D/g, '');
+  const trimmed = phone.trim();
 
-  // Handle leading +91 or 91 or 0
+  // 1. Strict check: Mobile numbers MUST NOT contain any alphabetic characters (e.g. 'hhhe')
+  if (/[a-zA-Z]/.test(trimmed)) {
+    return {
+      isValid: false,
+      normalizedPhone: trimmed,
+      error: 'Invalid phone number: letters are not allowed.'
+    };
+  }
+
+  // 2. Strict check: Only allow digits, spaces, hyphens, parentheses, and leading '+'
+  if (!/^\+?[0-9\s\-()]+$/.test(trimmed)) {
+    return {
+      isValid: false,
+      normalizedPhone: trimmed,
+      error: 'Invalid phone number: contains forbidden symbols.'
+    };
+  }
+
+  // Extract pure digits
+  let digits = trimmed.replace(/\D/g, '');
+
+  // Handle leading country code +91 / 91 or leading 0
   if (digits.length === 12 && digits.startsWith('91')) {
     digits = digits.slice(2);
   } else if (digits.length === 11 && digits.startsWith('0')) {
     digits = digits.slice(1);
   }
 
-  if (digits.length !== 10) {
+  // 3. Strict length check: must be exactly 10 digits
+  if (digits.length < 10) {
     return {
       isValid: false,
-      normalizedPhone: digits,
-      error: 'Phone number must be exactly 10 digits.'
+      normalizedPhone: trimmed,
+      digits,
+      error: `Number too short (${digits.length}/10 digits).`
     };
   }
 
+  if (digits.length > 10) {
+    return {
+      isValid: false,
+      normalizedPhone: trimmed,
+      digits,
+      error: `Too many digits (${digits.length}/10 digits).`
+    };
+  }
+
+  // 4. Strict Indian mobile prefix check (must start with 6, 7, 8, or 9)
   if (!/^[6-9]/.test(digits)) {
     return {
       isValid: false,
-      normalizedPhone: digits,
-      error: 'Invalid mobile number. Must start with 6, 7, 8, or 9.'
+      normalizedPhone: trimmed,
+      digits,
+      error: 'Indian mobile number must start with 6, 7, 8, or 9.'
+    };
+  }
+
+  // 5. Reject fake numbers with all identical digits (e.g. 9999999999, 8888888888)
+  if (/^(\d)\1{9}$/.test(digits)) {
+    return {
+      isValid: false,
+      normalizedPhone: trimmed,
+      digits,
+      error: 'Invalid mobile number: cannot be all identical digits.'
     };
   }
 
   return {
     isValid: true,
-    normalizedPhone: `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`
+    normalizedPhone: `+91 ${digits.slice(0, 5)} ${digits.slice(5)}`,
+    digits
   };
 };
+
 
 /**
  * Validates strict password requirements:
@@ -134,18 +180,23 @@ export const validateAadhaar = (aadhaar) => {
   if (!aadhaar || typeof aadhaar !== 'string') {
     return { isValid: false, normalizedAadhaar: '', error: 'Aadhaar Number is required for Worker KYC.' };
   }
-  const digits = aadhaar.replace(/\D/g, '');
+  const clean = aadhaar.trim();
+  if (/[a-zA-Z]/.test(clean)) {
+    return { isValid: false, normalizedAadhaar: clean, error: 'Aadhaar cannot contain letters.' };
+  }
+  const digits = clean.replace(/\D/g, '');
   if (digits.length !== 12) {
-    return { isValid: false, normalizedAadhaar: digits, error: 'Aadhaar Number must be exactly 12 numeric digits.' };
+    return { isValid: false, normalizedAadhaar: digits, error: `Aadhaar must be exactly 12 numeric digits (${digits.length}/12).` };
   }
   // Check for repeated trivial patterns like 000000000000
   if (/^(\d)\1{11}$/.test(digits)) {
-    return { isValid: false, normalizedAadhaar: digits, error: 'Invalid Aadhaar Number pattern.' };
+    return { isValid: false, normalizedAadhaar: digits, error: 'Invalid Aadhaar Number pattern (repeated digits).' };
   }
 
   return {
     isValid: true,
-    normalizedAadhaar: `${digits.slice(0, 4)}-${digits.slice(4, 8)}-${digits.slice(8, 12)}`
+    normalizedAadhaar: `${digits.slice(0, 4)}-${digits.slice(4, 8)}-${digits.slice(8, 12)}`,
+    digits
   };
 };
 
