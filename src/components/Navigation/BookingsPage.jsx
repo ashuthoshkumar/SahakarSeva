@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { Calendar, Clock, CheckCircle2, AlertCircle, ShieldCheck, HeartHandshake, MapPin, DollarSign, FileText, ArrowRight, UserCheck, Camera, ThumbsUp, RotateCcw, Eye } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, AlertCircle, ShieldCheck, HeartHandshake, MapPin, DollarSign, FileText, ArrowRight, ArrowLeft, UserCheck, Camera, ThumbsUp, RotateCcw, Eye } from 'lucide-react';
 import { translateCategory, translateWorkerName } from '../../utils/translateHelpers';
 
-export const BookingsPage = () => {
+export const BookingsPage = ({ setActiveTab }) => {
   const { bookings, setSelectedBooking, setPaymentModalOpen, setInvoiceModalOpen, approveWork, requestRedo } = useApp();
   const { user } = useAuth();
   const { t, lang } = useLanguage();
@@ -56,8 +56,19 @@ export const BookingsPage = () => {
               {t('myBookingsSubtitle') || 'Track active jobs, completed services & invoices'}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-500/30 text-teal-300 font-black text-base flex items-center justify-center shrink-0">
-            {myBookings.length}
+          <div className="flex items-center gap-2 shrink-0">
+            {setActiveTab && (
+              <button
+                onClick={() => setActiveTab('home')}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs shadow-md transition-all active:scale-95"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Services & Booking</span>
+              </button>
+            )}
+            <div className="w-10 h-10 rounded-2xl bg-teal-500/20 border border-teal-500/30 text-teal-300 font-black text-base flex items-center justify-center">
+              {myBookings.length}
+            </div>
           </div>
         </div>
 
@@ -132,6 +143,17 @@ export const BookingsPage = () => {
             <div>
               <h3 className="font-extrabold text-slate-900 text-base">{t('noWorkersFound') || 'No bookings found'}</h3>
               <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">{t('noBookingsDesc') || "You haven't placed any service bookings yet."}</p>
+              {setActiveTab && (
+                <div className="pt-3">
+                  <button
+                    onClick={() => setActiveTab('home')}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-md transition-all active:scale-95"
+                  >
+                    <span>{t('findServicesAndBook') || 'Find Services & Book Now'}</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         ) : (

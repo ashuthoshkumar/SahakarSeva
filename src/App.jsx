@@ -26,45 +26,46 @@ import { LanguageSelectModal } from './components/Common/LanguageSelectModal';
 const MainContent = ({ activeTab, setActiveTab }) => {
   const { isAuthenticated, user } = useAuth();
 
-  // 1. Unauthenticated visitors: strictly see only the public Landing Page
-  if (!isAuthenticated) {
-    return <LandingPage setActiveTab={setActiveTab} />;
+  // 1. Worker workspace (Strict role isolation)
+  if (isAuthenticated && user?.role === 'worker') {
+    if (activeTab === 'account') return <AccountPage />;
+    if (activeTab === 'bookings') return <BookingsPage setActiveTab={setActiveTab} />;
+    return <WorkerDashboard />;
   }
 
-  // 2. Account & Settings tab
-  if (activeTab === 'account') {
-    return <AccountPage />;
-  }
-
-  // 3. Bookings tab (Customer service history & escrow receipts)
-  if (activeTab === 'bookings') {
-    return <BookingsPage />;
-  }
-
-  // 4. STRICT ROLE-BASED ACCESS CONTROL (RBAC)
-  // Authenticated users can ONLY view their respective assigned dashboard.
-  // Society Admin -> SocietyDashboard
-  // Federation Admin -> FederationDashboard
-  // NCCT Super Admin -> SuperAdminDashboard
-  // Worker -> WorkerDashboard
-  // Customer -> CustomerDashboard
-  const userRole = user?.role || 'customer';
-
-  return (
-    <div className="space-y-6">
-      {userRole === 'customer' && <CustomerDashboard setActiveTab={setActiveTab} />}
-      {userRole === 'worker' && <WorkerDashboard />}
+  // 2. Cooperative & Federation Admin workspace (Strict role isolation)
+  if (isAuthenticated && ['society_admin', 'federation_admin', 'super_admin'].includes(user?.role)) {
+    if (activeTab === 'account') return <AccountPage />;
+    return (
       <React.Suspense fallback={
         <div className="flex items-center justify-center py-20 text-slate-400">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
         </div>
       }>
-        {userRole === 'society_admin' && <SocietyDashboard />}
-        {userRole === 'federation_admin' && <FederationDashboard />}
-        {userRole === 'super_admin' && <SuperAdminDashboard />}
+        {user.role === 'society_admin' && <SocietyDashboard />}
+        {user.role === 'federation_admin' && <FederationDashboard />}
+        {user.role === 'super_admin' && <SuperAdminDashboard />}
       </React.Suspense>
-    </div>
-  );
+    );
+  }
+
+  // 3. Explicit Bookings tab: Always render BookingsPage (never redirect to landing page)
+  if (activeTab === 'bookings') {
+    return <BookingsPage setActiveTab={setActiveTab} />;
+  }
+
+  // 4. Explicit Account tab
+  if (activeTab === 'account') {
+    return <AccountPage />;
+  }
+
+  // 5. Explicit Landing tab
+  if (activeTab === 'landing') {
+    return <LandingPage setActiveTab={setActiveTab} />;
+  }
+
+  // 6. Home tab (Default): The Main Bookings Page & Workspace (Service catalog, verified workers, interactive map, booking cards)
+  return <CustomerDashboard setActiveTab={setActiveTab} />;
 };
 
 // Floating Toast Notification Renderer

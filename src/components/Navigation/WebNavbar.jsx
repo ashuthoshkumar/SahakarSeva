@@ -3,13 +3,13 @@ import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { 
-  Home, User, ShieldCheck, Globe, Menu, X, LogOut, AlertTriangle, Lock 
+  Home, User, ShieldCheck, Globe, Menu, X, LogOut, AlertTriangle, Lock, Calendar
 } from 'lucide-react';
 import { translateRole } from '../../utils/translateHelpers';
 import { SahakarLogo } from '../Common/SahakarLogo';
 
 export const WebNavbar = ({ activeTab, setActiveTab }) => {
-  const { setEmergencyModalOpen } = useApp();
+  const { setEmergencyModalOpen, bookings } = useApp();
   const { isAuthenticated, user, openAuthModal, logout } = useAuth();
   const { t, lang, openLanguageModal } = useLanguage();
 
@@ -19,6 +19,12 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
     setActiveTab(tab);
     setMobileMenuOpen(false);
   };
+
+  const myBookingsCount = bookings ? bookings.filter(b => {
+    if (!user) return false;
+    if (user.role === 'worker') return (b.workerName === user.name || b.workerId === user.id);
+    return (!user.phone || b.customerPhone === user.phone || b.customerName === user.name);
+  }).length : 0;
 
   return (
     <header className="sticky top-0 z-40 w-full font-sans shadow-md">
@@ -46,7 +52,7 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
           </button>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-2">
+          <nav className="hidden lg:flex items-center gap-1.5">
             <button
               onClick={() => handleTabClick('home')}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
@@ -57,14 +63,50 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
             >
               <Home className="w-4 h-4" />
               <span>
-                {isAuthenticated && user?.role
+                {isAuthenticated && user?.role === 'worker'
+                  ? 'WORKER WORKSPACE'
+                  : isAuthenticated && ['society_admin', 'federation_admin', 'super_admin'].includes(user?.role)
                   ? `${user.role.replace('_', ' ').toUpperCase()} WORKSPACE`
                   : (t('home') || 'Services & Workers')}
               </span>
             </button>
 
+            {/* Bookings Tab */}
+            {(!isAuthenticated || user?.role === 'customer' || user?.role === 'worker') && (
+              <button
+                onClick={() => handleTabClick('bookings')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                  activeTab === 'bookings'
+                    ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Calendar className="w-4 h-4" />
+                <span>{user?.role === 'worker' ? (t('myJobs') || 'My Jobs') : (t('bookingsTab') || 'Bookings')}</span>
+                {myBookingsCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-teal-400 text-slate-950 font-black text-[10px]">
+                    {myBookingsCount}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {/* Overview / Landing Tab (Customer & Visitor) */}
+            {(!isAuthenticated || user?.role === 'customer') && (
+              <button
+                onClick={() => handleTabClick('landing')}
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  activeTab === 'landing'
+                    ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                }`}
+              >
+                <span>{t('landingTab') || 'Overview'}</span>
+              </button>
+            )}
+
             {isAuthenticated && user?.role && (
-              <span className="px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-teal-300 text-[11px] font-bold flex items-center gap-1.5 shadow-sm">
+              <span className="px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-teal-300 text-[11px] font-bold flex items-center gap-1.5 shadow-sm ml-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
                 <span>{translateRole(user.role, t)}</span>
               </span>
@@ -168,11 +210,48 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
             >
               <Home className="w-4 h-4 text-teal-400" />
               <span>
-                {isAuthenticated && user?.role
+                {isAuthenticated && user?.role === 'worker'
+                  ? 'WORKER WORKSPACE'
+                  : isAuthenticated && ['society_admin', 'federation_admin', 'super_admin'].includes(user?.role)
                   ? `${user.role.replace('_', ' ').toUpperCase()} WORKSPACE`
                   : (t('home') || 'Services & Workers')}
               </span>
             </button>
+
+            {(!isAuthenticated || user?.role === 'customer' || user?.role === 'worker') && (
+              <button
+                onClick={() => handleTabClick('bookings')}
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold text-left transition-colors ${
+                  activeTab === 'bookings'
+                    ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
+                    : 'text-slate-300 hover:bg-slate-900'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-4 h-4 text-teal-400" />
+                  <span>{user?.role === 'worker' ? (t('myJobs') || 'My Jobs') : (t('bookingsTab') || 'Bookings')}</span>
+                </div>
+                {myBookingsCount > 0 && (
+                  <span className="px-2 py-0.5 rounded-full bg-teal-400 text-slate-950 font-black text-[10px]">
+                    {myBookingsCount}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {(!isAuthenticated || user?.role === 'customer') && (
+              <button
+                onClick={() => handleTabClick('landing')}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-left transition-colors ${
+                  activeTab === 'landing'
+                    ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30'
+                    : 'text-slate-300 hover:bg-slate-900'
+                }`}
+              >
+                <Globe className="w-4 h-4 text-teal-400" />
+                <span>{t('landingTab') || 'Overview'}</span>
+              </button>
+            )}
 
             {isAuthenticated && (
               <button

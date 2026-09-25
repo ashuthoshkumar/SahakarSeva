@@ -26,7 +26,7 @@ export const LandingPage = ({ setActiveTab }) => {
 
   const handleCategorySelect = (catId) => {
     setSelectedCategory(catId);
-    openAuthModal('register_customer');
+    if (setActiveTab) setActiveTab('home');
   };
 
   return (
@@ -54,8 +54,11 @@ export const LandingPage = ({ setActiveTab }) => {
 
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <button
-                onClick={() => openAuthModal('register_customer')}
-                className="py-3.5 px-6 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-sm rounded-2xl shadow-lg shadow-teal-500/20 transition-all flex items-center justify-center gap-2 active:scale-95"
+                onClick={() => {
+                  setSelectedCategory('all');
+                  if (setActiveTab) setActiveTab('home');
+                }}
+                className="py-3.5 px-6 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-sm rounded-2xl shadow-lg shadow-teal-500/20 transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
               >
                 <span>{t('findServicesAndBook')}</span>
                 <ArrowRight className="w-4 h-4" />
@@ -63,7 +66,7 @@ export const LandingPage = ({ setActiveTab }) => {
 
               <button
                 onClick={() => openAuthModal('register_worker')}
-                className="py-3.5 px-5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm rounded-2xl border border-slate-700 transition-all flex items-center justify-center gap-2 active:scale-95"
+                className="py-3.5 px-5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm rounded-2xl border border-slate-700 transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
               >
                 <UserCheck className="w-4 h-4 text-teal-400" />
                 <span>{t('registerAsWorker')}</span>
@@ -71,7 +74,7 @@ export const LandingPage = ({ setActiveTab }) => {
 
               <button
                 onClick={() => setEmergencyModalOpen(true)}
-                className="py-3.5 px-5 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95"
+                className="py-3.5 px-5 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
               >
                 <AlertTriangle className="w-4 h-4" />
                 <span>{t('emergencyRequest')}</span>
@@ -94,7 +97,7 @@ export const LandingPage = ({ setActiveTab }) => {
                     <button
                       key={cat.id}
                       onClick={() => handleCategorySelect(cat.id)}
-                      className="p-3 rounded-2xl bg-slate-900/90 hover:bg-slate-700/80 border border-slate-700/70 text-left transition-all group flex items-center gap-2.5"
+                      className="p-3 rounded-2xl bg-slate-900/90 hover:bg-slate-700/80 border border-slate-700/70 text-left transition-all group flex items-center gap-2.5 cursor-pointer"
                     >
                       <div className="p-2 rounded-xl bg-teal-500/10 text-teal-400 group-hover:bg-teal-500 group-hover:text-slate-950 transition-colors shrink-0">
                         <Icon className="w-4 h-4" />
@@ -109,8 +112,11 @@ export const LandingPage = ({ setActiveTab }) => {
 
               <div className="pt-2 text-center">
                 <button
-                  onClick={() => openAuthModal('register_customer')}
-                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-700 text-teal-300 text-xs font-bold rounded-xl border border-slate-700 transition-colors flex items-center justify-center gap-1.5"
+                  onClick={() => {
+                    setSelectedCategory('all');
+                    if (setActiveTab) setActiveTab('home');
+                  }}
+                  className="w-full py-2.5 bg-slate-900 hover:bg-slate-700 text-teal-300 text-xs font-bold rounded-xl border border-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Search className="w-3.5 h-3.5" />
                   <span>{t('browseAllCategories')}</span>
@@ -132,8 +138,11 @@ export const LandingPage = ({ setActiveTab }) => {
             </h2>
           </div>
           <button
-            onClick={() => openAuthModal('register_customer')}
-            className="text-xs font-bold text-teal-700 hover:text-teal-800 flex items-center gap-1"
+            onClick={() => {
+              setSelectedCategory('all');
+              if (setActiveTab) setActiveTab('home');
+            }}
+            className="text-xs font-bold text-teal-700 hover:text-teal-800 flex items-center gap-1 cursor-pointer"
           >
             <span>{t('viewAllCategories')}</span>
             <ArrowRight className="w-3.5 h-3.5" />
