@@ -12,10 +12,12 @@ export const BookingsPage = () => {
   const [filter, setFilter] = useState('all');
   const [previewPhoto, setPreviewPhoto] = useState(null);
 
-  // Filter bookings based on role & active tab filter
+  // Filter bookings based on role:
+  // For workers: strictly show ONLY accepted jobs and completed orders (never pending requests)
+  // For customers: show only bookings made by this customer
   const myBookings = user?.role === 'worker' 
-    ? bookings.filter(b => b.workerName === user.name || b.workerId === user.id)
-    : bookings;
+    ? bookings.filter(b => (b.workerName === user.name || b.workerId === user.id) && b.status !== 'Pending')
+    : bookings.filter(b => !user?.phone || b.customerPhone === user.phone || b.customerName === user.name);
 
   const filteredBookings = myBookings.filter(b => {
     if (filter === 'active') return !b.status?.includes('Paid');

@@ -124,10 +124,31 @@ export const initDB = async () => {
       healthInsurance REAL NOT NULL,
       platformFee REAL NOT NULL,
       totalAmount REAL NOT NULL,
+      customerLat REAL,
+      customerLng REAL,
+      workerLat REAL,
+      workerLng REAL,
       createdAt TEXT NOT NULL,
       FOREIGN KEY (workerId) REFERENCES workers(id)
     );
   `);
+
+  // Safe migrations for coordinates in case existing table was created earlier
+  try {
+    await dbRun('ALTER TABLE bookings ADD COLUMN customerLat REAL');
+  } catch (e) {}
+  try {
+    await dbRun('ALTER TABLE bookings ADD COLUMN customerLng REAL');
+  } catch (e) {}
+  try {
+    await dbRun('ALTER TABLE bookings ADD COLUMN workerLat REAL');
+  } catch (e) {}
+  try {
+    await dbRun('ALTER TABLE bookings ADD COLUMN workerLng REAL');
+  } catch (e) {}
+  try {
+    await dbRun('ALTER TABLE bookings ADD COLUMN completionPhoto TEXT');
+  } catch (e) {}
 
   // Seed Admin Users if empty (no fake customers or workers)
   const userCount = await dbGet('SELECT COUNT(*) as count FROM users');

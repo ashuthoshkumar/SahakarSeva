@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { ShieldCheck, Crosshair, Navigation, LocateFixed } from 'lucide-react';
+import { ShieldCheck, Crosshair, Navigation, LocateFixed, Phone, CheckCircle2 } from 'lucide-react';
 import { translateCategory, translateWorkerName } from '../../utils/translateHelpers';
 
 // Fix Leaflet default icon paths in React
@@ -13,6 +13,37 @@ L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
+
+// Pulsing Live Tracking Icon for Worker On The Way
+const createActiveWorkerIcon = () => {
+  return L.divIcon({
+    className: 'active-worker-tracking-pin',
+    html: `
+      <div style="position: relative; display: flex; align-items: center; justify-content: center; width: 44px; height: 44px;">
+        <span style="position: absolute; width: 44px; height: 44px; border-radius: 50%; background: rgba(16, 185, 129, 0.4); animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;"></span>
+        <div style="
+          background: linear-gradient(135deg, #10b981, #059669);
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          border: 3px solid white;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 16px;
+          z-index: 10;
+        ">
+          🛵
+        </div>
+      </div>
+    `,
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
+    popupAnchor: [0, -22],
+  });
+};
 
 // Custom Teal Icon for Cooperative Worker
 const createCustomIcon = (color = '#0d9488') => {
@@ -79,8 +110,13 @@ function ChangeMapView({ center, zoom }) {
 }
 
 export const InteractiveMap = ({ height = '450px' }) => {
-  const { workers, radiusKm, setSelectedWorker, setBookingModalOpen, userCoords, detectUserLocation, isLocating } = useApp();
+  const { workers, radiusKm, setSelectedWorker, setBookingModalOpen, userCoords, detectUserLocation, isLocating, bookings } = useApp();
   const { t, lang } = useLanguage();
+
+  // Find any active accepted job for live tracking
+  const activeBooking = bookings.find(
+    b => b.status === 'Accepted' || b.status?.includes('Awaiting Approval')
+  );
 
   // Wait for GPS coordinates before rendering map
   if (!userCoords) {
@@ -97,6 +133,31 @@ export const InteractiveMap = ({ height = '450px' }) => {
   return (
     <div className="relative w-full rounded-3xl overflow-hidden border border-slate-200 shadow-md">
       
+      {/* Live Worker GPS Tracking Floating Banner */}
+      {activeBooking && (
+        <div className="absolute top-4 left-4 z-[1000] bg-slate-900/95 text-white border border-emerald-500/40 px-3.5 py-2 rounded-2xl shadow-xl backdrop-blur-md flex items-center gap-2.5 max-w-[85%] sm:max-w-none">
+          <div className="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold text-sm shrink-0">
+            🛵
+          </div>
+          <div className="min-w-0">
+            <p className="text-[9px] text-emerald-400 font-extrabold uppercase tracking-wider flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Worker Live GPS</span>
+            </p>
+            <p className="text-xs font-black text-white truncate">{activeBooking.workerName}</p>
+          </div>
+          {activeBooking.workerPhone && (
+            <a
+              href={`tel:${activeBooking.workerPhone}`}
+              className="ml-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[10px] font-bold flex items-center gap-1 shadow shrink-0"
+            >
+              <Phone className="w-3 h-3" />
+              <span>Call</span>
+            </a>
+          )}
+        </div>
+      )}
+
       {/* GPS Locate Button overlay */}
       <button
         onClick={detectUserLocation}
@@ -119,6 +180,47 @@ export const InteractiveMap = ({ height = '450px' }) => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+
+        {/* Live Route Polyline connecting Worker and Customer */}
+        {activeBooking && (
+          <>
+            <Polyline
+              positions={[
+                [activeBooking.workerLat || 28.6139, activeBooking.workerLng || 77.2090],
+                [activeBooking.customerLat || userCoords[0], activeBooking.customerLng || userCoords[1]]
+              ]}
+              pathOptions={{
+                color: '#10b981',
+                weight: 4,
+                dashArray: '6, 8',
+                opacity: 0.9
+              }}
+            />
+            {/* Live Worker Pin on the way */}
+            <Marker
+              position={[activeBooking.workerLat || 28.6139, activeBooking.workerLng || 77.2090]}
+              icon={createActiveWorkerIcon()}
+            >
+              <Popup>
+                <div className="p-2 font-sans space-y-1 text-xs min-w-[170px]">
+                  <p className="font-extrabold text-emerald-700 flex items-center gap-1">
+                    <span>🛵 On The Way</span>
+                  </p>
+                  <p className="font-black text-slate-900">{activeBooking.workerName}</p>
+                  <p className="text-[10px] text-slate-500 capitalize">{activeBooking.category}</p>
+                  {activeBooking.workerPhone && (
+                    <a
+                      href={`tel:${activeBooking.workerPhone}`}
+                      className="mt-1.5 block w-full py-1 text-center bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-[10px]"
+                    >
+                      Call {activeBooking.workerPhone}
+                    </a>
+                  )}
+                </div>
+              </Popup>
+            </Marker>
+          </>
+        )}
 
         {/* User Current Live Location Marker */}
         <Marker position={userCoords} icon={createUserLocationIcon()}>

@@ -13,9 +13,10 @@ import { compressImage } from '../../utils/imageCompressor';
 import { WelfarePassbookModal } from './WelfarePassbookModal';
 import { NcctAcademyModal } from './NcctAcademyModal';
 import { MaterialCreditModal } from './MaterialCreditModal';
+import { WorkerNavigationMap } from './WorkerNavigationMap';
 
 export const WorkerDashboard = () => {
-  const { workerDutyStatus, toggleWorkerDuty, bookings, addNotification, acceptBooking, uploadCompletionPhoto } = useApp();
+  const { workerDutyStatus, toggleWorkerDuty, bookings, addNotification, acceptBooking, uploadCompletionPhoto, userCoords } = useApp();
   const { user } = useAuth();
   const { t, lang } = useLanguage();
 
@@ -94,8 +95,11 @@ export const WorkerDashboard = () => {
     );
   }
 
-  // Filter bookings for this worker only
-  const myBookings = bookings.filter(b => b.workerName === workerStats?.name || b.workerId === user?.id);
+  // Filter bookings for this worker:
+  // Strictly show ONLY accepted bookings in the worker section active jobs list as requested
+  const allMyBookings = bookings.filter(b => b.workerName === workerStats?.name || b.workerId === user?.id);
+  const acceptedBookings = allMyBookings.filter(b => b.status === 'Accepted' || b.status?.includes('Work Completed') || b.status?.includes('Approved') || b.status?.includes('Paid') || b.status?.includes('Redo'));
+  const pendingOffers = allMyBookings.filter(b => b.status === 'Pending');
 
   // Handle photo upload from camera
   const handlePhotoUpload = async (bookingId, event) => {
@@ -246,33 +250,70 @@ export const WorkerDashboard = () => {
         {/* Left Column: Job Dispatches & Bookings Management (8 cols) */}
         <div className="lg:col-span-8 space-y-6">
           
+          {/* Incoming Dispatch Offers (Pending Acceptance) */}
+          {pendingOffers.length > 0 && (
+            <div className="space-y-3">
+              {pendingOffers.map((b) => (
+                <div
+                  key={b.id}
+                  className="p-5 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-3xl shadow-sm space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500 text-slate-950 font-black text-xs shadow-sm">
+                      ⚡ NEW JOB DISPATCH OFFER
+                    </span>
+                    <span className="text-base font-black text-emerald-800">₹{b.baseWage || b.totalAmount || 0}</span>
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-slate-900 text-sm">
+                      {b.customerName || 'Customer'} requested {translateCategory(b.category, t)}
+                    </h4>
+                    <p className="text-xs text-slate-600 flex items-center gap-1.5 mt-1">
+                      <MapPin className="w-3.5 h-3.5 text-amber-700 shrink-0" />
+                      <span>{b.address || 'Doorstep Location'}</span>
+                    </p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">Scheduled: {b.scheduledTime || 'Immediate'}</p>
+                  </div>
+                  <button
+                    onClick={() => acceptBooking(b.id)}
+                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Accept Dispatch & Open Navigation Map</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Active Accepted Job Orders */}
           <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
                   <Clock className="w-5 h-5 text-teal-600" />
-                  <span>{t('incomingBookingRequests') || 'Active Job Orders & Dispatches'}</span>
+                  <span>{t('incomingBookingRequests') || 'Accepted Jobs & Dispatches'}</span>
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Accept dispatches, navigate to job address, and upload verification photo upon completion.
+                  View customer address on map, navigate via GPS, and upload verification photo upon completion.
                 </p>
               </div>
               <span className="px-3 py-1 rounded-full bg-teal-50 text-teal-800 text-xs font-bold border border-teal-200">
-                {myBookings.length} {myBookings.length === 1 ? 'Job' : 'Jobs'}
+                {acceptedBookings.length} {acceptedBookings.length === 1 ? 'Job' : 'Jobs'}
               </span>
             </div>
 
-            {myBookings.length === 0 ? (
+            {acceptedBookings.length === 0 ? (
               <div className="p-12 text-center bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
                 <HardHat className="w-10 h-10 text-slate-400 mx-auto" />
-                <h4 className="text-sm font-bold text-slate-700">No booking requests right now</h4>
+                <h4 className="text-sm font-bold text-slate-700">No active accepted jobs right now</h4>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                  Keep your duty status turned ON. When customers in your area request services, they will appear here instantly.
+                  Only accepted bookings and completed jobs appear here. Keep your duty status ON to receive incoming dispatches.
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
-                {myBookings.map((b) => {
+                {acceptedBookings.map((b) => {
                   const statusBadge = getStatusBadge(b.status);
                   const canUploadPhoto = b.status === 'Accepted' || b.status === 'Redo Requested';
                   const hasPhoto = Boolean(b.completionPhoto);
@@ -318,6 +359,31 @@ export const WorkerDashboard = () => {
                         )}
                       </div>
 
+                      {/* Customer Address Location & Live Navigation Map for Accepted Jobs */}
+                      {(b.status === 'Accepted' || b.status?.includes('Redo')) && (
+                        <div className="mt-4 pt-4 border-t border-slate-200 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                              <MapPin className="w-4 h-4 text-teal-600" />
+                              <span>Customer Job Address & Turn-by-Turn Navigation</span>
+                            </span>
+                            <span className="text-[10px] text-teal-700 font-bold bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
+                              GPS Navigation Ready
+                            </span>
+                          </div>
+                          <WorkerNavigationMap
+                            workerLat={b.workerLat || userCoords[0]}
+                            workerLng={b.workerLng || userCoords[1]}
+                            customerLat={b.customerLat || (userCoords[0] + 0.008)}
+                            customerLng={b.customerLng || (userCoords[1] + 0.008)}
+                            customerName={b.customerName}
+                            customerAddress={b.address}
+                            customerPhone={b.customerPhone}
+                            height="260px"
+                          />
+                        </div>
+                      )}
+
                       {/* Photo Preview if uploaded */}
                       {hasPhoto && (
                         <div className="rounded-2xl overflow-hidden border border-slate-300 relative">
@@ -335,20 +401,10 @@ export const WorkerDashboard = () => {
 
                       {/* Action Triggers */}
                       <div className="flex flex-wrap items-center gap-3 pt-1">
-                        {b.status === 'Pending' && (
-                          <button
-                            onClick={() => acceptBooking(b.id)}
-                            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition-colors flex items-center gap-1.5"
-                          >
-                            <CheckCircle2 className="w-4 h-4" />
-                            <span>Accept Dispatch & Begin Travel</span>
-                          </button>
-                        )}
-
                         {canUploadPhoto && (
                           <button
                             onClick={() => fileInputRefs.current[b.id]?.click()}
-                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow transition-colors flex items-center gap-1.5"
+                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow transition-colors flex items-center gap-1.5 cursor-pointer"
                           >
                             <Camera className="w-4 h-4" />
                             <span>{hasPhoto ? 'Re-upload Proof Photo' : 'Upload Work Proof Photo'}</span>

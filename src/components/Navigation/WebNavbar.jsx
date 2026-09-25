@@ -22,7 +22,10 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
 
-  const pendingBookingsCount = bookings.filter(b => b.status !== 'Confirmed & Paid').length;
+  // Only count pending bookings for customer profiles; workers manage dispatches inside the worker section
+  const pendingBookingsCount = user?.role === 'worker'
+    ? 0
+    : bookings.filter(b => (!user?.phone || b.customerPhone === user?.phone || b.customerName === user?.name) && b.status !== 'Confirmed & Paid').length;
 
   const rolesList = [
     { id: 'customer', label: t('roleCustomer') || 'Customer Portal', icon: User, color: 'text-emerald-500' },

@@ -7,7 +7,7 @@ import { ShieldCheck, Calendar, Clock, MapPin, HeartHandshake, CheckCircle } fro
 import { translateNcctLevel, translateWorkerName } from '../../utils/translateHelpers';
 
 export const BookingModal = () => {
-  const { bookingModalOpen, setBookingModalOpen, selectedWorker, createBooking } = useApp();
+  const { bookingModalOpen, setBookingModalOpen, selectedWorker, createBooking, userCoords } = useApp();
   const { user } = useAuth();
   const { t, lang } = useLanguage();
   const [hours, setHours] = useState(2);
@@ -38,7 +38,9 @@ export const BookingModal = () => {
       address,
       isEmergency: false,
       customerName: user?.name || 'Customer',
-      customerPhone: user?.phone || ''
+      customerPhone: user?.phone || '',
+      customerLat: userCoords?.[0] || 28.6139,
+      customerLng: userCoords?.[1] || 77.2090
     });
   };
 

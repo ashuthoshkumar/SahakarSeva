@@ -6,6 +6,7 @@ import { WorkerList } from './WorkerList';
 import { InteractiveMap } from '../Map/InteractiveMap';
 import { AiSahayakModal } from '../AI/AiSahayakModal';
 import { SurakshaKavachModal } from './SurakshaKavachModal';
+import { useAuth } from '../../context/AuthContext';
 import { 
   Search, MapPin, HeartHandshake, AlertTriangle, Navigation, 
   X, Sparkles, Mic, ShieldCheck, ArrowRight, CheckCircle2 
@@ -13,6 +14,7 @@ import {
 import { translateCategory, translateWorkerName } from '../../utils/translateHelpers';
 
 export const CustomerDashboard = () => {
+  const { user } = useAuth();
   const {
     detectUserLocation,
     isLocating,
@@ -30,6 +32,11 @@ export const CustomerDashboard = () => {
   const { t, lang } = useLanguage();
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isSurakshaOpen, setIsSurakshaOpen] = useState(false);
+
+  // Only show bookings that belong to this customer
+  const myCustomerBookings = user?.phone
+    ? bookings.filter(b => b.customerPhone === user.phone || b.customerName === user.name)
+    : bookings;
 
   return (
     <div className="space-y-6 font-sans">
@@ -125,18 +132,18 @@ export const CustomerDashboard = () => {
       </div>
 
       {/* 2. ACTIVE BOOKINGS BANNER (IF ANY) */}
-      {bookings.length > 0 && (
+      {myCustomerBookings.length > 0 && (
         <div className="bg-white rounded-3xl border border-teal-200 p-5 shadow-sm space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="font-extrabold text-sm text-slate-900 flex items-center gap-2">
               <HeartHandshake className="w-5 h-5 text-teal-600" />
-              <span>{t('activeBookingsTitle') || 'Active Service Bookings'} ({bookings.length})</span>
+              <span>{t('activeBookingsTitle') || 'Active Service Bookings'} ({myCustomerBookings.length})</span>
             </h4>
             <span className="text-xs text-slate-500">Live Escrow Protected</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {bookings.map((booking) => (
+            {myCustomerBookings.map((booking) => (
               <div
                 key={booking.id}
                 className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col justify-between gap-3 text-xs"
@@ -145,9 +152,17 @@ export const CustomerDashboard = () => {
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-bold text-slate-900 text-sm truncate">{translateCategory(booking.category, t)}</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
-                      booking.status?.includes('Paid') ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      booking.status?.includes('Paid') 
+                        ? 'bg-emerald-100 text-emerald-800' 
+                        : booking.status === 'Accepted'
+                        ? 'bg-teal-100 text-teal-800 animate-pulse'
+                        : 'bg-amber-100 text-amber-800'
                     }`}>
-                      {booking.status?.includes('Paid') ? t('statusPaid') || 'Paid' : t('statusPending') || 'Pending'}
+                      {booking.status?.includes('Paid') 
+                        ? t('statusPaid') || 'Paid' 
+                        : booking.status === 'Accepted'
+                        ? '🛵 ' + (t('workerOnTheWay') || 'Worker On The Way')
+                        : t('statusPending') || 'Pending'}
                     </span>
                   </div>
                   <p className="text-slate-600 text-xs mt-1">

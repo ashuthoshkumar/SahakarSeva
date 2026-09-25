@@ -476,7 +476,22 @@ app.get('/api/bookings', async (req, res) => {
 // POST /api/bookings - Create real booking in DB
 app.post('/api/bookings', async (req, res) => {
   try {
-    const { workerId, workerName, workerPhone, category, customerName, customerPhone, address, scheduledTime, isEmergency, hours = 2 } = req.body;
+    const { 
+      workerId, 
+      workerName, 
+      workerPhone, 
+      category, 
+      customerName, 
+      customerPhone, 
+      address, 
+      scheduledTime, 
+      isEmergency, 
+      hours = 2,
+      customerLat,
+      customerLng,
+      workerLat,
+      workerLng
+    } = req.body;
     
     const worker = await dbGet('SELECT * FROM workers WHERE id = ?', [workerId]);
     const hourlyRate = worker ? worker.hourlyRate : 350;
@@ -490,13 +505,61 @@ app.post('/api/bookings', async (req, res) => {
     const id = `BK-2026-${Math.floor(100 + Math.random() * 900)}`;
     const createdAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
 
+    const finalWorkerLat = workerLat || (worker ? worker.lat : 28.6139);
+    const finalWorkerLng = workerLng || (worker ? worker.lng : 77.2090);
+
     await dbRun(`
-      INSERT INTO bookings (id, workerId, workerName, workerPhone, category, customerName, customerPhone, address, scheduledTime, status, isEmergency, baseWage, welfareContribution, healthInsurance, platformFee, totalAmount, createdAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, ?, ?, ?)
-    `, [id, workerId, workerName || 'Worker', workerPhone || '', category || 'General Service', customerName || 'Customer', customerPhone || '', address || 'GPS Location', scheduledTime || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), isEmergency ? 1 : 0, baseWage, welfareContribution, healthInsurance, platformFee, totalAmount, createdAt]);
+      INSERT INTO bookings (id, workerId, workerName, workerPhone, category, customerName, customerPhone, address, scheduledTime, status, isEmergency, baseWage, welfareContribution, healthInsurance, platformFee, totalAmount, customerLat, customerLng, workerLat, workerLng, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'Pending', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [id, workerId, workerName || 'Worker', workerPhone || '', category || 'General Service', customerName || 'Customer', customerPhone || '', address || 'GPS Location', scheduledTime || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), isEmergency ? 1 : 0, baseWage, welfareContribution, healthInsurance, platformFee, totalAmount, customerLat || null, customerLng || null, finalWorkerLat, finalWorkerLng, createdAt]);
 
     const createdBooking = await dbGet('SELECT * FROM bookings WHERE id = ?', [id]);
     res.json({ success: true, message: 'Booking created successfully in database', booking: createdBooking });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/bookings/:id/accept - Worker accepts booking dispatch
+app.post('/api/bookings/:id/accept', async (req, res) => {
+  try {
+    await dbRun("UPDATE bookings SET status = 'Accepted' WHERE id = ?", [req.params.id]);
+    const updatedBooking = await dbGet('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
+    res.json({ success: true, message: 'Booking accepted by worker', booking: updatedBooking });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/bookings/:id/photo - Worker uploads work completion photo
+app.post('/api/bookings/:id/photo', async (req, res) => {
+  try {
+    const { photo } = req.body;
+    await dbRun("UPDATE bookings SET completionPhoto = ?, status = 'Work Completed - Awaiting Approval' WHERE id = ?", [photo, req.params.id]);
+    const updatedBooking = await dbGet('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
+    res.json({ success: true, message: 'Work completion photo uploaded', booking: updatedBooking });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/bookings/:id/approve - Customer approves work
+app.post('/api/bookings/:id/approve', async (req, res) => {
+  try {
+    await dbRun("UPDATE bookings SET status = 'Approved - Ready for Payment' WHERE id = ?", [req.params.id]);
+    const updatedBooking = await dbGet('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
+    res.json({ success: true, message: 'Work approved by customer', booking: updatedBooking });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/bookings/:id/redo - Customer requests redo
+app.post('/api/bookings/:id/redo', async (req, res) => {
+  try {
+    await dbRun("UPDATE bookings SET status = 'Redo Requested', completionPhoto = NULL WHERE id = ?", [req.params.id]);
+    const updatedBooking = await dbGet('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
+    res.json({ success: true, message: 'Redo requested', booking: updatedBooking });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

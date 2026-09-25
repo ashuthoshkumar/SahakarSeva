@@ -25,9 +25,10 @@ const readStorage = (key, fallback = []) => {
     if (!raw) return fallback;
     const parsed = JSON.parse(raw);
     if (key === STORAGE_KEYS.WORKERS && Array.isArray(parsed)) {
-      // Purge any legacy synthetic or mock worker templates
+      // Purge only legacy synthetic or mock worker templates
       const syntheticNames = new Set(['Ramesh Kumar', 'Sunita Devi', 'Vikram Singh', 'Pooja Sharma', 'Mohd. Imran', 'Kavita Patil']);
-      const sanitized = parsed.filter(w => !syntheticNames.has(w.name) && !w.id?.startsWith('worker_') && !w.id?.startsWith('w'));
+      const legacySyntheticIds = new Set(['wrk_101', 'wrk_102', 'wrk_103', 'wrk_104', 'wrk_105', 'wrk_106', 'worker_1', 'worker_2']);
+      const sanitized = parsed.filter(w => !syntheticNames.has(w.name) && !legacySyntheticIds.has(w.id));
       if (sanitized.length !== parsed.length) {
         localStorage.setItem(key, JSON.stringify(sanitized));
       }
@@ -143,10 +144,7 @@ export const AppProvider = ({ children }) => {
 
   // Dynamic data: starts strictly with 0 workers (no fake / synthetic data)
   const [workers, setWorkers] = useState([]);
-  const [bookings, setBookings] = useState(() => {
-    writeStorage(STORAGE_KEYS.BOOKINGS, []);
-    return [];
-  });
+  const [bookings, setBookings] = useState(() => readStorage(STORAGE_KEYS.BOOKINGS, []));
   const [societies, setSocieties] = useState(() => readStorage(STORAGE_KEYS.SOCIETIES, [
     { id: 'soc_default', name: 'SahakarSeva Cooperative Society', registrationNo: 'MSCS/CR/2024/001', federation: 'National Labour Cooperative Federation', location: 'Pan India', workerCount: 0, welfareFundBalance: '₹ 0', complianceScore: 100, wageFloor: 300, status: 'Active' }
   ]));
@@ -202,8 +200,8 @@ export const AppProvider = ({ children }) => {
 
   // ─── Compute dynamic stats from real data ───
   const computeStats = useCallback(() => {
-    const allWorkers = readStorage(STORAGE_KEYS.WORKERS);
-    const allBookings = readStorage(STORAGE_KEYS.BOOKINGS);
+    const allWorkers = workers.length > 0 ? workers : readStorage(STORAGE_KEYS.WORKERS, []);
+    const allBookings = bookings;
 
     const paidBookings = allBookings.filter(b => b.status && b.status.includes('Paid'));
     const totalWages = paidBookings.reduce((sum, b) => sum + (b.baseWage || 0), 0);
@@ -220,15 +218,16 @@ export const AppProvider = ({ children }) => {
         : 0
     });
 
-    // Category counts from registered workers
+    // Category counts dynamically derived from registered workers
     const counts = {};
     allWorkers.forEach(w => {
-      if (w.category) {
-        counts[w.category] = (counts[w.category] || 0) + 1;
+      const cat = (w.category || '').toLowerCase().trim();
+      if (cat) {
+        counts[cat] = (counts[cat] || 0) + 1;
       }
     });
     setCategoryCounts(counts);
-  }, [societies.length]);
+  }, [workers, bookings, societies.length]);
 
   useEffect(() => {
     computeStats();
@@ -279,6 +278,12 @@ export const AppProvider = ({ children }) => {
       if (data && data.success && Array.isArray(data.workers)) {
         setWorkers(data.workers);
         writeStorage(STORAGE_KEYS.WORKERS, data.workers);
+        const counts = {};
+        data.workers.forEach(w => {
+          const cat = (w.category || '').toLowerCase().trim();
+          if (cat) counts[cat] = (counts[cat] || 0) + 1;
+        });
+        setCategoryCounts(counts);
         return;
       }
     } catch (e) {}
@@ -369,7 +374,12 @@ export const AppProvider = ({ children }) => {
   };
 
   // ─── Create real booking with proper status flow ───
-  const createBooking = async ({ worker, category, hours = 2, isEmergency = false, customerName, customerPhone, address = 'Current GPS Location' }) => {
+  const createBooking = async ({ worker, category, hours = 2, isEmergency = false, customerName, customerPhone, address = 'Current GPS Location', customerLat, customerLng }) => {
+    const finalCustLat = customerLat !== undefined ? customerLat : (userCoords?.[0] || 28.6139);
+    const finalCustLng = customerLng !== undefined ? customerLng : (userCoords?.[1] || 77.2090);
+    const finalWorkerLat = worker.lat || 28.6139;
+    const finalWorkerLng = worker.lng || 77.2090;
+
     const data = await apiPost('/bookings', {
       workerId: worker.id,
       workerName: worker.name,
@@ -382,18 +392,31 @@ export const AppProvider = ({ children }) => {
       address,
       scheduledTime: isEmergency ? 'INSTANT DISPATCH (SOS)' : 'Today, ' + new Date(Date.now() + 3600000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       isEmergency,
-      hours
+      hours,
+      customerLat: finalCustLat,
+      customerLng: finalCustLng,
+      workerLat: finalWorkerLat,
+      workerLng: finalWorkerLng
     });
 
     let newBooking;
     if (data.success && data.booking) {
-      newBooking = { ...data.booking, societyName: worker.societyName || 'Cooperative Society' };
+      newBooking = { 
+        ...data.booking, 
+        societyName: worker.societyName || 'Cooperative Society',
+        customerLat: finalCustLat,
+        customerLng: finalCustLng,
+        workerLat: finalWorkerLat,
+        workerLng: finalWorkerLng
+      };
+      setBookings(prev => [newBooking, ...prev.filter(b => b.id !== newBooking.id)]);
     } else {
       const baseWage = worker.hourlyRate * hours;
       newBooking = {
         id: 'bk_' + Date.now(),
         workerId: worker.id,
         workerName: worker.name,
+        workerPhone: worker.phone || '',
         workerPhoto: worker.photo || null,
         societyName: worker.societyName || 'Cooperative Society',
         category: category || worker.category,
@@ -411,6 +434,10 @@ export const AppProvider = ({ children }) => {
         status: 'Pending',
         completionPhoto: null,
         workApproved: false,
+        customerLat: finalCustLat,
+        customerLng: finalCustLng,
+        workerLat: finalWorkerLat,
+        workerLng: finalWorkerLng,
         createdAt: new Date().toISOString()
       };
       setBookings(prev => [newBooking, ...prev]);
@@ -419,20 +446,26 @@ export const AppProvider = ({ children }) => {
     setSelectedBooking(newBooking);
     setBookingModalOpen(false);
     setEmergencyModalOpen(false);
-    setPaymentModalOpen(false); // Don't auto-open payment — worker must complete work first
+    setPaymentModalOpen(false);
     addNotification(isEmergency ? 'Emergency Worker Dispatched! Worker will upload proof after completion.' : 'Booking Created! Worker will be notified.', 'success');
   };
 
   // ─── Worker accepts a booking ───
-  const acceptBooking = (bookingId) => {
+  const acceptBooking = async (bookingId) => {
+    try {
+      await apiPost(`/bookings/${bookingId}/accept`, {});
+    } catch (e) {}
     setBookings(prev => prev.map(b =>
       b.id === bookingId ? { ...b, status: 'Accepted' } : b
     ));
-    addNotification('Job Accepted! Navigate to customer location.', 'success');
+    addNotification('Job Accepted! Customer location mapped with one-click navigation.', 'success');
   };
 
   // ─── Worker uploads work completion photo ───
-  const uploadCompletionPhoto = (bookingId, photoDataUrl) => {
+  const uploadCompletionPhoto = async (bookingId, photoDataUrl) => {
+    try {
+      await apiPost(`/bookings/${bookingId}/photo`, { photo: photoDataUrl });
+    } catch (e) {}
     setBookings(prev => prev.map(b =>
       b.id === bookingId
         ? { ...b, completionPhoto: photoDataUrl, status: 'Work Completed - Awaiting Approval', completedAt: new Date().toISOString() }
@@ -442,7 +475,10 @@ export const AppProvider = ({ children }) => {
   };
 
   // ─── Customer approves the completed work ───
-  const approveWork = (bookingId) => {
+  const approveWork = async (bookingId) => {
+    try {
+      await apiPost(`/bookings/${bookingId}/approve`, {});
+    } catch (e) {}
     setBookings(prev => prev.map(b =>
       b.id === bookingId ? { ...b, workApproved: true, status: 'Approved - Ready for Payment' } : b
     ));
@@ -450,7 +486,10 @@ export const AppProvider = ({ children }) => {
   };
 
   // ─── Customer requests redo ───
-  const requestRedo = (bookingId) => {
+  const requestRedo = async (bookingId) => {
+    try {
+      await apiPost(`/bookings/${bookingId}/redo`, {});
+    } catch (e) {}
     setBookings(prev => prev.map(b =>
       b.id === bookingId ? { ...b, completionPhoto: null, workApproved: false, status: 'Redo Requested' } : b
     ));

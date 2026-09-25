@@ -201,8 +201,9 @@ export const ServiceCatalog = () => {
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5">
           {filteredCategories.map((cat) => {
             const IconComponent = iconMap[cat.icon] || Zap;
-            const isSelected = selectedCategory === cat.id;
-            const liveCount = categoryCounts[cat.id] || 0;
+            const liveCount = categoryCounts[cat.id] !== undefined
+              ? categoryCounts[cat.id]
+              : workers.filter(w => (w.category || '').toLowerCase().trim() === cat.id.toLowerCase().trim()).length;
 
             const translatedName = t(`cat_${cat.id}`) !== `cat_${cat.id}` ? t(`cat_${cat.id}`) : cat.name;
             const translatedDesc = t(`cat_${cat.id}_desc`) !== `cat_${cat.id}_desc` ? t(`cat_${cat.id}_desc`) : cat.desc;
