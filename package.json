@@ -8,8 +8,8 @@
     "server": "node server/index.js",
     "start": "concurrently \"node server/index.js\" \"vite\"",
     "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "reset-db": "node server/resetDb.js"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",

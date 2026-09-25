@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { Geolocation } from '@capacitor/geolocation';
 import {
   fetchCloudWorkers,
   pushCloudWorker,
@@ -7,6 +6,7 @@ import {
   setSavedBackendUrl,
   DEFAULT_LAN_IP
 } from '../utils/cloudSync';
+import { DEFAULT_WORKERS } from '../data/defaultWorkers';
 
 const AppContext = createContext();
 
@@ -119,7 +119,7 @@ const apiPatch = async (endpoint, body) => {
   return { success: false };
 };
 
-// ─── Haversine distance calculator (km) ───
+// Haversine distance calculator (km)
 const haversineKm = (lat1, lng1, lat2, lng2) => {
   const toRad = (v) => (v * Math.PI) / 180;
   const R = 6371;
@@ -128,154 +128,6 @@ const haversineKm = (lat1, lng1, lat2, lng2) => {
   const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
-
-// Initial verified seed workers fallback for dynamic state
-const DEFAULT_WORKERS = [
-  {
-    id: 'wrk_101',
-    name: 'Ramesh Sharma',
-    photo: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=250',
-    category: 'electrician',
-    societyId: 'soc_delhi_1',
-    societyName: 'Delhi NCR Shramik Sahakari Samiti',
-    rating: 4.9,
-    reviewsCount: 142,
-    jobsCompleted: 310,
-    experienceYears: 8,
-    hourlyRate: 350,
-    lat: 28.6139,
-    lng: 77.2090,
-    ncctLevel: 'Level 3 Master Craftsman',
-    kycStatus: 'Aadhaar Verified',
-    policeVerification: 'Clear (Verified by Delhi Police)',
-    ayushmanCard: 'AB-8829-1029-4411',
-    pfAccountNumber: 'DL/CPM/88219/101',
-    onDuty: true,
-    skills: ['MCB Wiring', 'Inverter Repair', 'Smart Switches', 'Industrial Solar Panels'],
-    phone: '+91 98765 43210',
-    distanceKm: 0.8
-  },
-  {
-    id: 'wrk_102',
-    name: 'Sunita Devi',
-    photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=250',
-    category: 'caregiver',
-    societyId: 'soc_delhi_1',
-    societyName: 'Delhi NCR Shramik Sahakari Samiti',
-    rating: 4.95,
-    reviewsCount: 98,
-    jobsCompleted: 215,
-    experienceYears: 6,
-    hourlyRate: 320,
-    lat: 28.6250,
-    lng: 77.2180,
-    ncctLevel: 'Level 2 Certified Nursing Assistant',
-    kycStatus: 'Aadhaar Verified',
-    policeVerification: 'Clear',
-    ayushmanCard: 'AB-4410-9921-1029',
-    pfAccountNumber: 'DL/CPM/88219/102',
-    onDuty: true,
-    skills: ['Elderly Care', 'Blood Pressure & Sugar Monitor', 'Physiotherapy Assist', 'Post-Op Care'],
-    phone: '+91 98111 22334',
-    distanceKm: 1.2
-  },
-  {
-    id: 'wrk_103',
-    name: 'Vikram Singh',
-    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250',
-    category: 'plumber',
-    societyId: 'soc_delhi_1',
-    societyName: 'Delhi NCR Shramik Sahakari Samiti',
-    rating: 4.8,
-    reviewsCount: 110,
-    jobsCompleted: 190,
-    experienceYears: 7,
-    hourlyRate: 350,
-    lat: 28.6080,
-    lng: 77.2300,
-    ncctLevel: 'Level 2 Hydro Technician',
-    kycStatus: 'Aadhaar Verified',
-    policeVerification: 'Clear',
-    ayushmanCard: 'AB-7711-3092-8812',
-    pfAccountNumber: 'DL/CPM/88219/103',
-    onDuty: true,
-    skills: ['High Pressure Leak Fix', 'CPVC Fitting', 'Geyser Installation', 'Motor Pump Overhaul'],
-    phone: '+91 97123 45678',
-    distanceKm: 1.5
-  },
-  {
-    id: 'wrk_104',
-    name: 'Mohammed Mansoor',
-    photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=250',
-    category: 'carpenter',
-    societyId: 'soc_delhi_1',
-    societyName: 'Delhi NCR Shramik Sahakari Samiti',
-    rating: 4.85,
-    reviewsCount: 76,
-    jobsCompleted: 145,
-    experienceYears: 9,
-    hourlyRate: 380,
-    lat: 28.6300,
-    lng: 77.2000,
-    ncctLevel: 'Level 3 Wood Craftsman',
-    kycStatus: 'Aadhaar Verified',
-    policeVerification: 'Clear',
-    ayushmanCard: 'AB-5590-1120-7733',
-    pfAccountNumber: 'DL/CPM/88219/104',
-    onDuty: true,
-    skills: ['Modular Kitchen Repair', 'Custom Shelving', 'Door Frame Realignment', 'Furniture Polishing'],
-    phone: '+91 99887 76655',
-    distanceKm: 2.1
-  },
-  {
-    id: 'wrk_105',
-    name: 'Pooja Patil',
-    photo: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=250',
-    category: 'domestic_helper',
-    societyId: 'soc_mh_1',
-    societyName: 'Maharashtra Household & Skilled Workers Coop',
-    rating: 4.9,
-    reviewsCount: 160,
-    jobsCompleted: 340,
-    experienceYears: 5,
-    hourlyRate: 300,
-    lat: 19.0760,
-    lng: 72.8777,
-    ncctLevel: 'Level 2 Sanitation Specialist',
-    kycStatus: 'Aadhaar Verified',
-    policeVerification: 'Clear (Mumbai Police)',
-    ayushmanCard: 'AB-3392-8819-0012',
-    pfAccountNumber: 'MH/BOM/55120/105',
-    onDuty: true,
-    skills: ['Nutritious Meal Prep', 'Utensil Washing Machine', 'Floor Sanitization', 'Laundry Care'],
-    phone: '+91 98222 33445',
-    distanceKm: 2.8
-  },
-  {
-    id: 'wrk_106',
-    name: 'Ganesh Shinde',
-    photo: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=250',
-    category: 'technician',
-    societyId: 'soc_mh_1',
-    societyName: 'Maharashtra Household & Skilled Workers Coop',
-    rating: 4.75,
-    reviewsCount: 88,
-    jobsCompleted: 175,
-    experienceYears: 6,
-    hourlyRate: 400,
-    lat: 19.0820,
-    lng: 72.8900,
-    ncctLevel: 'Level 2 HVAC & Electronics',
-    kycStatus: 'Aadhaar Verified',
-    policeVerification: 'Clear',
-    ayushmanCard: 'AB-9921-4412-5501',
-    pfAccountNumber: 'MH/BOM/55120/106',
-    onDuty: true,
-    skills: ['Inverter AC Gas Refill', 'PCB Washing Machine Fix', 'Double Door Fridge Repair'],
-    phone: '+91 97654 32109',
-    distanceKm: 3.2
-  }
-];
 
 export const AppProvider = ({ children }) => {
   const [currentRole, setCurrentRole] = useState('customer');
@@ -378,38 +230,11 @@ export const AppProvider = ({ children }) => {
     computeStats();
   }, [workers, bookings, computeStats]);
 
-  // ─── Native Hardware GPS Geolocation Detector (Capacitor + Web Fallback) ───
+  // ─── Standard Web HTML5 Geolocation Detector ───
   const detectUserLocation = async () => {
     setIsLocating(true);
-    let resolved = false;
 
-    // 1. Try Capacitor Native Android GPS Hardware First
-    try {
-      const perm = await Geolocation.checkPermissions();
-      if (perm.location !== 'granted') {
-        await Geolocation.requestPermissions();
-      }
-      const position = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 3000
-      });
-      if (position && position.coords) {
-        const { latitude, longitude } = position.coords;
-        const coords = [latitude, longitude];
-        setUserCoords(coords);
-        localStorage.setItem(STORAGE_KEYS.LAST_GPS, JSON.stringify(coords));
-        setIsLocating(false);
-        addNotification('Live hardware GPS locked accurately!', 'success');
-        resolved = true;
-        return;
-      }
-    } catch (capErr) {
-      console.warn('Capacitor native Geolocation unavailable/timed out:', capErr);
-    }
-
-    // 2. Fallback to Browser HTML5 navigator.geolocation
-    if (!resolved && navigator.geolocation) {
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
@@ -417,14 +242,13 @@ export const AppProvider = ({ children }) => {
           setUserCoords(coords);
           localStorage.setItem(STORAGE_KEYS.LAST_GPS, JSON.stringify(coords));
           setIsLocating(false);
-          addNotification('Live GPS location detected!', 'success');
+          addNotification('Live GPS location detected successfully!', 'success');
         },
         (error) => {
-          console.warn('HTML5 Geolocation fallback error:', error.message);
+          console.warn('Geolocation fallback notice:', error.message);
           setIsLocating(false);
-          addNotification('GPS signal weak. Using last known location.', 'info');
         },
-        { enableHighAccuracy: false, timeout: 8000, maximumAge: 10000 }
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 10000 }
       );
     } else {
       setIsLocating(false);

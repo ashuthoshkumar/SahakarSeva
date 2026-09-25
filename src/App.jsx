@@ -10,9 +10,11 @@ import { CheckCircle2, Info, XCircle } from 'lucide-react';
 import { LandingPage } from './components/Landing/LandingPage';
 import { CustomerDashboard } from './components/Customer/CustomerDashboard';
 import { WorkerDashboard } from './components/Worker/WorkerDashboard';
-import { SocietyDashboard } from './components/SocietyAdmin/SocietyDashboard';
-import { FederationDashboard } from './components/FederationAdmin/FederationDashboard';
-import { SuperAdminDashboard } from './components/SuperAdmin/SuperAdminDashboard';
+
+// Code-split admin dashboards for optimal initial bundle performance
+const SocietyDashboard = React.lazy(() => import('./components/SocietyAdmin/SocietyDashboard').then(m => ({ default: m.SocietyDashboard })));
+const FederationDashboard = React.lazy(() => import('./components/FederationAdmin/FederationDashboard').then(m => ({ default: m.FederationDashboard })));
+const SuperAdminDashboard = React.lazy(() => import('./components/SuperAdmin/SuperAdminDashboard').then(m => ({ default: m.SuperAdminDashboard })));
 import { BookingModal } from './components/Customer/BookingModal';
 import { EmergencyBooking } from './components/Customer/EmergencyBooking';
 import { PaymentModal } from './components/Payment/PaymentModal';
@@ -59,9 +61,15 @@ const MainContent = ({ activeTab, setActiveTab }) => {
     <div className="space-y-6">
       {activeRole === 'customer' && <CustomerDashboard />}
       {activeRole === 'worker' && <WorkerDashboard />}
-      {activeRole === 'society_admin' && <SocietyDashboard />}
-      {activeRole === 'federation_admin' && <FederationDashboard />}
-      {activeRole === 'super_admin' && <SuperAdminDashboard />}
+      <React.Suspense fallback={
+        <div className="flex items-center justify-center py-20 text-slate-400">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+        </div>
+      }>
+        {activeRole === 'society_admin' && <SocietyDashboard />}
+        {activeRole === 'federation_admin' && <FederationDashboard />}
+        {activeRole === 'super_admin' && <SuperAdminDashboard />}
+      </React.Suspense>
     </div>
   );
 };
