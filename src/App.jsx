@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { MobileHeader, MobileBottomNav } from './components/Navigation/MobileNav';
+import { WebNavbar } from './components/Navigation/WebNavbar';
+import { WebFooter } from './components/Navigation/WebFooter';
 import { AccountPage } from './components/Navigation/AccountPage';
 import { BookingsPage } from './components/Navigation/BookingsPage';
 import { CheckCircle2, Info, XCircle } from 'lucide-react';
@@ -20,7 +21,7 @@ import { AuthModal } from './components/Auth/AuthModal';
 import { RatingModal } from './components/Customer/RatingModal';
 import { LanguageSelectModal } from './components/Common/LanguageSelectModal';
 
-const MainContent = ({ activeTab }) => {
+const MainContent = ({ activeTab, setActiveTab }) => {
   const { currentRole, setCurrentRole } = useApp();
   const { isAuthenticated, user } = useAuth();
 
@@ -43,19 +44,19 @@ const MainContent = ({ activeTab }) => {
 
   // If user is on landing / home tab when not logged in
   if (!isAuthenticated && activeTab === 'home') {
-    return <LandingPage />;
+    return <LandingPage setActiveTab={setActiveTab} />;
   }
 
   // If not authenticated and on another tab, show landing
   if (!isAuthenticated) {
-    return <LandingPage />;
+    return <LandingPage setActiveTab={setActiveTab} />;
   }
 
   const activeRole = user?.role || currentRole;
 
   // Once authenticated or browsing dashboards
   return (
-    <div className="space-y-4 pb-4">
+    <div className="space-y-6">
       {activeRole === 'customer' && <CustomerDashboard />}
       {activeRole === 'worker' && <WorkerDashboard />}
       {activeRole === 'society_admin' && <SocietyDashboard />}
@@ -71,11 +72,11 @@ const ToastNotifications = () => {
   if (!notifications || notifications.length === 0) return null;
 
   return (
-    <div className="fixed top-16 left-1/2 -translate-x-1/2 z-[100] flex flex-col gap-2 w-[90%] max-w-sm pointer-events-none">
+    <div className="fixed top-20 right-4 sm:right-6 z-[100] flex flex-col gap-2.5 w-[90%] max-w-sm pointer-events-none">
       {notifications.map((n) => (
         <div
           key={n.id}
-          className={`p-3 rounded-2xl shadow-xl border flex items-center gap-2.5 backdrop-blur-md animate-fadeIn pointer-events-auto ${
+          className={`p-3.5 rounded-2xl shadow-2xl border flex items-center gap-3 backdrop-blur-xl animate-fadeIn pointer-events-auto ${
             n.type === 'success'
               ? 'bg-emerald-50/95 text-emerald-900 border-emerald-300'
               : n.type === 'error'
@@ -84,13 +85,13 @@ const ToastNotifications = () => {
           }`}
         >
           {n.type === 'success' ? (
-            <CheckCircle2 className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           ) : n.type === 'error' ? (
-            <XCircle className="w-4.5 h-4.5 text-red-600 shrink-0" />
+            <XCircle className="w-5 h-5 text-red-600 shrink-0" />
           ) : (
-            <Info className="w-4.5 h-4.5 text-blue-600 shrink-0" />
+            <Info className="w-5 h-5 text-blue-600 shrink-0" />
           )}
-          <span className="text-[11px] font-bold leading-snug">{n.message}</span>
+          <span className="text-xs font-bold leading-snug">{n.message}</span>
         </div>
       ))}
     </div>
@@ -104,37 +105,32 @@ export function App() {
     <LanguageProvider>
       <AuthProvider>
         <AppProvider>
-          {/* NATIVE MOBILE PHONE APP SHELL CONTAINER */}
-          <div className="min-h-screen bg-slate-100 font-sans">
+          {/* MODERN FULL-WIDTH WEB APPLICATION CONTAINER */}
+          <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col antialiased selection:bg-teal-500 selection:text-white">
             
-            {/* MOBILE DEVICE CONTAINER - full width on phone, centered on desktop */}
-            <div className="w-full max-w-md mx-auto min-h-screen bg-slate-50 shadow-2xl flex flex-col relative overflow-hidden text-slate-800">
-              
-              {/* TOP MOBILE APP BAR */}
-              <MobileHeader setActiveTab={setActiveTab} />
+            {/* STICKY TOP WEB NAVBAR */}
+            <WebNavbar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-              {/* SCROLLABLE MOBILE CONTENT AREA */}
-              <main className="flex-1 overflow-y-auto px-3.5 py-3 pb-20">
-                <MainContent activeTab={activeTab} />
-              </main>
+            {/* SPACIOUS DESKTOP MAIN WORKSPACE */}
+            <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+              <MainContent activeTab={activeTab} setActiveTab={setActiveTab} />
+            </main>
 
-              {/* FIXED BOTTOM MOBILE TAB NAVIGATION */}
-              <MobileBottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+            {/* COMPREHENSIVE WEB FOOTER */}
+            <WebFooter setActiveTab={setActiveTab} />
 
-              {/* FLOATING TOAST NOTIFICATIONS */}
-              <ToastNotifications />
+            {/* FLOATING TOAST NOTIFICATIONS */}
+            <ToastNotifications />
 
-              {/* GLOBAL MODALS */}
-              <BookingModal />
-              <EmergencyBooking />
-              <PaymentModal />
-              <InvoiceModal />
-              <AuthModal />
-              <RatingModal />
-              <LanguageSelectModal />
-              
-            </div>
-
+            {/* GLOBAL DESKTOP MODALS */}
+            <BookingModal />
+            <EmergencyBooking />
+            <PaymentModal />
+            <InvoiceModal />
+            <AuthModal />
+            <RatingModal />
+            <LanguageSelectModal />
+            
           </div>
         </AppProvider>
       </AuthProvider>

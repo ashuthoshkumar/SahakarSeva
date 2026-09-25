@@ -123,17 +123,17 @@ export const BookingsPage = () => {
 
         {/* Bookings List */}
         {filteredBookings.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-3 shadow-sm">
-            <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
-              <Calendar className="w-6 h-6" />
+          <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center space-y-3 shadow-sm">
+            <div className="w-14 h-14 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+              <Calendar className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-900 text-sm">{t('noWorkersFound') || 'No bookings found'}</h3>
-              <p className="text-xs text-slate-500 mt-0.5">{t('noBookingsDesc') || "You haven't placed any service bookings yet."}</p>
+              <h3 className="font-extrabold text-slate-900 text-base">{t('noWorkersFound') || 'No bookings found'}</h3>
+              <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">{t('noBookingsDesc') || "You haven't placed any service bookings yet."}</p>
             </div>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredBookings.map((booking) => {
               const statusBadge = getStatusBadge(booking.status);
               const isPaid = booking.status?.includes('Paid');

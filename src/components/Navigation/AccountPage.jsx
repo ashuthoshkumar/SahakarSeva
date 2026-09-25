@@ -83,7 +83,7 @@ export const AccountPage = () => {
   const RoleIcon = roleInfo.icon;
 
   return (
-    <div className="space-y-4 pb-8">
+    <div className="max-w-4xl mx-auto space-y-6 pb-12 font-sans">
       
       {/* Profile Card */}
       <div className="bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 rounded-3xl p-5 text-white shadow-xl relative overflow-hidden">

@@ -263,30 +263,35 @@ export const AuthModal = () => {
   const isWrkStep3Valid = wrkCategory && wrkRate >= 300 && wrkPassAnalysis.isValid;
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col animate-fadeIn">
-      
-      {/* Clean Header Bar */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-white sticky top-0 z-10">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-500 flex items-center justify-center text-white text-sm font-black shadow-sm">
-            🤝
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md animate-fadeIn"
+      onClick={() => setIsAuthModalOpen(false)}
+    >
+      <div 
+        className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Clean Header Bar */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/80">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-500 flex items-center justify-center text-white text-base font-black shadow-md shadow-teal-500/20">
+              🤝
+            </div>
+            <div>
+              <h1 className="text-base font-black text-slate-900 leading-none">SahakarSeva</h1>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">{t('cooperativeGigWorkforce') || 'Cooperative Workforce'}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-sm font-black text-slate-900 leading-none">SahakarSeva</h1>
-            <p className="text-[11px] text-slate-500 font-medium">{t('cooperativeGigWorkforce') || 'Cooperative Workforce'}</p>
-          </div>
+          <button
+            onClick={() => setIsAuthModalOpen(false)}
+            className="p-1.5 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
-        <button
-          onClick={() => setIsAuthModalOpen(false)}
-          className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-md mx-auto px-5 py-5 space-y-5">
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-5">
 
           {/* Tab Switcher — Clean Pill Design */}
           <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
