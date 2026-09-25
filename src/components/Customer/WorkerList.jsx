@@ -57,7 +57,7 @@ export const WorkerList = () => {
                   <span className="p-1 rounded-lg bg-teal-100 text-teal-800 text-xs">
                     <UserCheck className="w-3.5 h-3.5" />
                   </span>
-                  <span>Available {selectedCatName} Workers</span>
+                  <span>{t('availableWorkersCategory')} ({selectedCatName})</span>
                 </>
               ) : (
                 <>
@@ -67,13 +67,13 @@ export const WorkerList = () => {
             </h3>
 
             <span className="text-xs font-black bg-teal-50 text-teal-800 px-2 py-0.5 rounded-full border border-teal-200">
-              {filteredWorkers.length} {filteredWorkers.length === 1 ? 'Worker' : 'Workers'}
+              {filteredWorkers.length} {t('workers')}
             </span>
           </div>
 
           <p className="text-xs text-slate-500 font-medium mt-0.5">
             {selectedCatName
-              ? `Showing verified craftsmen specialized in ${selectedCatName} within ${radiusKm} km`
+              ? `${t('verifiedCraftsmenIn')} ${selectedCatName} (${radiusKm} km)`
               : `${t('showingWorkers')} (${filteredWorkers.length})`}
           </p>
         </div>
@@ -85,7 +85,7 @@ export const WorkerList = () => {
               className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 transition-colors"
             >
               <X className="w-3.5 h-3.5" />
-              <span>Show All Categories</span>
+              <span>{t('showAllCategories')}</span>
             </button>
           )}
 
@@ -105,7 +105,7 @@ export const WorkerList = () => {
           <div>
             <h4 className="text-sm font-extrabold text-slate-900">
               {selectedCatName
-                ? `No ${selectedCatName} workers available within ${radiusKm} km`
+                ? `${selectedCatName}: ${t('noWorkersInCategory')}`
                 : t('noWorkersFound')}
             </h4>
             <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
@@ -119,7 +119,7 @@ export const WorkerList = () => {
                 onClick={() => setRadiusKm(50)}
                 className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-xs font-bold shadow transition-colors"
               >
-                Expand Radius to 50 km
+                {t('expandRadius50')}
               </button>
             )}
 
@@ -128,7 +128,7 @@ export const WorkerList = () => {
                 onClick={() => setSelectedCategory('all')}
                 className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors"
               >
-                View All Categories
+                {t('viewAllCategories')}
               </button>
             )}
 
@@ -137,7 +137,7 @@ export const WorkerList = () => {
                 onClick={() => setSearchQuery('')}
                 className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors"
               >
-                Clear Search
+                {t('clearSearch')}
               </button>
             )}
           </div>

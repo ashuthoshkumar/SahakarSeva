@@ -67,7 +67,7 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 font-medium tracking-wide">
-                Home Services & Local Craftsmen
+                {t('appSubtitle')}
               </p>
             </div>
           </button>
@@ -116,14 +116,14 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
                 onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
                 className="px-3 py-2 rounded-xl text-xs font-bold text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all flex items-center gap-1.5"
               >
-                <span>View Portals</span>
+                <span>{t('viewPortals')}</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
 
               {roleDropdownOpen && (
                 <div className="absolute left-0 mt-2 w-56 bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl p-2 z-50 animate-fadeIn">
                   <div className="text-[10px] font-black uppercase text-slate-400 px-3 py-1.5 tracking-wider">
-                    Select Role Dashboard
+                    {t('selectRoleDashboard')}
                   </div>
                   {rolesList.map((r) => {
                     const Icon = r.icon;
@@ -167,10 +167,10 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
             <button
               onClick={() => setEmergencyModalOpen(true)}
               className="px-3 sm:px-4 py-2 bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:to-rose-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-red-600/30 transition-all flex items-center gap-1.5 shrink-0 sos-pulse-btn active:scale-95"
-              title="15-Minute Emergency SOS Dispatch"
+              title={t('emergencySOSTitle')}
             >
               <AlertTriangle className="w-4 h-4" />
-              <span className="hidden sm:inline">Emergency SOS</span>
+              <span className="hidden sm:inline">{t('emergencySOS')}</span>
               <span className="sm:hidden">SOS</span>
             </button>
 
@@ -182,13 +182,13 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
                   className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-xl border border-slate-700 transition-all flex items-center gap-1.5"
                 >
                   <Lock className="w-3.5 h-3.5 text-slate-300" />
-                  <span>{t('signIn') || 'Sign In'}</span>
+                  <span>{t('signIn')}</span>
                 </button>
                 <button
                   onClick={() => openAuthModal('register_customer')}
                   className="hidden md:flex px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-black text-xs rounded-xl shadow-md shadow-teal-500/20 transition-all items-center gap-1.5"
                 >
-                  <span>{t('getStarted') || 'Register'}</span>
+                  <span>{t('getStarted')}</span>
                 </button>
               </div>
             ) : (
@@ -288,7 +288,7 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
           {/* Role Dashboards in Mobile Drawer */}
           <div className="pt-3 border-t border-slate-800">
             <p className="text-[11px] font-black uppercase text-slate-400 px-1 mb-2 tracking-wider">
-              Role Portals
+              {t('rolePortals')}
             </p>
             <div className="grid grid-cols-2 gap-2">
               {rolesList.map((r) => {
@@ -318,7 +318,7 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
               className="flex items-center gap-1.5 text-teal-400 font-bold"
             >
               <Globe className="w-4 h-4" />
-              <span>Change Language ({lang.toUpperCase()})</span>
+              <span>{t('changeLanguage')} ({lang.toUpperCase()})</span>
             </button>
           </div>
         </div>

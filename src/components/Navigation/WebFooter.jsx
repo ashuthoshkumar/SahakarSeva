@@ -4,7 +4,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useApp } from '../../context/AppContext';
 
 export const WebFooter = ({ setActiveTab }) => {
-  const { openLanguageModal, lang } = useLanguage();
+  const { t, openLanguageModal, lang } = useLanguage();
   const { setEmergencyModalOpen } = useApp();
 
   return (
@@ -24,27 +24,27 @@ export const WebFooter = ({ setActiveTab }) => {
               </span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              On-demand local services platform connecting customers with skilled craftsmen, electricians, plumbers, and home repair professionals.
+              {t('footerDesc')}
             </p>
           </div>
 
           {/* Quick Navigation */}
           <div className="space-y-2">
-            <h4 className="font-bold text-white text-xs uppercase tracking-wider">Navigation</h4>
+            <h4 className="font-bold text-white text-xs uppercase tracking-wider">{t('navigation')}</h4>
             <ul className="space-y-1.5 text-xs">
               <li>
                 <button onClick={() => setActiveTab && setActiveTab('home')} className="hover:text-teal-400 transition-colors">
-                  Find Services & Workers
+                  {t('findServicesWorkers')}
                 </button>
               </li>
               <li>
                 <button onClick={() => setActiveTab && setActiveTab('bookings')} className="hover:text-teal-400 transition-colors">
-                  My Bookings
+                  {t('myBookings')}
                 </button>
               </li>
               <li>
                 <button onClick={() => setEmergencyModalOpen(true)} className="text-red-400 hover:text-red-300 transition-colors font-medium">
-                  Emergency Request
+                  {t('emergencyRequest')}
                 </button>
               </li>
             </ul>
@@ -52,13 +52,13 @@ export const WebFooter = ({ setActiveTab }) => {
 
           {/* Language & Settings */}
           <div className="space-y-2">
-            <h4 className="font-bold text-white text-xs uppercase tracking-wider">Preferences</h4>
+            <h4 className="font-bold text-white text-xs uppercase tracking-wider">{t('preferences')}</h4>
             <button
               onClick={openLanguageModal}
               className="px-3 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-xs text-teal-400 flex items-center gap-2 font-bold transition-colors"
             >
               <Globe className="w-4 h-4" />
-              <span>Change Language ({lang.toUpperCase()})</span>
+              <span>{t('changeLanguage')} ({lang.toUpperCase()})</span>
             </button>
           </div>
 
@@ -68,13 +68,13 @@ export const WebFooter = ({ setActiveTab }) => {
       {/* Bottom Legal / Copyright */}
       <div className="border-t border-slate-900 bg-slate-950 px-4 sm:px-6 lg:px-8 py-4">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500">
-          <p>© 2026 SahakarSeva. All rights reserved.</p>
+          <p>© 2026 {t('appName')}. {t('allRightsReserved')}</p>
           <div className="flex items-center gap-4">
-            <span className="hover:text-slate-400 cursor-pointer">Terms of Service</span>
+            <span className="hover:text-slate-400 cursor-pointer">{t('termsOfService')}</span>
             <span>•</span>
-            <span className="hover:text-slate-400 cursor-pointer">Privacy Policy</span>
+            <span className="hover:text-slate-400 cursor-pointer">{t('privacyPolicy')}</span>
             <span>•</span>
-            <span className="hover:text-slate-400 cursor-pointer">Help & FAQ</span>
+            <span className="hover:text-slate-400 cursor-pointer">{t('helpFaq')}</span>
           </div>
         </div>
       </div>

@@ -41,15 +41,15 @@ export const LandingPage = ({ setActiveTab }) => {
           {/* Left Column: Heading & CTAs */}
           <div className="lg:col-span-7 space-y-5">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 text-xs font-bold border border-teal-500/40">
-              <span>On-Demand Local Services</span>
+              <span>{t('onDemandLocalServices')}</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white leading-tight">
-              Book Verified Local <span className="text-teal-400">Craftsmen & Technicians</span>
+              {t('heroMainHeading')} <span className="text-teal-400">{t('heroMainHighlight')}</span>
             </h1>
 
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl">
-              Connect directly with verified electricians, plumbers, carpenters, and appliance specialists. Transparent hourly pricing, live GPS worker discovery, and photo-verified service delivery.
+              {t('heroMainDesc')}
             </p>
 
             <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -57,7 +57,7 @@ export const LandingPage = ({ setActiveTab }) => {
                 onClick={() => openAuthModal('register_customer')}
                 className="py-3.5 px-6 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-sm rounded-2xl shadow-lg shadow-teal-500/20 transition-all flex items-center justify-center gap-2 active:scale-95"
               >
-                <span>Find Services & Book</span>
+                <span>{t('findServicesAndBook')}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
@@ -66,7 +66,7 @@ export const LandingPage = ({ setActiveTab }) => {
                 className="py-3.5 px-5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm rounded-2xl border border-slate-700 transition-all flex items-center justify-center gap-2 active:scale-95"
               >
                 <UserCheck className="w-4 h-4 text-teal-400" />
-                <span>Register as a Worker</span>
+                <span>{t('registerAsWorker')}</span>
               </button>
 
               <button
@@ -74,7 +74,7 @@ export const LandingPage = ({ setActiveTab }) => {
                 className="py-3.5 px-5 bg-red-600 hover:bg-red-500 text-white font-bold text-sm rounded-2xl transition-all flex items-center justify-center gap-2 active:scale-95"
               >
                 <AlertTriangle className="w-4 h-4" />
-                <span>Emergency Request</span>
+                <span>{t('emergencyRequest')}</span>
               </button>
             </div>
           </div>
@@ -83,8 +83,8 @@ export const LandingPage = ({ setActiveTab }) => {
           <div className="lg:col-span-5">
             <div className="bg-slate-800/90 backdrop-blur-xl border border-slate-700 rounded-3xl p-5 shadow-xl space-y-4">
               <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
-                <span className="text-xs font-bold text-slate-300">Quick Service Selection</span>
-                <span className="text-xs text-teal-400 font-bold">{workers.length} Workers Available</span>
+                <span className="text-xs font-bold text-slate-300">{t('quickServiceSelection')}</span>
+                <span className="text-xs text-teal-400 font-bold">{workers.length} {t('workersAvailable')}</span>
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
@@ -100,7 +100,7 @@ export const LandingPage = ({ setActiveTab }) => {
                         <Icon className="w-4 h-4" />
                       </div>
                       <span className="text-xs font-bold text-slate-200 group-hover:text-white truncate">
-                        {cat.name}
+                        {translateCategory(cat.id, t)}
                       </span>
                     </button>
                   );
@@ -113,7 +113,7 @@ export const LandingPage = ({ setActiveTab }) => {
                   className="w-full py-2.5 bg-slate-900 hover:bg-slate-700 text-teal-300 text-xs font-bold rounded-xl border border-slate-700 transition-colors flex items-center justify-center gap-1.5"
                 >
                   <Search className="w-3.5 h-3.5" />
-                  <span>Browse All Categories</span>
+                  <span>{t('browseAllCategories')}</span>
                 </button>
               </div>
             </div>
@@ -126,16 +126,16 @@ export const LandingPage = ({ setActiveTab }) => {
       <section className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
           <div>
-            <span className="text-xs font-bold text-teal-700 uppercase tracking-wider">Service Categories</span>
+            <span className="text-xs font-bold text-teal-700 uppercase tracking-wider">{t('serviceCategories')}</span>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight mt-1">
-              Popular Home Services
+              {t('popularHomeServices')}
             </h2>
           </div>
           <button
             onClick={() => openAuthModal('register_customer')}
             className="text-xs font-bold text-teal-700 hover:text-teal-800 flex items-center gap-1"
           >
-            <span>View All Categories</span>
+            <span>{t('viewAllCategories')}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -143,6 +143,7 @@ export const LandingPage = ({ setActiveTab }) => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {SERVICE_CATEGORIES.slice(0, 6).map((cat) => {
             const Icon = iconMap[cat.id] || Wrench;
+            const categoryDesc = t(`cat_${cat.id}_desc`) !== `cat_${cat.id}_desc` ? t(`cat_${cat.id}_desc`) : cat.desc;
             return (
               <div
                 key={cat.id}
@@ -154,17 +155,17 @@ export const LandingPage = ({ setActiveTab }) => {
                     <Icon className="w-5 h-5" />
                   </div>
                   <h3 className="font-extrabold text-base text-slate-900 group-hover:text-teal-700 transition-colors">
-                    {cat.name}
+                    {translateCategory(cat.id, t)}
                   </h3>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                    {cat.desc}
+                    {categoryDesc}
                   </p>
                 </div>
 
                 <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-400">Direct booking</span>
+                  <span className="text-xs font-semibold text-slate-400">{t('directBooking')}</span>
                   <button className="px-3 py-1.5 bg-slate-100 group-hover:bg-teal-600 group-hover:text-white text-slate-700 font-bold text-xs rounded-xl transition-colors flex items-center gap-1">
-                    <span>Select</span>
+                    <span>{t('select')}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -177,12 +178,12 @@ export const LandingPage = ({ setActiveTab }) => {
       {/* 3. HOW IT WORKS (AUTHENTIC 3-STEP FLOW) */}
       <section className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 shadow-sm space-y-8">
         <div className="text-center max-w-xl mx-auto space-y-2">
-          <span className="text-xs font-bold text-teal-700 uppercase tracking-wider">Simple Process</span>
+          <span className="text-xs font-bold text-teal-700 uppercase tracking-wider">{t('simpleProcess')}</span>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-            How SahakarSeva Works
+            {t('howSahakarSevaWorks')}
           </h2>
           <p className="text-xs text-slate-500">
-            Book professional services with complete transparency in three simple steps.
+            {t('howItWorksDesc')}
           </p>
         </div>
 
@@ -191,9 +192,9 @@ export const LandingPage = ({ setActiveTab }) => {
             <span className="w-8 h-8 rounded-xl bg-teal-100 text-teal-800 font-black text-xs flex items-center justify-center">
               1
             </span>
-            <h3 className="font-bold text-sm text-slate-900">Choose a Service & Worker</h3>
+            <h3 className="font-bold text-sm text-slate-900">{t('step1Title')}</h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Select your required service, filter by radius or skills, and pick an available worker near your address.
+              {t('step1Desc')}
             </p>
           </div>
 
@@ -201,9 +202,9 @@ export const LandingPage = ({ setActiveTab }) => {
             <span className="w-8 h-8 rounded-xl bg-teal-100 text-teal-800 font-black text-xs flex items-center justify-center">
               2
             </span>
-            <h3 className="font-bold text-sm text-slate-900">Worker Arrives & Completes Job</h3>
+            <h3 className="font-bold text-sm text-slate-900">{t('step2Title')}</h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              The worker arrives at your scheduled time, completes the repair or service, and submits photo proof.
+              {t('step2Desc')}
             </p>
           </div>
 
@@ -211,9 +212,9 @@ export const LandingPage = ({ setActiveTab }) => {
             <span className="w-8 h-8 rounded-xl bg-teal-100 text-teal-800 font-black text-xs flex items-center justify-center">
               3
             </span>
-            <h3 className="font-bold text-sm text-slate-900">Approve & Pay Directly</h3>
+            <h3 className="font-bold text-sm text-slate-900">{t('step3Title')}</h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Verify the completed work, pay seamlessly via UPI QR code, download your receipt, and rate the worker.
+              {t('step3Desc')}
             </p>
           </div>
         </div>
@@ -223,10 +224,10 @@ export const LandingPage = ({ setActiveTab }) => {
       <section className="bg-slate-900 text-white rounded-3xl p-8 sm:p-10 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 border border-slate-800">
         <div className="space-y-2 text-center md:text-left">
           <h2 className="text-2xl font-black tracking-tight text-white">
-            Are you a skilled tradesperson?
+            {t('areYouTradesperson')}
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 max-w-lg">
-            Register as a worker to receive local service requests, set your hours, and receive direct payments with zero deductions.
+            {t('tradespersonDesc')}
           </p>
         </div>
 
@@ -235,13 +236,13 @@ export const LandingPage = ({ setActiveTab }) => {
             onClick={() => openAuthModal('register_worker')}
             className="px-6 py-3.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs rounded-2xl shadow transition-transform active:scale-95"
           >
-            Register as Worker
+            {t('registerAsWorker')}
           </button>
           <button
             onClick={() => openAuthModal('login')}
             className="px-5 py-3.5 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs rounded-2xl border border-slate-700 transition-colors"
           >
-            Sign In
+            {t('signIn')}
           </button>
         </div>
       </section>

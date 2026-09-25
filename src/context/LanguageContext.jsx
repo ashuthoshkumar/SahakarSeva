@@ -22,8 +22,18 @@ export const LanguageProvider = ({ children }) => {
     }
   });
 
-  const t = (key) => {
-    return translations[lang]?.[key] || translations['en']?.[key] || key;
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = lang;
+    }
+  }, [lang]);
+
+  const t = (key, fallback) => {
+    const val = translations[lang]?.[key];
+    if (val !== undefined && val !== '') return val;
+    const enVal = translations['en']?.[key];
+    if (enVal !== undefined && enVal !== '') return enVal;
+    return fallback !== undefined ? fallback : key;
   };
 
   const selectLanguage = (newLang) => {

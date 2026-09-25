@@ -43,13 +43,13 @@ export const CustomerDashboard = () => {
             <div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 text-xs font-bold border border-teal-500/30 mb-2">
                 <Sparkles className="w-3.5 h-3.5 text-teal-400" />
-                <span>Search Local Services</span>
+                <span>{t('searchLocalServices')}</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
-                {t('heroTitle') || 'Find Verified Craftsmen Nearby'}
+                {t('heroTitle')}
               </h1>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mt-1 max-w-xl">
-                Search verified local professionals by category, radius, or specific repair service.
+                {t('searchLocalDesc')}
               </p>
             </div>
 
@@ -59,7 +59,7 @@ export const CustomerDashboard = () => {
               className="self-start md:self-auto px-4 py-3 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-black text-xs rounded-2xl shadow-lg shadow-teal-500/20 transition-all flex items-center gap-2 active:scale-95 shrink-0"
             >
               <Mic className="w-4 h-4" />
-              <span>AI Sahayak Diagnose</span>
+              <span>{t('aiSahayakDiagnose')}</span>
             </button>
           </div>
 
@@ -73,7 +73,7 @@ export const CustomerDashboard = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t('searchPlaceholder') || 'Search electrician, plumber, AC repair, skills or society...'}
+                placeholder={t('searchPlaceholder')}
                 className="w-full pl-11 pr-10 py-3.5 rounded-2xl bg-white text-slate-900 placeholder:text-slate-400 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-teal-400 shadow-md"
               />
               {searchQuery && (
@@ -90,7 +90,7 @@ export const CustomerDashboard = () => {
             <div className="md:col-span-2 flex items-center gap-2 bg-white/10 backdrop-blur-md px-3.5 py-3 rounded-2xl border border-white/20 text-white text-xs">
               <MapPin className="w-4 h-4 text-teal-400 shrink-0" />
               <div className="min-w-0 flex-1">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Radius</span>
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">{t('radius')}</span>
                 <select
                   value={radiusKm}
                   onChange={(e) => setRadiusKm(Number(e.target.value))}
@@ -116,7 +116,7 @@ export const CustomerDashboard = () => {
                 }`}
               >
                 <Navigation className="w-4 h-4" />
-                <span>{isLocating ? 'Locating...' : 'GPS Live'}</span>
+                <span>{isLocating ? (t('locatingGps') || 'Locating...') : (t('liveLocationReady') || 'GPS Live')}</span>
               </button>
             </div>
 
