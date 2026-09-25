@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -40,19 +40,19 @@ const StrengthBar = ({ analysis }) => {
       </div>
       <div className="grid grid-cols-2 gap-1 text-[11px] pt-1">
         <span className={checks.minLength ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-          {checks.minLength ? '✓' : '○'} Min 8 chars
+          {checks.minLength ? 'âœ“' : 'â—‹'} Min 8 chars
         </span>
         <span className={checks.hasUpper ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-          {checks.hasUpper ? '✓' : '○'} Uppercase (A-Z)
+          {checks.hasUpper ? 'âœ“' : 'â—‹'} Uppercase (A-Z)
         </span>
         <span className={checks.hasLower ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-          {checks.hasLower ? '✓' : '○'} Lowercase (a-z)
+          {checks.hasLower ? 'âœ“' : 'â—‹'} Lowercase (a-z)
         </span>
         <span className={checks.hasNumber ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-          {checks.hasNumber ? '✓' : '○'} Number (0-9)
+          {checks.hasNumber ? 'âœ“' : 'â—‹'} Number (0-9)
         </span>
         <span className={`col-span-2 ${checks.hasSpecial ? 'text-emerald-700 font-semibold' : 'text-slate-400'}`}>
-          {checks.hasSpecial ? '✓' : '○'} Special character (!@#$%^&*)
+          {checks.hasSpecial ? 'âœ“' : 'â—‹'} Special character (!@#$%^&*)
         </span>
       </div>
     </div>
@@ -119,7 +119,7 @@ export const AuthModal = () => {
   const [custPassword, setCustPassword] = useState('');
   const [showCustPassword, setShowCustPassword] = useState(false);
 
-  // Worker Signup form state — with stepper
+  // Worker Signup form state â€” with stepper
   const [wrkStep, setWrkStep] = useState(1);
   const [wrkName, setWrkName] = useState('');
   const [wrkPhone, setWrkPhone] = useState('');
@@ -312,10 +312,11 @@ export const AuthModal = () => {
   const isWrkStep3Valid = Boolean(wrkCategory) && Number(wrkRate) >= 300 && Number(wrkRate) <= 5000 && wrkPassAnalysis.isValid;
 
   return (
-    <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md animate-fadeIn"
-      onClick={() => setIsAuthModalOpen(false)}
-    >
+    <>
+      <div 
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/70 backdrop-blur-md animate-fadeIn"
+        onClick={() => setIsAuthModalOpen(false)}
+      >
       <div 
         className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -340,7 +341,7 @@ export const AuthModal = () => {
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
 
-          {/* Tab Switcher — Clean Pill Design */}
+          {/* Tab Switcher â€” Clean Pill Design */}
           <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
             <button
               onClick={() => switchTab('login')}
@@ -387,13 +388,13 @@ export const AuthModal = () => {
                   onClick={() => handleSwitchToLoginWithCreds(custEmail || custPhone || wrkEmail || wrkPhone)}
                   className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-colors shrink-0"
                 >
-                  Log In →
+                  Log In â†’
                 </button>
               )}
             </div>
           )}
 
-          {/* ═══════════ TAB 1: SIGN IN ═══════════ */}
+          {/* â•â•â•â•â•â•â•â•â•â•â• TAB 1: SIGN IN â•â•â•â•â•â•â•â•â•â•â• */}
           {authModalTab === 'login' && (
             <div className="space-y-5">
 
@@ -470,7 +471,7 @@ export const AuthModal = () => {
             </div>
           )}
 
-          {/* ═══════════ TAB 2: CUSTOMER REGISTER ═══════════ */}
+          {/* â•â•â•â•â•â•â•â•â•â•â• TAB 2: CUSTOMER REGISTER â•â•â•â•â•â•â•â•â•â•â• */}
           {authModalTab === 'register_customer' && (
             <div className="space-y-5">
               <div className="space-y-1">
@@ -488,9 +489,9 @@ export const AuthModal = () => {
                   isInvalid={Boolean(custName && !custNameAnalysis.isValid)}
                   badge={custName ? (
                     custNameAnalysis.isValid ? (
-                      <span className="text-xs font-bold text-emerald-600">✓ Valid Name</span>
+                      <span className="text-xs font-bold text-emerald-600">âœ“ Valid Name</span>
                     ) : (
-                      <span className="text-xs font-bold text-red-500">✗ {custNameAnalysis.error}</span>
+                      <span className="text-xs font-bold text-red-500">âœ— {custNameAnalysis.error}</span>
                     )
                   ) : null}
                 />
@@ -510,9 +511,9 @@ export const AuthModal = () => {
                   isInvalid={Boolean(custPhone && !custPhoneAnalysis.isValid)}
                   badge={custPhone ? (
                     custPhoneAnalysis.isValid ? (
-                      <span className="text-xs font-bold text-emerald-600">✓ Valid (10 Digits)</span>
+                      <span className="text-xs font-bold text-emerald-600">âœ“ Valid (10 Digits)</span>
                     ) : (
-                      <span className="text-xs font-bold text-red-500">✗ {custPhoneAnalysis.error}</span>
+                      <span className="text-xs font-bold text-red-500">âœ— {custPhoneAnalysis.error}</span>
                     )
                   ) : (
                     <span className="text-xs text-slate-400">10 digits (starts 6-9)</span>
@@ -530,9 +531,9 @@ export const AuthModal = () => {
                   isInvalid={Boolean(custEmail && !custEmailAnalysis.isValid)}
                   badge={custEmail ? (
                     custEmailAnalysis.isValid ? (
-                      <span className="text-xs font-bold text-emerald-600">✓ Valid Email</span>
+                      <span className="text-xs font-bold text-emerald-600">âœ“ Valid Email</span>
                     ) : (
-                      <span className="text-xs font-bold text-red-500">✗ Invalid Format</span>
+                      <span className="text-xs font-bold text-red-500">âœ— Invalid Format</span>
                     )
                   ) : (
                     <span className="text-xs text-slate-400">Optional</span>
@@ -552,7 +553,7 @@ export const AuthModal = () => {
                   isInvalid={Boolean(custPassword && !custPassAnalysis.isValid)}
                   badge={custPassword ? (
                     custPassAnalysis.isValid ? (
-                      <span className="text-xs font-bold text-emerald-600">✓ Strong Password</span>
+                      <span className="text-xs font-bold text-emerald-600">âœ“ Strong Password</span>
                     ) : (
                       <span className="text-xs font-bold text-amber-600">Incomplete</span>
                     )
@@ -584,7 +585,7 @@ export const AuthModal = () => {
             </div>
           )}
 
-          {/* ═══════════ TAB 3: WORKER REGISTER (3-STEP) ═══════════ */}
+          {/* â•â•â•â•â•â•â•â•â•â•â• TAB 3: WORKER REGISTER (3-STEP) â•â•â•â•â•â•â•â•â•â•â• */}
           {authModalTab === 'register_worker' && (
             <div className="space-y-5">
               
@@ -630,9 +631,9 @@ export const AuthModal = () => {
                       isInvalid={Boolean(wrkName && !wrkNameAnalysis.isValid)}
                       badge={wrkName ? (
                         wrkNameAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">✓ Valid Name</span>
+                          <span className="text-xs font-bold text-emerald-600">âœ“ Valid Name</span>
                         ) : (
-                          <span className="text-xs font-bold text-red-500">✗ {wrkNameAnalysis.error}</span>
+                          <span className="text-xs font-bold text-red-500">âœ— {wrkNameAnalysis.error}</span>
                         )
                       ) : null}
                     />
@@ -650,9 +651,9 @@ export const AuthModal = () => {
                       isInvalid={Boolean(wrkPhone && !wrkPhoneAnalysis.isValid)}
                       badge={wrkPhone ? (
                         wrkPhoneAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">✓ Valid (10 Digits)</span>
+                          <span className="text-xs font-bold text-emerald-600">âœ“ Valid (10 Digits)</span>
                         ) : (
-                          <span className="text-xs font-bold text-red-500">✗ {wrkPhoneAnalysis.error}</span>
+                          <span className="text-xs font-bold text-red-500">âœ— {wrkPhoneAnalysis.error}</span>
                         )
                       ) : (
                         <span className="text-xs text-slate-400">10 digits (starts 6-9)</span>
@@ -669,9 +670,9 @@ export const AuthModal = () => {
                       isInvalid={Boolean(wrkEmail && !wrkEmailAnalysis.isValid)}
                       badge={wrkEmail ? (
                         wrkEmailAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">✓ Valid Email</span>
+                          <span className="text-xs font-bold text-emerald-600">âœ“ Valid Email</span>
                         ) : (
-                          <span className="text-xs font-bold text-red-500">✗ Invalid Format</span>
+                          <span className="text-xs font-bold text-red-500">âœ— Invalid Format</span>
                         )
                       ) : (
                         <span className="text-xs text-slate-400">Optional</span>
@@ -709,9 +710,9 @@ export const AuthModal = () => {
                       isInvalid={Boolean(wrkAadhaar && !wrkAadhaarAnalysis.isValid)}
                       badge={wrkAadhaar ? (
                         wrkAadhaarAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">✓ Valid Aadhaar</span>
+                          <span className="text-xs font-bold text-emerald-600">âœ“ Valid Aadhaar</span>
                         ) : (
-                          <span className="text-xs font-bold text-red-500">✗ {wrkAadhaarAnalysis.error}</span>
+                          <span className="text-xs font-bold text-red-500">âœ— {wrkAadhaarAnalysis.error}</span>
                         )
                       ) : (
                         <span className="text-xs text-slate-400">12 numeric digits</span>
@@ -740,7 +741,7 @@ export const AuthModal = () => {
                               </div>
                             </div>
                             <span className="px-2 py-0.5 rounded-full bg-emerald-600 text-white font-black text-[10px]">
-                              Verified 🟢
+                              Verified ðŸŸ¢
                             </span>
                           </div>
                         )}
@@ -756,7 +757,7 @@ export const AuthModal = () => {
                         </label>
                         {pccVerified ? (
                           <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                            ✓ Criminal Record Clean
+                            âœ“ Criminal Record Clean
                           </span>
                         ) : (
                           <span className="text-[10px] text-slate-400">Required</span>
@@ -784,7 +785,7 @@ export const AuthModal = () => {
                         </button>
                       ) : (
                         <div className="text-[11px] text-emerald-800 font-medium">
-                          Ref: <strong className="font-mono">PCC-DL-2024-88912</strong> • No Criminal History Found
+                          Ref: <strong className="font-mono">PCC-DL-2024-88912</strong> â€¢ No Criminal History Found
                         </div>
                       )}
                     </div>
@@ -848,7 +849,7 @@ export const AuthModal = () => {
                     </div>
 
                     <FormInput
-                      label="Hourly Rate (Min ₹300 - Legal Floor)"
+                      label="Hourly Rate (Min â‚¹300 - Legal Floor)"
                       type="number"
                       value={wrkRate}
                       onChange={(e) => setWrkRate(e.target.value)}
@@ -856,11 +857,11 @@ export const AuthModal = () => {
                       isInvalid={Number(wrkRate) < 300 || Number(wrkRate) > 5000}
                       badge={
                         Number(wrkRate) < 300 ? (
-                          <span className="text-xs font-bold text-red-500">Min ₹300/hr</span>
+                          <span className="text-xs font-bold text-red-500">Min â‚¹300/hr</span>
                         ) : Number(wrkRate) > 5000 ? (
-                          <span className="text-xs font-bold text-red-500">Max ₹5,000/hr</span>
+                          <span className="text-xs font-bold text-red-500">Max â‚¹5,000/hr</span>
                         ) : (
-                          <span className="text-xs font-bold text-emerald-600">✓ Fair Wage</span>
+                          <span className="text-xs font-bold text-emerald-600">âœ“ Fair Wage</span>
                         )
                       }
                     />
@@ -878,7 +879,7 @@ export const AuthModal = () => {
                       isInvalid={Boolean(wrkPassword && !wrkPassAnalysis.isValid)}
                       badge={wrkPassword ? (
                         wrkPassAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">✓ Strong Password</span>
+                          <span className="text-xs font-bold text-emerald-600">âœ“ Strong Password</span>
                         ) : (
                           <span className="text-xs font-bold text-amber-600">Incomplete</span>
                         )
@@ -923,8 +924,9 @@ export const AuthModal = () => {
 
         </div>
       </div>
+      </div>
 
-      {/* DigiLocker e-KYC Modal */}
+      {/* DigiLocker e-KYC Modal rendered as sibling so clicks never bubble to AuthModal backdrop */}
       <DigiLockerKycModal
         isOpen={isDigiLockerModalOpen}
         onClose={() => setIsDigiLockerModalOpen(false)}
@@ -936,6 +938,6 @@ export const AuthModal = () => {
           if (addNotification) addNotification('Aadhaar e-KYC Authenticated via DigiLocker!', 'success');
         }}
       />
-    </div>
+    </>
   );
 };

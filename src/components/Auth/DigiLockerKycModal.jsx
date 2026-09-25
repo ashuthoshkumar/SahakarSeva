@@ -15,7 +15,11 @@ export const DigiLockerKycModal = ({ isOpen, onClose, aadhaarNo, workerName, onV
     ? `XXXX-XXXX-${aadhaarNo.replace(/\D/g, '').slice(-4) || '8412'}`
     : 'XXXX-XXXX-8412';
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     if (!otp || otp.length < 4) {
       setError('Please enter the 6-digit Aadhaar OTP sent to your registered mobile (e.g. 123456).');
       return;
@@ -39,14 +43,27 @@ export const DigiLockerKycModal = ({ isOpen, onClose, aadhaarNo, workerName, onV
     }, 1200);
   };
 
-  const handleQuickDemoFill = () => {
+  const handleQuickDemoFill = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     setOtp('123456');
     setError('');
   };
 
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center p-3 bg-slate-950/80 backdrop-blur-md animate-fadeIn font-sans">
-      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-scaleUp">
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center p-3 bg-slate-950/80 backdrop-blur-md animate-fadeIn font-sans"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClose();
+      }}
+    >
+      <div 
+        className="bg-white w-full max-w-md rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-scaleUp"
+        onClick={(e) => e.stopPropagation()}
+      >
         
         {/* DigiLocker Official Government Header */}
         <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white px-5 py-4 flex items-center justify-between">
@@ -66,7 +83,14 @@ export const DigiLockerKycModal = ({ isOpen, onClose, aadhaarNo, workerName, onV
             </div>
           </div>
 
-          <button onClick={onClose} className="p-1.5 rounded-full hover:bg-white/10 text-slate-300">
+          <button 
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }} 
+            className="p-1.5 rounded-full hover:bg-white/10 text-slate-300"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
