@@ -25,14 +25,14 @@ import { LanguageSelectModal } from './components/Common/LanguageSelectModal';
 
 const MainContent = ({ activeTab, setActiveTab }) => {
   const { currentRole, setCurrentRole } = useApp();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, openAuthModal } = useAuth();
 
-  // Sync role view with logged in user role
+  // Sync role view with logged in user role initially
   useEffect(() => {
     if (user && user.role) {
       setCurrentRole(user.role);
     }
-  }, [user, setCurrentRole]);
+  }, [user]);
 
   // Account tab
   if (activeTab === 'account' && isAuthenticated) {
@@ -44,31 +44,81 @@ const MainContent = ({ activeTab, setActiveTab }) => {
     return <BookingsPage />;
   }
 
-  // If user is on landing / home tab when not logged in
-  if (!isAuthenticated && activeTab === 'home') {
+  // Active role to display: prioritize user's manual selection from View Portals, then user account role
+  const activeRole = currentRole || (isAuthenticated ? (user?.role || 'customer') : null);
+
+  // If not authenticated and no portal was chosen from View Portals, show Landing Page
+  if (!isAuthenticated && !activeRole) {
     return <LandingPage setActiveTab={setActiveTab} />;
   }
 
-  // If not authenticated and on another tab, show landing
-  if (!isAuthenticated) {
-    return <LandingPage setActiveTab={setActiveTab} />;
-  }
+  const effectiveRole = activeRole || 'customer';
 
-  const activeRole = user?.role || currentRole;
-
-  // Once authenticated or browsing dashboards
+  // Once authenticated or browsing dashboards via View Portals
   return (
     <div className="space-y-6">
-      {activeRole === 'customer' && <CustomerDashboard />}
-      {activeRole === 'worker' && <WorkerDashboard />}
+      {/* If not authenticated but exploring a portal */}
+      {!isAuthenticated && activeRole && (
+        <div className="bg-gradient-to-r from-slate-900 via-teal-950 to-slate-900 border border-teal-500/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-white shadow-lg">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span>
+            <div>
+              <p className="font-bold text-teal-300">
+                Viewing {effectiveRole.replace('_', ' ').toUpperCase()} Portal
+              </p>
+              <p className="text-[11px] text-slate-300">
+                You are currently exploring this cooperative role dashboard.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => openAuthModal('login')}
+              className="px-3 py-1.5 bg-teal-500 hover:bg-teal-400 text-slate-950 rounded-xl font-bold transition-all shadow"
+            >
+              Sign In to This Role
+            </button>
+            <button
+              onClick={() => {
+                setCurrentRole(null);
+                setActiveTab('home');
+              }}
+              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white rounded-xl font-medium transition-all"
+            >
+              Back to Landing
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* If authenticated worker or customer switched to preview another portal */}
+      {isAuthenticated && user && user.role !== effectiveRole && (
+        <div className="bg-teal-500/10 border border-teal-500/30 rounded-2xl p-3 px-4 flex items-center justify-between text-xs text-teal-900">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
+            <span>
+              Previewing <strong>{effectiveRole.replace('_', ' ').toUpperCase()}</strong> Dashboard (Your registered account: <strong>{user.role}</strong>).
+            </span>
+          </div>
+          <button
+            onClick={() => setCurrentRole(user.role)}
+            className="px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-bold transition-all text-[11px]"
+          >
+            Return to My {user.role.toUpperCase()} Portal
+          </button>
+        </div>
+      )}
+
+      {effectiveRole === 'customer' && <CustomerDashboard />}
+      {effectiveRole === 'worker' && <WorkerDashboard />}
       <React.Suspense fallback={
         <div className="flex items-center justify-center py-20 text-slate-400">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
         </div>
       }>
-        {activeRole === 'society_admin' && <SocietyDashboard />}
-        {activeRole === 'federation_admin' && <FederationDashboard />}
-        {activeRole === 'super_admin' && <SuperAdminDashboard />}
+        {effectiveRole === 'society_admin' && <SocietyDashboard />}
+        {effectiveRole === 'federation_admin' && <FederationDashboard />}
+        {effectiveRole === 'super_admin' && <SuperAdminDashboard />}
       </React.Suspense>
     </div>
   );

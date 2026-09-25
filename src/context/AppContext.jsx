@@ -140,7 +140,7 @@ const haversineKm = (lat1, lng1, lat2, lng2) => {
 };
 
 export const AppProvider = ({ children }) => {
-  const [currentRole, setCurrentRole] = useState('customer');
+  const [currentRole, setCurrentRole] = useState(null);
 
   // Dynamic data: starts strictly with 0 workers (no fake / synthetic data)
   const [workers, setWorkers] = useState([]);

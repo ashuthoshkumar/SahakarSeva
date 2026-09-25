@@ -14,7 +14,8 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
     bookings, 
     setEmergencyModalOpen, 
     currentRole, 
-    setCurrentRole 
+    setCurrentRole,
+    addNotification
   } = useApp();
   const { isAuthenticated, user, openAuthModal, logout } = useAuth();
   const { t, lang, openLanguageModal } = useLanguage();
@@ -29,24 +30,32 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
 
   const rolesList = [
     { id: 'customer', label: t('roleCustomer') || 'Customer Portal', icon: User, color: 'text-emerald-500' },
-    { id: 'worker', label: t('roleWorker') || 'Worker Portal', icon: HardHat, color: 'text-amber-500' },
+    { id: 'worker', label: t('roleWorker') || 'Worker (Coop Member)', icon: HardHat, color: 'text-amber-500' },
     { id: 'society_admin', label: t('roleSocietyAdmin') || 'Society Admin', icon: Building2, color: 'text-blue-500' },
     { id: 'federation_admin', label: t('roleFederationAdmin') || 'Federation Admin', icon: Building2, color: 'text-indigo-500' },
-    { id: 'super_admin', label: t('roleSuperAdmin') || 'Super Admin', icon: ShieldCheck, color: 'text-purple-500' }
+    { id: 'super_admin', label: t('roleSuperAdmin') || 'NCCT Super Admin', icon: ShieldCheck, color: 'text-purple-500' }
   ];
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
+    if (tab === 'home' && !isAuthenticated) {
+      setCurrentRole(null);
+    }
     setMobileMenuOpen(false);
   };
 
   const handleRoleSelect = (roleId) => {
     setCurrentRole(roleId);
+    setActiveTab('home');
     setRoleDropdownOpen(false);
     setMobileMenuOpen(false);
+    const chosenRole = rolesList.find(r => r.id === roleId);
+    if (addNotification) {
+      addNotification(`Switched to ${chosenRole?.label || roleId}!`, 'info');
+    }
   };
 
-  const activeRole = user?.role || currentRole;
+  const activeRole = currentRole || user?.role || 'customer';
 
   return (
     <header className="sticky top-0 z-40 w-full font-sans shadow-md">
