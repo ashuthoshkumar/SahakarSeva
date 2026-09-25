@@ -8,6 +8,163 @@ import {
 import { PRESET_DIAGNOSTICS, diagnoseProblem } from '../../utils/aiDiagnosticEngine';
 import { translateCategory, translateWorkerName } from '../../utils/translateHelpers';
 
+export const CERTIFIED_CATEGORY_EXPERTS = {
+  electrician: {
+    id: 'wrk_seed_elec',
+    name: 'Rajesh Sharma',
+    photo: 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=250',
+    category: 'electrician',
+    societyId: 'soc_delhi_1',
+    societyName: 'Delhi NCR Shramik Sahakari Samiti Ltd.',
+    rating: 4.9,
+    reviewsCount: 38,
+    jobsCompleted: 142,
+    experienceYears: 8,
+    hourlyRate: 350,
+    ncctLevel: 'Level 3 Master Craftsman',
+    kycStatus: 'Aadhaar & NCCT Verified',
+    policeVerification: 'Clear (Verified by Police)',
+    ayushmanCard: 'AB-8821-3940-1120',
+    pfAccountNumber: 'DL/CPM/09812',
+    onDuty: true,
+    skills: ['Circuit Tripping', 'MCB Replacement', 'Switchboard Rewiring', 'Short Circuit Isolation'],
+    phone: '+91 98112 34567',
+    distanceKm: 1.2
+  },
+  plumber: {
+    id: 'wrk_1790319807439',
+    name: 'pravalika',
+    photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=250',
+    category: 'plumber',
+    societyId: 'soc_delhi_1',
+    societyName: 'Delhi NCR Shramik Sahakari Samiti Ltd.',
+    rating: 5.0,
+    reviewsCount: 19,
+    jobsCompleted: 64,
+    experienceYears: 3,
+    hourlyRate: 350,
+    ncctLevel: 'Level 2 Certified Craftsman',
+    kycStatus: 'Aadhaar & NCCT Verified',
+    policeVerification: 'Clear (Verified by Police)',
+    ayushmanCard: 'AB-1234-5678-2323',
+    pfAccountNumber: 'DL/CPM/07463',
+    onDuty: true,
+    skills: ['High Pressure Leak Fix', 'Basin Installation', 'Concealed Pipeline Repair'],
+    phone: '+91 70322 72683',
+    distanceKm: 0.9
+  },
+  technician: {
+    id: 'wrk_seed_tech',
+    name: 'Mohammed Arif',
+    photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=250',
+    category: 'technician',
+    societyId: 'soc_delhi_1',
+    societyName: 'Delhi NCR Shramik Sahakari Samiti Ltd.',
+    rating: 4.9,
+    reviewsCount: 45,
+    jobsCompleted: 180,
+    experienceYears: 7,
+    hourlyRate: 450,
+    ncctLevel: 'Level 3 Certified HVAC Specialist',
+    kycStatus: 'Aadhaar & NCCT Verified',
+    policeVerification: 'Clear (Verified by Police)',
+    ayushmanCard: 'AB-4491-1029-4412',
+    pfAccountNumber: 'DL/CPM/10928',
+    onDuty: true,
+    skills: ['AC Gas Refill', 'Compressor Diagnostic', 'PCB Inverter Repair', 'Appliance Servicing'],
+    phone: '+91 98711 55678',
+    distanceKm: 1.5
+  },
+  carpenter: {
+    id: 'wrk_seed_carp',
+    name: 'Harpreet Singh',
+    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=250',
+    category: 'carpenter',
+    societyId: 'soc_delhi_1',
+    societyName: 'Delhi NCR Shramik Sahakari Samiti Ltd.',
+    rating: 4.8,
+    reviewsCount: 29,
+    jobsCompleted: 98,
+    experienceYears: 6,
+    hourlyRate: 380,
+    ncctLevel: 'Level 2 Certified Woodcraftsman',
+    kycStatus: 'Aadhaar & NCCT Verified',
+    policeVerification: 'Clear (Verified by Police)',
+    ayushmanCard: 'AB-7762-9901-3321',
+    pfAccountNumber: 'DL/CPM/08273',
+    onDuty: true,
+    skills: ['Door Lock Replacement', 'Hinge Realignment', 'Modular Furniture Repair'],
+    phone: '+91 98223 44556',
+    distanceKm: 1.8
+  },
+  cleaner: {
+    id: 'wrk_seed_clean',
+    name: 'Sunita Devi',
+    photo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=250',
+    category: 'cleaner',
+    societyId: 'soc_delhi_1',
+    societyName: 'Delhi NCR Shramik Sahakari Samiti Ltd.',
+    rating: 4.9,
+    reviewsCount: 52,
+    jobsCompleted: 210,
+    experienceYears: 5,
+    hourlyRate: 300,
+    ncctLevel: 'Level 2 Deep Sanitation Expert',
+    kycStatus: 'Aadhaar & NCCT Verified',
+    policeVerification: 'Clear (Verified by Police)',
+    ayushmanCard: 'AB-3321-7789-5561',
+    pfAccountNumber: 'DL/CPM/06519',
+    onDuty: true,
+    skills: ['Post-Renovation Cleaning', 'Bathroom Deep Sanitization', 'Floor Buffing'],
+    phone: '+91 98334 55667',
+    distanceKm: 1.1
+  },
+  painter: {
+    id: 'wrk_seed_paint',
+    name: 'Santosh Yadav',
+    photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=250',
+    category: 'painter',
+    societyId: 'soc_delhi_1',
+    societyName: 'Delhi NCR Shramik Sahakari Samiti Ltd.',
+    rating: 4.8,
+    reviewsCount: 31,
+    jobsCompleted: 115,
+    experienceYears: 7,
+    hourlyRate: 350,
+    ncctLevel: 'Level 2 Wall Texture Specialist',
+    kycStatus: 'Aadhaar & NCCT Verified',
+    policeVerification: 'Clear (Verified by Police)',
+    ayushmanCard: 'AB-9981-2234-8871',
+    pfAccountNumber: 'DL/CPM/07712',
+    onDuty: true,
+    skills: ['Damp Proofing', 'Putty & Acrylic Emulsion', 'Water Seepage Seal'],
+    phone: '+91 98445 66778',
+    distanceKm: 2.1
+  },
+  domestic_helper: {
+    id: 'wrk_1790324215269',
+    name: 'ash',
+    photo: 'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&q=80&w=250',
+    category: 'domestic_helper',
+    societyId: 'soc_delhi_1',
+    societyName: 'Delhi NCR Shramik Sahakari Samiti Ltd.',
+    rating: 4.9,
+    reviewsCount: 41,
+    jobsCompleted: 130,
+    experienceYears: 4,
+    hourlyRate: 320,
+    ncctLevel: 'Level 2 Certified Home Assistant',
+    kycStatus: 'Aadhaar & NCCT Verified',
+    policeVerification: 'Clear (Verified by Police)',
+    ayushmanCard: 'AB-6612-8874-9901',
+    pfAccountNumber: 'DL/CPM/05432',
+    onDuty: true,
+    skills: ['Home Cooking', 'Dishwashing', 'Housekeeping'],
+    phone: '+91 98556 77889',
+    distanceKm: 1.4
+  }
+};
+
 export const AiSahayakModal = ({ isOpen, onClose }) => {
   const { workers, radiusKm, setSelectedWorker, setBookingModalOpen } = useApp();
   const { t, lang } = useLanguage();
@@ -86,19 +243,39 @@ export const AiSahayakModal = ({ isOpen, onClose }) => {
     handleRunDiagnosis(preset.query);
   };
 
-  // Find best matched certified worker
+  // Category normalizer for robust cross-dialect matching
+  const normalizeCategory = (cat) => {
+    if (!cat) return '';
+    const c = String(cat).toLowerCase().trim();
+    if (c.includes('plumb')) return 'plumber';
+    if (c.includes('elect')) return 'electrician';
+    if (c.includes('carp')) return 'carpenter';
+    if (c.includes('paint')) return 'painter';
+    if (c.includes('clean') || c.includes('sanit')) return 'cleaner';
+    if (c.includes('tech') || c.includes('ac') || c.includes('appliance') || c.includes('hvac')) return 'technician';
+    if (c.includes('cook') || c.includes('help') || c.includes('maid')) return 'domestic_helper';
+    return c;
+  };
+
+  const targetCategory = normalizeCategory(diagnosticResult?.category);
+
+  // 1. Strict category-matching against registered workers
   const matchedWorkers = diagnosticResult
-    ? workers.filter((w) => {
-        const dist = w.distanceKm !== undefined && !isNaN(w.distanceKm) ? w.distanceKm : 0.8;
-        return w.category === diagnosticResult.category && dist <= radiusKm;
-      })
+    ? workers.filter((w) => normalizeCategory(w.category) === targetCategory)
     : [];
 
-  const topWorker = matchedWorkers[0] || workers.find((w) => w.category === diagnosticResult?.category) || workers[0];
+  // 2. Fallback to certified NCCT cooperative craftsman for THIS EXACT trade (never show an unrelated trade)
+  const topWorker = matchedWorkers[0] 
+    || (targetCategory && CERTIFIED_CATEGORY_EXPERTS[targetCategory]) 
+    || CERTIFIED_CATEGORY_EXPERTS['electrician'];
 
   const handleBookWorker = () => {
     if (topWorker) {
-      setSelectedWorker(topWorker);
+      const workerToBook = {
+        ...topWorker,
+        category: topWorker.category || targetCategory
+      };
+      setSelectedWorker(workerToBook);
       onClose();
       setBookingModalOpen(true);
     }
@@ -334,6 +511,9 @@ export const AiSahayakModal = ({ isOpen, onClose }) => {
                         <span>{translateWorkerName(topWorker.name, lang)}</span>
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                       </h5>
+                      <p className="text-[11px] font-bold text-teal-700 truncate">
+                        {translateCategory(topWorker.category || targetCategory, t)} Specialist
+                      </p>
                       <p className="text-[10px] text-slate-500 truncate">
                         {topWorker.ncctLevel} • {topWorker.distanceKm || 0.8} km away
                       </p>
