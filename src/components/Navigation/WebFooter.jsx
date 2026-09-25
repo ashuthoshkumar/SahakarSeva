@@ -3,6 +3,7 @@ import { Globe, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
+import { SahakarLogo } from '../Common/SahakarLogo';
 
 export const WebFooter = ({ setActiveTab }) => {
   const { t, openLanguageModal, lang } = useLanguage();
@@ -20,9 +21,7 @@ export const WebFooter = ({ setActiveTab }) => {
           {/* Brand Info */}
           <div className="md:col-span-2 space-y-3">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-400 to-emerald-500 flex items-center justify-center text-slate-950 font-black text-sm shadow">
-                🤝
-              </div>
+              <SahakarLogo className="w-8 h-8 shrink-0" />
               <span className="text-lg font-black text-white tracking-tight">
                 Sahakar<span className="text-teal-400">Seva</span>
               </span>

@@ -6,6 +6,7 @@ import {
   Home, User, ShieldCheck, Globe, Menu, X, LogOut, AlertTriangle, Lock 
 } from 'lucide-react';
 import { translateRole } from '../../utils/translateHelpers';
+import { SahakarLogo } from '../Common/SahakarLogo';
 
 export const WebNavbar = ({ activeTab, setActiveTab }) => {
   const { setEmergencyModalOpen } = useApp();
@@ -31,9 +32,7 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
             onClick={() => handleTabClick('home')}
             className="flex items-center gap-3 text-left group focus:outline-none"
           >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-teal-400 via-emerald-500 to-teal-600 flex items-center justify-center text-slate-950 font-black text-xl shadow-lg shadow-teal-500/25 group-hover:scale-105 transition-transform shrink-0">
-              🤝
-            </div>
+            <SahakarLogo className="w-10 h-10 group-hover:scale-105 transition-transform shrink-0" />
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl font-black tracking-tight text-white leading-none">

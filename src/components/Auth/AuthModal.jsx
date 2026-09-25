@@ -8,6 +8,7 @@ import {
   CheckCircle2, Phone, X, ChevronRight
 } from 'lucide-react';
 import { translateCategory } from '../../utils/translateHelpers';
+import { SahakarLogo } from '../Common/SahakarLogo';
 import {
   validatePhoneNumber,
   validatePassword,
@@ -301,9 +302,7 @@ export const AuthModal = () => {
         {/* Clean Header Bar */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50/80">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-teal-500 to-emerald-500 flex items-center justify-center text-white text-base font-black shadow-md shadow-teal-500/20">
-              🤝
-            </div>
+            <SahakarLogo className="w-9 h-9 shrink-0" />
             <div>
               <h1 className="text-base font-black text-slate-900 leading-none">SahakarSeva</h1>
               <p className="text-xs text-slate-500 font-medium mt-0.5">{t('cooperativeGigWorkforce') || 'Cooperative Workforce'}</p>
