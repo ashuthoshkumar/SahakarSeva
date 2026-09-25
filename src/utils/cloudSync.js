@@ -9,27 +9,37 @@ export const CLOUD_ACCOUNTS_ID = 'ff808181a067127101a0763bded52729';
 // Default candidate backend URLs
 export const DEFAULT_LAN_IP = '192.168.7.8';
 
+// ─── Production Render backend URL — all devices use this when VITE_API_URL is not set ───
+const RENDER_BACKEND = 'https://sahakar-seva-api-h1zm.onrender.com/api';
+
 export const getSavedBackendUrl = () => {
+  // 1. Highest priority: explicitly configured env var (Vercel / production deployment)
   if (import.meta.env && import.meta.env.VITE_API_URL) {
     const envUrl = import.meta.env.VITE_API_URL.trim();
     return envUrl.endsWith('/api') ? envUrl : `${envUrl.replace(/\/+$/, '')}/api`;
   }
 
+  // 2. User-configured custom backend stored in localStorage (for LAN/APK use)
   try {
     const custom = localStorage.getItem('sahakar_custom_backend');
     if (custom && custom.trim()) return custom.trim();
   } catch (e) {}
 
+  // 3. If running from a non-localhost domain (deployed on Vercel etc.), try same origin first,
+  //    but ALSO return the known Render production backend so apiFetch can try it.
   if (typeof window !== 'undefined' && window.location) {
     const host = window.location.hostname;
     if (host && host !== 'localhost' && host !== '127.0.0.1') {
+      // On a LAN IP (e.g. tablet on same WiFi) try the device's own IP:5050
       if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) {
         return `http://${host}:5050/api`;
       }
-      return `${window.location.origin}/api`;
+      // On a cloud deployment (Vercel), use the known Render backend URL
+      return RENDER_BACKEND;
     }
   }
 
+  // 4. Local development fallback
   return `http://${DEFAULT_LAN_IP}:5050/api`;
 };
 

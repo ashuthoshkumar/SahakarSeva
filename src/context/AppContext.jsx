@@ -9,6 +9,8 @@ import {
 const AppContext = createContext();
 
 const API = '/api';
+// Explicit Render backend — used as guaranteed 3rd-attempt fallback on all devices
+const RENDER_BACKEND_URL = 'https://sahakar-seva-api-h1zm.onrender.com/api';
 
 // ─── localStorage keys ───
 const STORAGE_KEYS = {
@@ -51,19 +53,27 @@ const apiFetch = async (endpoint) => {
   const backendBase = getSavedBackendUrl();
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
-  // 1. Try relative (browser proxy)
+  // 1. Try relative (browser proxy — works in local dev & if Vercel has rewrites)
   try {
     const res = await fetch(`${API}${cleanEndpoint}`);
     if (res.ok) return await res.json();
   } catch (err) {}
 
-  // 2. Try configured backend / LAN IP (works on mobile phones & APK)
+  // 2. Try configured backend / LAN IP
   try {
     const res = await fetch(`${backendBase}${cleanEndpoint}`);
     if (res.ok) return await res.json();
   } catch (e) {}
 
-  // 3. Try localhost fallback
+  // 3. Try the Render production backend explicitly (guarantees cross-device access)
+  try {
+    if (!backendBase.includes('onrender.com')) {
+      const res = await fetch(`${RENDER_BACKEND_URL}${cleanEndpoint}`);
+      if (res.ok) return await res.json();
+    }
+  } catch (e) {}
+
+  // 4. Try localhost fallback (for local dev server)
   try {
     const res = await fetch(`http://localhost:5050/api${cleanEndpoint}`);
     if (res.ok) return await res.json();
@@ -93,7 +103,15 @@ const apiPost = async (endpoint, body) => {
     if (res.ok) return await res.json();
   } catch (e) {}
 
-  // 3. Try localhost fallback
+  // 3. Try Render production backend explicitly (cross-device guarantee)
+  try {
+    if (!backendBase.includes('onrender.com')) {
+      const res = await fetch(`${RENDER_BACKEND_URL}${cleanEndpoint}`, payload);
+      if (res.ok) return await res.json();
+    }
+  } catch (e) {}
+
+  // 4. Try localhost fallback
   try {
     const res = await fetch(`http://localhost:5050/api${cleanEndpoint}`, payload);
     if (res.ok) return await res.json();
@@ -119,6 +137,14 @@ const apiPatch = async (endpoint, body) => {
   try {
     const res = await fetch(`${backendBase}${cleanEndpoint}`, payload);
     if (res.ok) return await res.json();
+  } catch (e) {}
+
+  // Render production backend explicit fallback
+  try {
+    if (!backendBase.includes('onrender.com')) {
+      const res = await fetch(`${RENDER_BACKEND_URL}${cleanEndpoint}`, payload);
+      if (res.ok) return await res.json();
+    }
   } catch (e) {}
 
   try {
