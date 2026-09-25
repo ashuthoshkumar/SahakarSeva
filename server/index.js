@@ -29,6 +29,60 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'SahakarSeva Express API Backend is Live', timestamp: new Date() });
 });
 
+// Root endpoint for backend deployments (when dist is not present)
+app.get('/', (req, res, next) => {
+  if (fs.existsSync(distPath)) {
+    return res.sendFile(path.join(distPath, 'index.html'));
+  }
+  if (req.accepts('html')) {
+    return res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>SahakarSeva API Server - Live</title>
+        <style>
+          body { background: #090d16; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
+          .card { background: #0f172a; border: 1px solid #1e293b; border-radius: 20px; padding: 32px; max-width: 540px; width: 100%; box-shadow: 0 20px 40px rgba(0,0,0,0.5); text-align: center; }
+          .badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; font-weight: 700; font-size: 13px; padding: 6px 14px; border-radius: 9999px; margin-bottom: 20px; }
+          .dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981; }
+          h1 { margin: 0 0 10px 0; font-size: 26px; font-weight: 800; color: #ffffff; }
+          p { color: #94a3b8; font-size: 14px; line-height: 1.6; margin: 0 0 24px 0; }
+          .endpoints { text-align: left; background: #020617; border: 1px solid #1e293b; border-radius: 14px; padding: 16px; margin-bottom: 24px; font-size: 13px; }
+          .endpoints a { color: #2dd4bf; text-decoration: none; font-weight: 600; display: block; padding: 4px 0; }
+          .endpoints a:hover { text-decoration: underline; }
+          .note { font-size: 12px; color: #64748b; background: rgba(2,6,23,0.5); padding: 12px; border-radius: 10px; border-left: 3px solid #0d9488; text-align: left; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="badge"><div class="dot"></div> Backend Live & Operational</div>
+          <h1>🤝 SahakarSeva API Backend</h1>
+          <p>The Express.js + SQLite cooperative service backend is running smoothly.</p>
+          <div class="endpoints">
+            <strong style="color: #cbd5e1; display: block; margin-bottom: 8px;">Active Endpoints:</strong>
+            <a href="/api/health">GET /api/health (Health check)</a>
+            <a href="/api/workers">GET /api/workers (Registered workers)</a>
+            <a href="/api/societies">GET /api/societies (Cooperative societies)</a>
+            <a href="/api/stats/platform">GET /api/stats/platform (Platform metrics)</a>
+          </div>
+          <div class="note">
+            💡 <strong>Frontend Connection:</strong> Set <code>VITE_API_URL=https://${req.headers.host}/api</code> in your Vercel Project Environment Variables.
+          </div>
+        </div>
+      </body>
+      </html>
+    `);
+  }
+  res.json({
+    service: 'SahakarSeva Express API Backend',
+    status: 'ONLINE',
+    version: '1.0.0',
+    endpoints: ['/api/health', '/api/workers', '/api/bookings', '/api/societies', '/api/stats/platform']
+  });
+});
+
 /* ==========================================================================
    AUTHENTICATION & AUTHORIZATION STRICT VALIDATION HELPERS & RBAC MIDDLEWARE
    ========================================================================== */
