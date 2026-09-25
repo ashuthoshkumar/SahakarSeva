@@ -43,13 +43,13 @@ export const CustomerDashboard = () => {
             <div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 text-xs font-bold border border-teal-500/30 mb-2">
                 <Sparkles className="w-3.5 h-3.5 text-teal-400" />
-                <span>Verified Cooperative Workforce Directory</span>
+                <span>Search Local Services</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
-                {t('heroTitle') || 'Find Certified Craftsmen Nearby'}
+                {t('heroTitle') || 'Find Verified Craftsmen Nearby'}
               </h1>
               <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mt-1 max-w-xl">
-                {t('heroDesc') || 'Instant dispatch with transparent cooperative wage floors and ₹25,000 damage protection.'}
+                Search verified local professionals by category, radius, or specific repair service.
               </p>
             </div>
 
@@ -252,29 +252,21 @@ export const CustomerDashboard = () => {
             </button>
           </div>
 
-          {/* Suraksha Kavach ₹25,000 Guarantee Seal */}
-          <div className="bg-white rounded-3xl border border-teal-200/90 p-5 shadow-sm space-y-3">
+          {/* Service Guarantee Card */}
+          <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm space-y-3">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-2xl bg-teal-50 text-teal-600 border border-teal-200">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-extrabold text-sm text-slate-900">₹25,000 Suraksha Kavach</h4>
-                <p className="text-xs text-slate-500">Zero-Risk Escrow Guarantee</p>
+                <h4 className="font-extrabold text-sm text-slate-900">Verified Service Guarantee</h4>
+                <p className="text-xs text-slate-500">Photo Proof & Escrow Release</p>
               </div>
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              Your payment remains locked in cooperative escrow until you inspect and approve the job photo proof. Any accidental damage is covered up to ₹25,000.
+              Your payment is held securely until you review and approve the worker's completion photo. Direct hourly rates with zero hidden charges.
             </p>
-
-            <button
-              onClick={() => setIsSurakshaOpen(true)}
-              className="text-xs font-bold text-teal-700 hover:text-teal-800 flex items-center gap-1"
-            >
-              <span>Learn about coverage rules</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
           </div>
 
         </div>

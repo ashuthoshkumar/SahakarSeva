@@ -377,85 +377,50 @@ export const WorkerDashboard = () => {
         {/* Right Column: Worker Welfare & Innovations Suite (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
           
-          {/* Social Security & Dividend Passbook */}
-          <div className="bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-900 text-white p-6 rounded-3xl border border-emerald-600/40 shadow-md space-y-4">
+          {/* Social Security & Welfare Passbook */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-300 bg-emerald-500/20 px-2.5 py-0.5 rounded-full border border-emerald-400/30">
-                Social Security
+              <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
+                Welfare Ledger
               </span>
-              <span className="text-xs text-emerald-300 font-bold">100% Protected</span>
+              <span className="text-xs text-slate-500 font-bold">Automatic Contributions</span>
             </div>
 
             <div>
-              <h4 className="text-sm font-black text-white">
-                Cooperative Welfare & Dividend Passbook
+              <h4 className="text-sm font-bold text-slate-900">
+                Welfare & Social Security Passbook
               </h4>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Ayushman Bharat health escrow, PMSBY accidental insurance & annual society profit dividends.
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Review your accumulated welfare savings, insurance deductions, and provident fund balance.
               </p>
             </div>
 
             <button
               onClick={() => setIsPassbookOpen(true)}
-              className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-2xl shadow transition-all flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2"
             >
               <ShieldCheck className="w-4 h-4" />
-              <span>Open Social Security Passbook →</span>
+              <span>View Welfare Passbook</span>
             </button>
           </div>
 
-          {/* AI Skill Ladder & NCCT Upskilling Academy */}
-          <div className="bg-gradient-to-br from-blue-950 via-teal-950 to-slate-900 text-white p-6 rounded-3xl border border-blue-600/40 shadow-md space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-blue-300 bg-blue-500/20 px-2.5 py-0.5 rounded-full border border-blue-400/30">
-                NCCT Mandate
-              </span>
-              <span className="text-xs text-amber-300 font-bold">+48% Earning Boost</span>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-black text-white">
-                AI Skill Ladder & Upskilling Academy
-              </h4>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Level 2 → Level 3 certification courses (Solar PV & EV Charger) with free institute enrollment.
-              </p>
-            </div>
-
-            <button
-              onClick={() => setIsAcademyOpen(true)}
-              className="w-full py-3 bg-blue-500 hover:bg-blue-400 text-slate-950 font-black text-xs rounded-2xl shadow transition-all flex items-center justify-center gap-2"
-            >
-              <Award className="w-4 h-4" />
-              <span>View NCCT Skill Ladder →</span>
-            </button>
-          </div>
-
-          {/* Material & Tool Micro-Credit Vault */}
-          <div className="bg-gradient-to-r from-amber-950 via-slate-900 to-teal-950 text-white p-6 rounded-3xl border border-amber-500/40 shadow-md space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-400/30">
-                PACS Working Capital
-              </span>
-              <span className="text-xs text-emerald-300 font-bold">0% Interest Credit</span>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-black text-white">
-                Material & Tool Micro-Credit Vault
-              </h4>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
-                Need replacement MCBs, copper pipes or drills? Issue zero-interest e-RUPI vouchers to local hardware merchants.
-              </p>
-            </div>
-
-            <button
-              onClick={() => setIsMaterialCreditOpen(true)}
-              className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-2xl shadow transition-all flex items-center justify-center gap-2"
-            >
-              <Wrench className="w-4 h-4" />
-              <span>Issue Material Voucher →</span>
-            </button>
+          {/* Job Completion Guide */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+            <h4 className="text-sm font-bold text-slate-900">Service Guidelines</h4>
+            <ul className="text-xs text-slate-600 space-y-2">
+              <li className="flex items-start gap-2">
+                <span className="text-teal-600 font-bold">•</span>
+                <span>Accept jobs promptly to maintain a high customer response score.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-teal-600 font-bold">•</span>
+                <span>Upload a clear completion photo after finishing the work so the customer can approve payment.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-teal-600 font-bold">•</span>
+                <span>Direct UPI payouts are credited immediately upon customer confirmation.</span>
+              </li>
+            </ul>
           </div>
 
         </div>

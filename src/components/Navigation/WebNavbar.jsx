@@ -65,12 +65,9 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
                 <span className="text-xl font-black tracking-tight text-white leading-none">
                   Sahakar<span className="text-teal-400">Seva</span>
                 </span>
-                <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 text-[10px] font-extrabold border border-teal-500/40">
-                  COOPERATIVE
-                </span>
               </div>
               <p className="text-[11px] text-slate-400 font-medium tracking-wide">
-                {t('cooperativeGigWorkforce') || 'Decentralized Gig Services & Welfare Platform'}
+                Home Services & Local Craftsmen
               </p>
             </div>
           </button>
