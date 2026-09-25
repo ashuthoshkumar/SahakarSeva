@@ -128,7 +128,7 @@ export function App() {
             <EmergencyBooking />
             <PaymentModal />
             <InvoiceModal />
-            <AuthModal />
+            <AuthModal setActiveTab={setActiveTab} />
             <RatingModal />
             <LanguageSelectModal />
             

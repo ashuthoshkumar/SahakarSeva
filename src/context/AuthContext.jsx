@@ -136,59 +136,54 @@ export const AuthProvider = ({ children }) => {
     try {
       const saved = localStorage.getItem('sahakar_local_user');
       if (!saved) return null;
-      const parsed = JSON.parse(saved);
-      if (parsed.role === 'customer' || parsed.role === 'worker') {
-        localStorage.removeItem('sahakar_local_user');
-        localStorage.removeItem('sahakar_token');
-        return null;
-      }
-      return parsed;
+      return JSON.parse(saved);
     } catch {
       return null;
     }
   });
   const [token, setToken] = useState(() => {
-    const saved = localStorage.getItem('sahakar_local_user');
-    if (!saved) {
-      localStorage.removeItem('sahakar_token');
-      return null;
-    }
     return localStorage.getItem('sahakar_token') || null;
   });
   const [loading, setLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState('login'); // login, register_customer, register_worker
 
-  // Verify token on initial app load
+  // Verify token ONLY ON INITIAL MOUNT (never wipe user right after they register/login)
   useEffect(() => {
     const verifySession = async () => {
-      if (!token) {
+      const savedToken = localStorage.getItem('sahakar_token');
+      if (!savedToken) {
         setLoading(false);
         return;
       }
       try {
         const data = await safeFetchJson('/auth/me', {
-          headers: { Authorization: token }
+          headers: { Authorization: savedToken }
         });
-        if (data && data.success) {
+        if (data && data.success && data.user) {
           setUser(data.user);
-        } else if (data && data.offlineFallback) {
-          const saved = localStorage.getItem('sahakar_local_user');
-          if (saved) setUser(JSON.parse(saved));
-        } else {
+          localStorage.setItem('sahakar_local_user', JSON.stringify(data.user));
+        } else if (data && data.httpStatus === 401) {
+          // Token explicitly expired on server
           localStorage.removeItem('sahakar_token');
           localStorage.removeItem('sahakar_local_user');
           setToken(null);
           setUser(null);
+        } else {
+          // Network offline or server unreachable: preserve local user session
+          const savedUser = localStorage.getItem('sahakar_local_user');
+          if (savedUser) {
+            try { setUser(JSON.parse(savedUser)); } catch (e) {}
+          }
         }
       } catch (err) {
-        console.error('Auth verification error:', err);
+        console.warn('Session verification fallback to stored user:', err);
       } finally {
         setLoading(false);
       }
     };
     verifySession();
-  }, [token]);
+  }, []); // Run ONCE on mount
 
   // ─── Predictable Role-Locked User Login ───
   const login = async (loginInput, password) => {

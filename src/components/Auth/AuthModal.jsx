@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
@@ -94,7 +94,7 @@ const FormInput = ({ label, icon: Icon, type = 'text', value, onChange, placehol
   </div>
 );
 
-export const AuthModal = () => {
+export const AuthModal = ({ setActiveTab }) => {
   const { 
     isAuthModalOpen, 
     setIsAuthModalOpen, 
@@ -173,6 +173,7 @@ export const AuthModal = () => {
     try {
       const res = await login(input, pass);
       if (res.success) {
+        if (setActiveTab) setActiveTab('home');
         addNotification(res.message, 'success');
       } else {
         setErrorMsg(res.error);
@@ -199,6 +200,7 @@ export const AuthModal = () => {
     try {
       const res = await login(loginInput, loginPassword);
       if (res.success) {
+        if (setActiveTab) setActiveTab('home');
         addNotification(res.message, 'success');
       } else {
         setErrorMsg(res.error);
@@ -232,6 +234,7 @@ export const AuthModal = () => {
         name: custName, phone: custPhone, email: custEmail, password: custPassword
       });
       if (res.success) {
+        if (setActiveTab) setActiveTab('home');
         addNotification('Customer Account Created Successfully!', 'success');
       } else {
         setErrorMsg(res.error);
@@ -280,6 +283,7 @@ export const AuthModal = () => {
         pfAccountNumber: `DL/CPM/${Math.floor(10000 + Math.random()*90000)}`
       });
       if (res.success) {
+        if (setActiveTab) setActiveTab('home');
         if (res.worker && addRegisteredWorker) addRegisteredWorker(res.worker);
         if (fetchWorkers) fetchWorkers();
         addNotification('Worker Account Registered with DigiLocker e-KYC & Police Clearance!', 'success');
