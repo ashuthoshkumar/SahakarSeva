@@ -575,6 +575,25 @@ app.get('/api/admin/state-metrics', async (req, res) => {
   }
 });
 
+// POST /api/admin/reset-database — Clean wipe of all bookings and registered customer/worker accounts
+app.post('/api/admin/reset-database', async (req, res) => {
+  try {
+    const resBookings = await dbRun('DELETE FROM bookings');
+    const resUsers = await dbRun("DELETE FROM users WHERE role = 'customer' OR role = 'worker'");
+    const resWorkers = await dbRun("DELETE FROM workers WHERE id NOT IN ('wrk_101', 'wrk_102', 'wrk_103', 'wrk_104', 'wrk_105', 'wrk_106')");
+    await dbRun('VACUUM');
+    res.json({
+      success: true,
+      message: 'Database reset successfully: all bookings and customer/worker accounts removed.',
+      deletedBookings: resBookings.changes,
+      deletedUsers: resUsers.changes,
+      deletedWorkers: resWorkers.changes
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`SahakarSeva Express API Server is running on http://0.0.0.0:${PORT}`);
 });

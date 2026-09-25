@@ -18,28 +18,8 @@ const AuthContext = createContext();
 
 const API_BASE = '/api';
 
-// Pre-seeded standard demo accounts for crystal-clear role testing
+// Standard administrator accounts for administrative role testing
 const DEFAULT_ACCOUNTS = [
-  {
-    id: 'usr_cust_1',
-    name: 'Ashuthosh Kumar',
-    phone: '+91 97013 92418',
-    email: 'customer@sahakar.in',
-    password: 'password123',
-    role: 'customer'
-  },
-  {
-    id: 'usr_wrk_1',
-    name: 'Ramesh Sharma',
-    phone: '+91 98765 43210',
-    email: 'worker@sahakar.in',
-    password: 'password123',
-    role: 'worker',
-    category: 'electrician',
-    hourlyRate: 350,
-    aadhaarNo: '8829-1029-4411',
-    kycStatus: 'Aadhaar & NCCT Verified'
-  },
   {
     id: 'usr_soc_1',
     name: 'Delhi Coop Admin',
@@ -148,10 +128,28 @@ const safeFetchJson = async (endpoint, options = {}) => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('sahakar_local_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('sahakar_local_user');
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      if (parsed.role === 'customer' || parsed.role === 'worker') {
+        localStorage.removeItem('sahakar_local_user');
+        localStorage.removeItem('sahakar_token');
+        return null;
+      }
+      return parsed;
+    } catch {
+      return null;
+    }
   });
-  const [token, setToken] = useState(localStorage.getItem('sahakar_token') || null);
+  const [token, setToken] = useState(() => {
+    const saved = localStorage.getItem('sahakar_local_user');
+    if (!saved) {
+      localStorage.removeItem('sahakar_token');
+      return null;
+    }
+    return localStorage.getItem('sahakar_token') || null;
+  });
   const [loading, setLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState('login'); // login, register_customer, register_worker

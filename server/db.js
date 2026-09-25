@@ -129,15 +129,13 @@ export const initDB = async () => {
     );
   `);
 
-  // Seed Users if empty
+  // Seed Admin Users if empty (no fake customers or workers)
   const userCount = await dbGet('SELECT COUNT(*) as count FROM users');
   if (userCount.count === 0) {
-    console.log('Seeding initial authenticated users into SQLite...');
+    console.log('Seeding initial system administrator users into SQLite...');
     await dbRun(`
       INSERT INTO users (id, name, phone, email, password, role, aadhaarNo, societyId, kycVerified, createdAt)
       VALUES 
-      ('usr_cust_1', 'Ananya Deshmukh', '+91 99100 88221', 'customer@sahakar.in', 'password123', 'customer', NULL, NULL, 1, '2026-08-01 10:00'),
-      ('usr_wrk_1', 'Ramesh Sharma', '+91 98765 43210', 'worker@sahakar.in', 'password123', 'worker', '8829-1029-4411', 'soc_delhi_1', 1, '2026-08-01 10:00'),
       ('usr_soc_1', 'Delhi Coop Admin', '+91 98000 11122', 'society@sahakar.in', 'admin123', 'society_admin', NULL, 'soc_delhi_1', 1, '2026-08-01 10:00'),
       ('usr_fed_1', 'Northern Federation Officer', '+91 98000 33344', 'federation@sahakar.in', 'admin123', 'federation_admin', NULL, NULL, 1, '2026-08-01 10:00'),
       ('usr_sup_1', 'NCCT National Director', '+91 98000 55566', 'superadmin@sahakar.in', 'admin123', 'super_admin', NULL, NULL, 1, '2026-08-01 10:00')
@@ -176,14 +174,5 @@ export const initDB = async () => {
     }
   }
 
-  // Seed Initial Bookings if empty
-  const bookingCount = await dbGet('SELECT COUNT(*) as count FROM bookings');
-  if (bookingCount.count === 0) {
-    await dbRun(`
-      INSERT INTO bookings (id, workerId, workerName, workerPhone, category, customerName, customerPhone, address, scheduledTime, status, isEmergency, baseWage, welfareContribution, healthInsurance, platformFee, totalAmount, createdAt)
-      VALUES 
-      ('BK-2026-881', 'wrk_101', 'Ramesh Sharma', '+91 98765 43210', 'Electrician', 'Ananya Deshmukh', '+91 99100 88221', 'Flat 402, Green Park Apartments, Connaught Place, New Delhi', 'Today, 03:00 PM', 'In Progress', 0, 700, 35, 14, 21, 770, '2026-08-31 14:15'),
-      ('BK-2026-882', 'wrk_103', 'Vikram Singh', '+91 97123 45678', 'Plumber', 'Rajesh Malhotra', '+91 98200 11992', 'B-12, South Extension Part II, New Delhi', 'Today, 11:30 AM', 'Confirmed & Paid', 1, 800, 40, 16, 24, 880, '2026-08-31 11:00')
-    `);
-  }
+  // Bookings are 100% clean and empty by default (0 transactions)
 };

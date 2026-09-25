@@ -287,7 +287,10 @@ export const AppProvider = ({ children }) => {
     writeStorage(STORAGE_KEYS.WORKERS, DEFAULT_WORKERS);
     return DEFAULT_WORKERS;
   });
-  const [bookings, setBookings] = useState(() => readStorage(STORAGE_KEYS.BOOKINGS));
+  const [bookings, setBookings] = useState(() => {
+    writeStorage(STORAGE_KEYS.BOOKINGS, []);
+    return [];
+  });
   const [societies, setSocieties] = useState(() => readStorage(STORAGE_KEYS.SOCIETIES, [
     { id: 'soc_default', name: 'SahakarSeva Cooperative Society', registrationNo: 'MSCS/CR/2024/001', federation: 'National Labour Cooperative Federation', location: 'Pan India', workerCount: 0, welfareFundBalance: '₹ 0', complianceScore: 100, wageFloor: 300, status: 'Active' }
   ]));
@@ -508,11 +511,13 @@ export const AppProvider = ({ children }) => {
 
   // Fetch Active Bookings
   const fetchBookings = async () => {
-    const data = await apiFetch('/bookings');
-    if (data.success && data.bookings) {
-      setBookings(data.bookings);
-    }
-    // If API fails, bookings are already loaded from localStorage
+    try {
+      const data = await apiFetch('/bookings');
+      if (data && data.success && Array.isArray(data.bookings)) {
+        setBookings(data.bookings);
+        writeStorage(STORAGE_KEYS.BOOKINGS, data.bookings);
+      }
+    } catch (e) {}
   };
 
   // Fetch Societies
