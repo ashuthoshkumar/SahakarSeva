@@ -181,27 +181,6 @@ export const AccountPage = () => {
             {user.role === 'super_admin' && "Full administrative access across national cooperative network, user management & system configuration."}
           </p>
         </div>
-
-        {/* Quick Role Preview Switcher for Workers */}
-        {user.role === 'worker' && (
-          <div className="pt-1">
-            <button
-              onClick={() => {
-                const nextRole = currentRole === 'customer' ? 'worker' : 'customer';
-                setCurrentRole(nextRole);
-                addNotification(nextRole === 'customer' ? 'Switched to Customer Marketplace Preview!' : 'Returned to Worker Dashboard!', 'info');
-              }}
-              className="w-full py-2 px-3 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all active:scale-95"
-            >
-              <Eye className="w-3.5 h-3.5 text-teal-600" />
-              <span>
-                {currentRole === 'customer'
-                  ? 'Return to Worker Dashboard'
-                  : 'Preview Marketplace as Customer (View Worker Card)'}
-              </span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* MULTI-DEVICE CLOUD & NETWORK SYNC CARD */}

@@ -9,11 +9,11 @@ import { SurakshaKavachModal } from './SurakshaKavachModal';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Search, MapPin, HeartHandshake, AlertTriangle, Navigation, 
-  X, Sparkles, Mic, ShieldCheck, ArrowRight, CheckCircle2 
+  X, Sparkles, Mic, ShieldCheck, ArrowRight, CheckCircle2, Calendar 
 } from 'lucide-react';
 import { translateCategory, translateWorkerName } from '../../utils/translateHelpers';
 
-export const CustomerDashboard = () => {
+export const CustomerDashboard = ({ setActiveTab }) => {
   const { user } = useAuth();
   const {
     detectUserLocation,
@@ -60,14 +60,31 @@ export const CustomerDashboard = () => {
               </p>
             </div>
 
-            {/* Quick AI Sahayak Trigger in Header */}
-            <button
-              onClick={() => setIsAiModalOpen(true)}
-              className="self-start md:self-auto px-4 py-3 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-black text-xs rounded-2xl shadow-lg shadow-teal-500/20 transition-all flex items-center gap-2 active:scale-95 shrink-0"
-            >
-              <Mic className="w-4 h-4" />
-              <span>{t('aiSahayakDiagnose')}</span>
-            </button>
+            {/* Header Action Buttons: My Bookings & AI Sahayak */}
+            <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto shrink-0">
+              <button
+                onClick={() => {
+                  if (setActiveTab) setActiveTab('bookings');
+                }}
+                className="px-4 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-extrabold text-xs rounded-2xl shadow-md transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
+              >
+                <Calendar className="w-4 h-4 text-teal-400" />
+                <span>{t('bookingsTab') || 'My Bookings'}</span>
+                {myCustomerBookings.length > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-teal-400 text-slate-950 font-black text-[10px]">
+                    {myCustomerBookings.length}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => setIsAiModalOpen(true)}
+                className="px-4 py-3 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-black text-xs rounded-2xl shadow-lg shadow-teal-500/20 transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
+              >
+                <Mic className="w-4 h-4" />
+                <span>{t('aiSahayakDiagnose')}</span>
+              </button>
+            </div>
           </div>
 
           {/* Search + Radius + GPS Controls Grid */}
