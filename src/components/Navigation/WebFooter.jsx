@@ -2,10 +2,14 @@ import React from 'react';
 import { Globe, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 
 export const WebFooter = ({ setActiveTab }) => {
   const { t, openLanguageModal, lang } = useLanguage();
   const { setEmergencyModalOpen } = useApp();
+  const { user, isAuthenticated } = useAuth();
+
+  const isCustomer = !isAuthenticated || user?.role === 'customer';
 
   return (
     <footer className="bg-slate-950 text-slate-400 border-t border-slate-800 text-xs font-sans mt-auto">
@@ -37,16 +41,20 @@ export const WebFooter = ({ setActiveTab }) => {
                   {t('findServicesWorkers')}
                 </button>
               </li>
-              <li>
-                <button onClick={() => setActiveTab && setActiveTab('bookings')} className="hover:text-teal-400 transition-colors">
-                  {t('myBookings')}
-                </button>
-              </li>
-              <li>
-                <button onClick={() => setEmergencyModalOpen(true)} className="text-red-400 hover:text-red-300 transition-colors font-medium">
-                  {t('emergencyRequest')}
-                </button>
-              </li>
+              {isCustomer && (
+                <>
+                  <li>
+                    <button onClick={() => setActiveTab && setActiveTab('bookings')} className="hover:text-teal-400 transition-colors">
+                      {t('myBookings')}
+                    </button>
+                  </li>
+                  <li>
+                    <button onClick={() => setEmergencyModalOpen(true)} className="text-red-400 hover:text-red-300 transition-colors font-medium">
+                      {t('emergencyRequest')}
+                    </button>
+                  </li>
+                </>
+              )}
             </ul>
           </div>
 

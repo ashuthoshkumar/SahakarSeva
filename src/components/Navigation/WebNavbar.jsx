@@ -85,16 +85,18 @@ export const WebNavbar = ({ activeTab, setActiveTab }) => {
               <span className="uppercase font-mono text-xs">{lang}</span>
             </button>
 
-            {/* Emergency SOS Dispatch 15M */}
-            <button
-              onClick={() => setEmergencyModalOpen(true)}
-              className="px-3 sm:px-4 py-2 bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:to-rose-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-red-600/30 transition-all flex items-center gap-1.5 shrink-0 sos-pulse-btn active:scale-95"
-              title={t('emergencySOSTitle')}
-            >
-              <AlertTriangle className="w-4 h-4" />
-              <span className="hidden sm:inline">{t('emergencySOS')}</span>
-              <span className="sm:hidden">SOS</span>
-            </button>
+            {/* Emergency SOS Dispatch 15M (Visible for customers only, never workers) */}
+            {(!isAuthenticated || user?.role === 'customer') && (
+              <button
+                onClick={() => setEmergencyModalOpen(true)}
+                className="px-3 sm:px-4 py-2 bg-gradient-to-r from-red-600 via-rose-600 to-red-600 hover:from-red-500 hover:to-rose-500 text-white font-extrabold text-xs rounded-xl shadow-lg shadow-red-600/30 transition-all flex items-center gap-1.5 shrink-0 sos-pulse-btn active:scale-95"
+                title={t('emergencySOSTitle')}
+              >
+                <AlertTriangle className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('emergencySOS')}</span>
+                <span className="sm:hidden">SOS</span>
+              </button>
+            )}
 
             {/* User Profile / Auth Button */}
             {!isAuthenticated ? (
