@@ -3,10 +3,12 @@ import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
 import {
   Sparkles, Mic, MicOff, Send, X, AlertTriangle, ShieldCheck,
-  Clock, Wrench, CheckCircle2, ArrowRight, TrendingUp, Users, Heart
+  Clock, Wrench, CheckCircle2, ArrowRight, TrendingUp, Users, Heart,
+  Volume2, VolumeX, Globe
 } from 'lucide-react';
 import { PRESET_DIAGNOSTICS, diagnoseProblem } from '../../utils/aiDiagnosticEngine';
 import { translateCategory, translateWorkerName } from '../../utils/translateHelpers';
+import { bhashiniTranslate, bhashiniSpeakText, bhashiniStopSpeaking } from '../../services/bhashiniService';
 
 export const CERTIFIED_CATEGORY_EXPERTS = {
   electrician: {
@@ -226,16 +228,63 @@ export const AiSahayakModal = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleRunDiagnosis = (text) => {
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      bhashiniStopSpeaking();
+    };
+  }, []);
+
+  const handleRunDiagnosis = async (text) => {
     const targetText = text || inputQuery;
     if (!targetText.trim()) return;
 
     setIsAnalyzing(true);
-    setTimeout(() => {
+    bhashiniStopSpeaking();
+    setIsSpeaking(false);
+
+    try {
+      // If user typed or spoke in regional language, get translated English interpretation for diagnostic engine
+      let englishInterpretation = targetText;
+      if (lang !== 'en') {
+        try {
+          const trans = await bhashiniTranslate(targetText, lang, 'en');
+          if (trans && trans !== targetText) {
+            englishInterpretation = `${targetText} ${trans}`;
+          }
+        } catch (e) {}
+      }
+
+      const result = diagnoseProblem(englishInterpretation || targetText);
+      setDiagnosticResult(result);
+    } catch (err) {
+      console.error(err);
       const result = diagnoseProblem(targetText);
       setDiagnosticResult(result);
+    } finally {
       setIsAnalyzing(false);
-    }, 400);
+    }
+  };
+
+  const toggleSpeakDiagnosis = () => {
+    if (isSpeaking) {
+      bhashiniStopSpeaking();
+      setIsSpeaking(false);
+      return;
+    }
+
+    if (!diagnosticResult) return;
+
+    // Formulate a spoken natural language response in Hindi or user language
+    const spokenMessage = lang === 'hi'
+      ? `समस्या निदान: ${diagnosticResult.issueTitle}। अनुशंसित विशेषज्ञ: ${translateCategory(diagnosticResult.category, t)}। अनुमानित समय लगभग ${diagnosticResult.estimatedDurationMins} मिनट। उचित मजदूरी: ₹${diagnosticResult.pricing.coopTotal}। ${diagnosticResult.hazardWarning ? 'सावधानी चेतावनी: ' + diagnosticResult.hazardWarning : ''}`
+      : `Diagnosis: ${diagnosticResult.issueTitle}. Recommended specialist: ${diagnosticResult.category}. Estimated duration: ${diagnosticResult.estimatedDurationMins} minutes. Fair cooperative price: ₹${diagnosticResult.pricing.coopTotal}. ${diagnosticResult.hazardWarning ? 'Safety Warning: ' + diagnosticResult.hazardWarning : ''}`;
+
+    setIsSpeaking(true);
+    bhashiniSpeakText(spokenMessage, lang || 'hi', () => {
+      setIsSpeaking(false);
+    });
   };
 
   const handleSelectPreset = (preset) => {
@@ -296,10 +345,12 @@ export const AiSahayakModal = ({ isOpen, onClose }) => {
                 <span className="text-[10px] font-black uppercase tracking-wider text-teal-300 bg-teal-500/20 px-2 py-0.5 rounded-full border border-teal-400/30">
                   SIH26089 Innovation
                 </span>
-                <span className="text-[10px] text-slate-300 font-bold">Multilingual AI</span>
+                <span className="text-[10px] text-teal-200 font-bold bg-white/10 px-2 py-0.5 rounded-full border border-white/20">
+                  🇮🇳 Bhashini AI
+                </span>
               </div>
               <h3 className="text-base font-extrabold text-white leading-tight">
-                Sahakar AI Sahayak
+                Sahakar AI Sahayak & Voice
               </h3>
             </div>
           </div>
@@ -431,6 +482,30 @@ export const AiSahayakModal = ({ isOpen, onClose }) => {
                 <h4 className="font-extrabold text-sm text-slate-900">
                   {diagnosticResult.issueTitle}
                 </h4>
+
+                {/* Bhashini Voice Readout (TTS) */}
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    onClick={toggleSpeakDiagnosis}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 ${
+                      isSpeaking
+                        ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                        : 'bg-teal-100 hover:bg-teal-200 text-teal-900 border border-teal-200'
+                    }`}
+                  >
+                    {isSpeaking ? (
+                      <VolumeX className="w-4 h-4 text-rose-600 animate-pulse" />
+                    ) : (
+                      <Volume2 className="w-4 h-4 text-teal-700" />
+                    )}
+                    <span>
+                      {isSpeaking
+                        ? 'बोलना बंद करें (Stop Voice)'
+                        : '🔊 आवाज़ में सुनें (Bhashini Voice Readout)'}
+                    </span>
+                  </button>
+                </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs pt-1">
                   <div className="flex items-center gap-1.5 text-slate-600">

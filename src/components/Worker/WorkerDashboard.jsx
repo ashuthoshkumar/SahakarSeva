@@ -6,7 +6,8 @@ import {
   HardHat, ShieldCheck, HeartHandshake, DollarSign, Award, 
   ToggleLeft, ToggleRight, CheckCircle2, Clock, MapPin, 
   Phone, Camera, Upload, ImageIcon, AlertCircle, Wrench, 
-  Star, ChevronRight, UserCheck, Sparkles, TrendingUp
+  Star, ChevronRight, UserCheck, Sparkles, TrendingUp,
+  Volume2, VolumeX, MessageSquare, Globe
 } from 'lucide-react';
 import { translateNcctLevel, translateCategory } from '../../utils/translateHelpers';
 import { compressImage } from '../../utils/imageCompressor';
@@ -14,6 +15,8 @@ import { WelfarePassbookModal } from './WelfarePassbookModal';
 import { NcctAcademyModal } from './NcctAcademyModal';
 import { MaterialCreditModal } from './MaterialCreditModal';
 import { WorkerNavigationMap } from './WorkerNavigationMap';
+import { CrossLanguageChatModal } from '../Common/CrossLanguageChatModal';
+import { bhashiniSpeakText, bhashiniStopSpeaking } from '../../services/bhashiniService';
 
 export const WorkerDashboard = () => {
   const { workerDutyStatus, toggleWorkerDuty, bookings, addNotification, acceptBooking, uploadCompletionPhoto, userCoords } = useApp();
@@ -25,7 +28,36 @@ export const WorkerDashboard = () => {
   const [isPassbookOpen, setIsPassbookOpen] = useState(false);
   const [isAcademyOpen, setIsAcademyOpen] = useState(false);
   const [isMaterialCreditOpen, setIsMaterialCreditOpen] = useState(false);
+  const [chatBooking, setChatBooking] = useState(null);
+  const [activeAudioBookingId, setActiveAudioBookingId] = useState(null);
   const fileInputRefs = useRef({});
+
+  // Cleanup speech synthesis on unmount
+  useEffect(() => {
+    return () => {
+      bhashiniStopSpeaking();
+    };
+  }, []);
+
+  const handleSpeakJob = (booking, isOffer = false) => {
+    if (activeAudioBookingId === booking.id) {
+      bhashiniStopSpeaking();
+      setActiveAudioBookingId(null);
+      return;
+    }
+
+    const categoryName = translateCategory(booking.category, t);
+    const speechText = lang === 'hi'
+      ? (isOffer
+          ? `नया काम का प्रस्ताव! ग्राहक का नाम: ${booking.customerName || 'ग्राहक'}। सेवा: ${categoryName}। स्थान: ${booking.address || 'पते पर'}। कुल तय मजदूरी: ₹${booking.baseWage || booking.totalAmount || 0}। काम स्वीकार करने के लिए नीचे हरा बटन दबाएं।`
+          : `स्वीकृत काम: ग्राहक ${booking.customerName || 'ग्राहक'}, सेवा ${categoryName}, पता: ${booking.address || 'पते पर'}। तय मजदूरी: ₹${booking.baseWage || booking.totalAmount || 0}।`)
+      : `Job Details: Customer ${booking.customerName || 'Customer'}, Service ${booking.category}, Location ${booking.address || 'At customer location'}, Base Wage ₹${booking.baseWage || booking.totalAmount || 0}.`;
+
+    setActiveAudioBookingId(booking.id);
+    bhashiniSpeakText(speechText, lang || 'hi', () => {
+      setActiveAudioBookingId(null);
+    });
+  };
 
   // Build worker stats from real data (localStorage + user profile)
   useEffect(() => {
@@ -274,13 +306,36 @@ export const WorkerDashboard = () => {
                     </p>
                     <p className="text-[11px] text-slate-500 mt-0.5">Scheduled: {b.scheduledTime || 'Immediate'}</p>
                   </div>
-                  <button
-                    onClick={() => acceptBooking(b.id)}
-                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>Accept Dispatch & Open Navigation Map</span>
-                  </button>
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => handleSpeakJob(b, true)}
+                      className={`px-3 py-2.5 rounded-2xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm ${
+                        activeAudioBookingId === b.id
+                          ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                          : 'bg-white hover:bg-amber-100 text-amber-900 border border-amber-300'
+                      }`}
+                    >
+                      {activeAudioBookingId === b.id ? (
+                        <VolumeX className="w-4 h-4 text-rose-600 animate-pulse" />
+                      ) : (
+                        <Volume2 className="w-4 h-4 text-amber-700" />
+                      )}
+                      <span>
+                        {activeAudioBookingId === b.id
+                          ? 'बंद करें (Stop)'
+                          : '🔊 बोल कर सुनें (Bhashini Voice)'}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => acceptBooking(b.id)}
+                      className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Accept Dispatch & Open Map</span>
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -343,20 +398,53 @@ export const WorkerDashboard = () => {
                         </div>
                       </div>
 
-                      {/* Status Row */}
-                      <div className="flex items-center justify-between">
+                      {/* Status & Actions Row */}
+                      <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className={`px-2.5 py-1 rounded-xl text-xs font-bold border ${statusBadge.bg}`}>
                           {statusBadge.label}
                         </span>
-                        {b.customerPhone && (
-                          <a
-                            href={`tel:${b.customerPhone}`}
-                            className="inline-flex items-center gap-1 text-xs font-bold text-teal-700 hover:text-teal-800"
+
+                        <div className="flex items-center gap-2">
+                          {/* Bhashini Voice Readout */}
+                          <button
+                            type="button"
+                            onClick={() => handleSpeakJob(b, false)}
+                            className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-xl transition-all border ${
+                              activeAudioBookingId === b.id
+                                ? 'bg-rose-100 text-rose-800 border-rose-300'
+                                : 'bg-teal-50 hover:bg-teal-100 text-teal-800 border-teal-200'
+                            }`}
+                            title="Listen to job details in your language"
                           >
-                            <Phone className="w-3.5 h-3.5" />
-                            <span>Call Customer</span>
-                          </a>
-                        )}
+                            {activeAudioBookingId === b.id ? (
+                              <VolumeX className="w-3.5 h-3.5 text-rose-600 animate-pulse" />
+                            ) : (
+                              <Volume2 className="w-3.5 h-3.5 text-teal-700" />
+                            )}
+                            <span>{activeAudioBookingId === b.id ? 'बंद करें' : '🔊 सुनें'}</span>
+                          </button>
+
+                          {/* Bhashini Cross-Language Chat */}
+                          <button
+                            type="button"
+                            onClick={() => setChatBooking(b)}
+                            className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 shadow-sm transition-all"
+                            title="Chat with Customer (Auto-translated by Bhashini)"
+                          >
+                            <MessageSquare className="w-3.5 h-3.5 text-purple-700" />
+                            <span>💬 Bhashini चैट</span>
+                          </button>
+
+                          {b.customerPhone && (
+                            <a
+                              href={`tel:${b.customerPhone}`}
+                              className="inline-flex items-center gap-1 text-[11px] font-bold text-teal-700 hover:text-teal-800 px-2 py-1"
+                            >
+                              <Phone className="w-3.5 h-3.5" />
+                              <span>Call</span>
+                            </a>
+                          )}
+                        </div>
                       </div>
 
                       {/* Customer Address Location & Live Navigation Map for Accepted Jobs */}
@@ -483,10 +571,11 @@ export const WorkerDashboard = () => {
 
       </div>
 
-      {/* Welfare Passbook, NCCT Academy & Material Credit Modals */}
+      {/* Welfare Passbook, NCCT Academy, Material Credit & Bhashini Chat Modals */}
       <WelfarePassbookModal isOpen={isPassbookOpen} onClose={() => setIsPassbookOpen(false)} />
       <NcctAcademyModal isOpen={isAcademyOpen} onClose={() => setIsAcademyOpen(false)} />
       <MaterialCreditModal isOpen={isMaterialCreditOpen} onClose={() => setIsMaterialCreditOpen(false)} />
+      <CrossLanguageChatModal isOpen={Boolean(chatBooking)} onClose={() => setChatBooking(null)} booking={chatBooking} />
 
     </div>
   );

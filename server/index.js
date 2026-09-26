@@ -5,6 +5,12 @@ import { fileURLToPath } from 'url';
 import fs from 'fs';
 import { initDB, dbAll, dbGet, dbRun } from './db.js';
 import { calculateDistanceKm, generateAIDemandForecast } from './aiEngine.js';
+import {
+  getBhashiniCredentials,
+  translateText,
+  speechToText,
+  textToSpeech
+} from './bhashiniService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -954,6 +960,75 @@ app.post('/api/admin/reset-database', async (req, res) => {
       deletedUsers: resUsers.changes,
       deletedWorkers: resWorkers.changes
     });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ===================================================================
+// Bhashini AI Endpoints (MeitY National Language Translation Mission)
+// ===================================================================
+
+// GET /api/bhashini/status — Check if Bhashini is active and supported languages
+app.get('/api/bhashini/status', (req, res) => {
+  const creds = getBhashiniCredentials();
+  res.json({
+    success: true,
+    isConfigured: creds.isConfigured,
+    pipelineId: creds.pipelineId,
+    supportedLanguages: [
+      { code: 'hi', name: 'Hindi (हिन्दी)' },
+      { code: 'en', name: 'English' },
+      { code: 'kn', name: 'Kannada (ಕನ್ನಡ)' },
+      { code: 'te', name: 'Telugu (తెలుగు)' },
+      { code: 'ta', name: 'Tamil (தமிழ்)' },
+      { code: 'mr', name: 'Marathi (मराठी)' },
+      { code: 'bn', name: 'Bengali (বাংলা)' },
+      { code: 'gu', name: 'Gujarati (ગુજરાતી)' },
+      { code: 'pa', name: 'Punjabi (ਪੰਜਾਬੀ)' },
+      { code: 'ml', name: 'Malayalam (മലയാളം)' },
+      { code: 'or', name: 'Odia (ଓଡ଼ିଆ)' }
+    ]
+  });
+});
+
+// POST /api/bhashini/translate — NMT Machine Translation between Indian languages
+app.post('/api/bhashini/translate', async (req, res) => {
+  try {
+    const { text, sourceLang = 'en', targetLang = 'hi' } = req.body;
+    if (!text) {
+      return res.status(400).json({ success: false, error: 'text is required' });
+    }
+    const result = await translateText({ text, sourceLang, targetLang });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/bhashini/asr — Speech-to-Text from microphone audio
+app.post('/api/bhashini/asr', async (req, res) => {
+  try {
+    const { audioContent, sourceLang = 'hi', audioFormat = 'wav' } = req.body;
+    if (!audioContent) {
+      return res.status(400).json({ success: false, error: 'audioContent is required' });
+    }
+    const result = await speechToText({ audioContent, sourceLang, audioFormat });
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/bhashini/tts — Text-to-Speech natural Indian voice readout
+app.post('/api/bhashini/tts', async (req, res) => {
+  try {
+    const { text, sourceLang = 'hi', gender = 'female' } = req.body;
+    if (!text) {
+      return res.status(400).json({ success: false, error: 'text is required' });
+    }
+    const result = await textToSpeech({ text, sourceLang, gender });
+    res.json({ success: true, ...result });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

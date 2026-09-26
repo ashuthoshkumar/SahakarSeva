@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { Calendar, Clock, CheckCircle2, AlertCircle, ShieldCheck, HeartHandshake, MapPin, DollarSign, FileText, ArrowRight, ArrowLeft, UserCheck, Camera, ThumbsUp, RotateCcw, Eye } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, AlertCircle, ShieldCheck, HeartHandshake, MapPin, DollarSign, FileText, ArrowRight, ArrowLeft, UserCheck, Camera, ThumbsUp, RotateCcw, Eye, MessageSquare } from 'lucide-react';
 import { translateCategory, translateWorkerName } from '../../utils/translateHelpers';
+import { CrossLanguageChatModal } from '../Common/CrossLanguageChatModal';
 
 export const BookingsPage = ({ setActiveTab }) => {
   const { bookings, setSelectedBooking, setPaymentModalOpen, setInvoiceModalOpen, approveWork, requestRedo } = useApp();
@@ -11,6 +12,7 @@ export const BookingsPage = ({ setActiveTab }) => {
   const { t, lang } = useLanguage();
   const [filter, setFilter] = useState('all');
   const [previewPhoto, setPreviewPhoto] = useState(null);
+  const [chatBooking, setChatBooking] = useState(null);
 
   // Filter bookings based on role:
   // For workers: strictly show ONLY accepted jobs and completed orders (never pending requests)
@@ -249,33 +251,45 @@ export const BookingsPage = ({ setActiveTab }) => {
                       <p className="text-base font-black text-slate-900">₹{booking.totalAmount}</p>
                     </div>
 
-                    {isPaid ? (
+                    <div className="flex items-center gap-2">
                       <button
-                        onClick={() => {
-                          setSelectedBooking(booking);
-                          setInvoiceModalOpen(true);
-                        }}
-                        className="px-3.5 py-2 bg-teal-600 active:bg-teal-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5"
+                        type="button"
+                        onClick={() => setChatBooking(booking)}
+                        className="px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-800 font-bold text-xs rounded-xl border border-purple-200 transition-all flex items-center gap-1 shadow-sm"
+                        title="Chat with Worker (Auto-translated by Bhashini AI)"
                       >
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>{t('viewInvoice') || 'View Invoice'}</span>
+                        <MessageSquare className="w-3.5 h-3.5 text-purple-600" />
+                        <span>💬 Bhashini Chat</span>
                       </button>
-                    ) : isApproved ? (
-                      <button
-                        onClick={() => {
-                          setSelectedBooking(booking);
-                          setPaymentModalOpen(true);
-                        }}
-                        className="px-3.5 py-2 bg-emerald-600 active:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5 animate-pulse"
-                      >
-                        <DollarSign className="w-3.5 h-3.5" />
-                        <span>{t('payNow') || 'Pay Now'} (₹{booking.totalAmount})</span>
-                      </button>
-                    ) : (
-                      <span className="px-3 py-2 bg-slate-100 text-slate-500 font-bold text-[10px] rounded-xl border border-slate-200">
-                        {booking.status?.includes('Awaiting') ? (t('reviewAndApproveFirst') || 'Review & Approve First') : (t('awaitingWorker') || 'Awaiting Worker')}
-                      </span>
-                    )}
+
+                      {isPaid ? (
+                        <button
+                          onClick={() => {
+                            setSelectedBooking(booking);
+                            setInvoiceModalOpen(true);
+                          }}
+                          className="px-3.5 py-2 bg-teal-600 active:bg-teal-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>{t('viewInvoice') || 'View Invoice'}</span>
+                        </button>
+                      ) : isApproved ? (
+                        <button
+                          onClick={() => {
+                            setSelectedBooking(booking);
+                            setPaymentModalOpen(true);
+                          }}
+                          className="px-3.5 py-2 bg-emerald-600 active:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5 animate-pulse"
+                        >
+                          <DollarSign className="w-3.5 h-3.5" />
+                          <span>{t('payNow') || 'Pay Now'} (₹{booking.totalAmount})</span>
+                        </button>
+                      ) : (
+                        <span className="px-3 py-2 bg-slate-100 text-slate-500 font-bold text-[10px] rounded-xl border border-slate-200">
+                          {booking.status?.includes('Awaiting') ? (t('reviewAndApproveFirst') || 'Review & Approve First') : (t('awaitingWorker') || 'Awaiting Worker')}
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                 </div>
@@ -283,6 +297,13 @@ export const BookingsPage = ({ setActiveTab }) => {
             })}
           </div>
         )}
+
+      {/* Bhashini Cross-Language Chat Modal */}
+      <CrossLanguageChatModal
+        isOpen={Boolean(chatBooking)}
+        onClose={() => setChatBooking(null)}
+        booking={chatBooking}
+      />
 
     </div>
   );
