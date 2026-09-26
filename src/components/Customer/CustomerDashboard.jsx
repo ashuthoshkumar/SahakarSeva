@@ -291,14 +291,22 @@ export const CustomerDashboard = ({ setActiveTab }) => {
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-extrabold text-sm text-slate-900">Verified Service Guarantee</h4>
-                <p className="text-xs text-slate-500">Photo Proof & Escrow Release</p>
+                <h4 className="font-extrabold text-sm text-slate-900">Sahakari Suraksha Kavach</h4>
+                <p className="text-xs text-slate-500">₹25,000 Zero-Deductible Guarantee</p>
               </div>
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              Your payment is held securely until you review and approve the worker's completion photo. Direct hourly rates with zero hidden charges.
+              Payment held in escrow until you approve worker's photo proof. 30-day free redo warranty & property damage cover funded by society.
             </p>
+
+            <button
+              onClick={() => setIsSurakshaOpen(true)}
+              className="w-full py-2 text-xs font-bold text-teal-700 border border-teal-300 rounded-xl bg-teal-50 hover:bg-teal-100 transition-colors flex items-center justify-center gap-1.5"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              View Guarantee / File Warranty Claim
+            </button>
           </div>
 
           {/* PACS Equipment & Suraksha Bandhu Trust Card */}

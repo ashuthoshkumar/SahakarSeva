@@ -1,365 +1,254 @@
-# 🇮🇳 SahakarSeva (सहकार सेवा)
-### Cooperative Labour Gig Platform & NCCT-Certified Worker Ecosystem
+# ?? SahakarSeva � Cooperative Gig Services Platform
 
-[![Android APK](https://img.shields.io/badge/Android-APK%20v1.0.0-3DDC84?style=for-the-badge&logo=android&logoColor=white)](apk/SahakarSeva.apk)
-[![React](https://img.shields.io/badge/React-18.3.1-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-5.4.21-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Capacitor](https://img.shields.io/badge/Capacitor-8.2.2-119EFF?style=for-the-badge&logo=capacitor&logoColor=white)](https://capacitorjs.com/)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind-3.4.17-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
+> **SIH 2026 Problem Statement: SIH26089**
+> Ministry of Cooperation & National Council for Cooperative Training (NCCT)
+> Cooperative Gig Services Platform for Household & Community Services
 
 ---
 
-## 📲 Direct Android APK Download & Installation
+## ?? Project Overview
 
-You can install and run SahakarSeva directly on any Android smartphone (Android 8.0+):
+**SahakarSeva** is a full-stack cooperative gig economy platform connecting verified NCCT-certified artisans directly with customers � eliminating exploitative middlemen, guaranteeing fair wages, and building long-term social security through cooperative ownership.
 
-| APK Package | File Size | Direct Download Link |
-| :--- | :--- | :--- |
-| **SahakarSeva Standalone APK** | **5.24 MB** | [⬇️ Download `apk/SahakarSeva.apk`](apk/SahakarSeva.apk) |
-| **SahakarSeva v1.0.0 Debug APK** | **5.24 MB** | [⬇️ Download `apk/SahakarSeva-v1.0.0-debug.apk`](apk/SahakarSeva-v1.0.0-debug.apk) |
-
-### 📥 How to Install on Android:
-1. Download [SahakarSeva.apk](apk/SahakarSeva.apk) to your Android device.
-2. Tap on the downloaded `.apk` file.
-3. If prompted, enable **"Install from unknown sources"** or **"Allow from this source"** in your device Settings.
-4. Tap **Install** and open **SahakarSeva**!
+Unlike corporate gig platforms (Urban Company, UrbanClap), SahakarSeva is structured around ICA Cooperative Principles: democratic member control, collective worker ownership, fair wage floors set by the society, and transparent escrow disbursement.
 
 ---
 
-## 🏛️ Project Vision & Cooperative Model
+## ?? Live URLs
 
-**SahakarSeva** replaces exploitative 25–35% corporate gig commissions with an autonomous, transparent cooperative framework under the **National Council for Cooperative Training (NCCT)** and the Ministry of Cooperation:
-
-```
-┌──────────────────────────────────────────────────────────┐
-│                   Customer Pays ₹1,000                   │
-└────────────────────────────┬─────────────────────────────┘
-                             │
-            ┌────────────────┴────────────────┐
-            ▼                                 ▼
-   ┌──────────────────┐             ┌────────────────────┐
-   │  90% Direct Wage │             │ 10% Society Escrow │
-   │  ₹900 to Worker  │             └─────────┬──────────┘
-   └──────────────────┘                       │
-                              ┌───────────────┴───────────────┐
-                              ▼                               ▼
-                     ┌──────────────────┐           ┌──────────────────┐
-                     │  5% Welfare Fund │           │  5% Platform Ops │
-                     │  ₹50 (Health/PF) │           │  ₹50 (Admin/Tech)│
-                     └──────────────────┘           └──────────────────┘
-```
-
-- **0% Exploitative Commission**: Workers retain **90%** of their booking value directly.
-- **Fair Wage Floor**: Minimum wage strictly enforced at **₹300/hour**.
-- **Cooperative Welfare Fund (5%)**: Automatically allocates funds to worker pension, healthcare (Ayushman Bharat), and emergency funds.
-- **NCCT Skill Certification**: Workers earn verifiable digital credentials (Level 1–4) linked to cooperative societies.
+| Service | URL |
+|--------|-----|
+| Frontend (Vite Dev) | \http://localhost:3000\ |
+| Backend API (Express) | \http://localhost:5050\ |
+| API Health Check | \http://localhost:5050/api/health\ |
+| Production (Render) | \https://sahakar-seva-api-h1zm.onrender.com\ |
 
 ---
 
-## 🏆 Smart India Hackathon (SIH26089) Flagship Innovations
+## ?? Demo Login Credentials
 
-Developed specifically to address **Problem Statement SIH26089** (*Cooperative Gig Services Platform for Household & Community Services*) under the **Ministry of Cooperation** and the **National Council for Cooperative Training (NCCT)**:
-
-### 1. 🤖 "Sahakar AI Sahayak" (Multilingual Voice Problem Diagnostician & Fair-Price Estimator)
-- **Voice-First in Indian Languages**: Users tap the mic and speak in Hindi, Marathi, Tamil, or English *(e.g. "किचन का नल टूट गया है और बहुत पानी बह रहा है")*.
-- **Intelligent Fault Diagnosis**: Detects exact sub-service, estimated repair time (~45 mins), necessary specialized equipment, and flags safety warnings (e.g. *⚠️ Critical Electrical Hazard: Turn off MCB immediately*).
-- **Transparent Cooperative vs. Corporate Price Matrix**:
-  - **SahakarSeva**: ₹350 Base Wage (90% to worker) + ₹18 Ayushman Healthcare Escrow + ₹18 Ops = **₹386 Total**
-  - **Corporate Aggregator (Urban Company)**: ₹550 Base + ₹165 (30% Commission) + ₹49 Platform fee = **₹764 Total** *(Consumer saves ₹378 / 49% cheaper!)*
-- **1-Tap Auto-Dispatch**: Matches and pre-populates the booking with the nearest certified specialist.
-
-### 2. 🛡️ NCCT Cooperative Social Security & Dividend Passbook
-- **Ayushman Bharat Healthcare Escrow**: Live balance accumulated from 5% welfare deductions on every completed job.
-- **PMSBY Insurance Guarantee**: Government-backed ₹2,00,000 accidental and disability insurance coverage.
-- **Democratic Profit Sharing**: Real-time projected year-end dividend counter distributed to workers as cooperative member-owners.
-- **Instant Medical Claim**: Workers can request emergency medical disbursements directly from their cooperative society.
-
-### 3. 🎓 AI Skill Ladder & NCCT Upskilling Academy
-- **Skill Gap Progression**: AI analyzes worker job ratings to identify upward mobility pathways (Level 2 Certified Craftsman → Level 3 Solar PV & EV Charger Specialist).
-- **Projected Income Boost**: Demonstrates dynamic wage progression from **₹350/hr → ₹520/hr (+48% increase)**.
-- **1-Tap Institute Enrollment**: Free enrollment in certified regional workshops at Institutes of Cooperative Management (ICM / VAMNICOM).
-
-### 4. 🛡️ "Sahakari Suraksha Kavach" (₹25,000 Mutual Property Damage & Re-work Guarantee)
-- **Closing the Corporate Trust Gap**: Corporate platforms charge high 30% commissions claiming they protect customer property. SahakarSeva replaces private commercial insurers by pooling **5% Society Escrow** into a collective mutual fund.
-- **₹25,000 Zero-Deductible Property Damage Guarantee**: Instant coverage on every booking against accidental property damage during electrical, plumbing, or appliance repairs.
-- **30-Day Free Re-work Warranty**: If the issue recurs within 30 days, a senior cooperative craftsman revisits at zero extra charge to the customer.
-- **2-Hour Rapid Cooperative Surveyor Resolution**: Claims are settled transparently via society peers, generating an instant claim token.
-
-### 5. 💳 "Sahakar Material & Spare Parts Micro-Credit Vault" (Zero-Interest PACS Working Capital)
-- **Breaking the Worker Liquidity Trap**: Over 70% of household repair jobs require upfront spare parts (pipes, MCB switches, compressor valves). Gig workers often lack liquidity and borrow from informal lenders at usurious rates.
-- **Instant PACS e-RUPI / UPI Merchant Vouchers**: In partnership with Primary Agricultural Credit Societies (PACS) and Urban Cooperative Banks, workers generate zero-interest digital vouchers (₹500–₹5,000) sent directly to local hardware merchants.
-- **Automated Seamless Settlement**: The voucher is closed with 0% interest from the job's customer escrow release upon job completion, protecting worker cashflow with zero risk of default.
-
-### 6. 🚨 "Suraksha Bandhu" (Hyperlocal Cooperative Peer Emergency & Anti-Harassment Network)
-- **Transforming Isolated Gig Workers into an Armed-with-Solidarity Brotherhood**: Traditional gig workers (especially women and electricians working late nights) face site harassment, sudden electrical shocks, and locked gates with zero on-site assistance.
-- **1-Tap Hyperlocal Peer Dispatch**: When SOS is triggered, Web Audio synthesizes an urgent emergency siren, discreetly activates background audio evidence recording, and immediately broadcasts real-time GPS telemetry to the **3 nearest active cooperative peers within 1.5 km**.
-- **Society Vigilance Desk & Police 112 Integration**: Connects to the local cooperative vigilance officer and national police dispatch, with secure PIN-protected stand-down controls.
-
-### 7. 🛠️ "Sahakar Upkaran Bank" (PACS Zero-Deposit Heavy Tool & Equipment Rental Depot)
-- **Democratizing Professional Industrial Tools**: Expensive heavy equipment (Hilti/Bosch SDS-Max Core Drills, Fluke Thermal Leak Imagers, 180-Bar Hydro-Jet Drain Cleaners, 33kV Fiberglass Safety Ladders) cost upwards of ₹40,000 to purchase or ₹600–₹1,200/day to rent commercially.
-- **PACS Subsidized Depot Rates (Save 90%)**: Primary Agricultural Credit Societies (PACS) and Urban Cooperative Banks host communal tool banks, renting certified equipment to workers for **₹50–₹90/day**.
-- **Zero Security Deposit (Cooperative Member Guarantee)**: Backed by cooperative membership and Ayushman welfare escrow. Rental fees are automatically settled from future customer job payouts with zero upfront cash required.
-- **Digital QR Gate Pass**: Generates an instant verifiable pickup pass with serial number, calibration check, and return countdown.
+| Role | Email | Password | Access |
+|------|-------|----------|--------|
+| **Customer** | Register with any phone/email | self-register | Book services |
+| **Worker** | Register as a craftsman | self-register | Accept jobs |
+| **Society Admin** | \society@sahakar.in\ | \dmin123\ | KYC approvals, wage floor |
+| **Federation Admin** | \ederation@sahakar.in\ | \dmin123\ | Multi-society analytics |
+| **Super Admin (NCCT)** | \superadmin@sahakar.in\ | \dmin123\ | National dashboard |
 
 ---
 
-## 🌐 Real-Time Multi-Device Sync Hub (Cross-Phone Worker Discovery)
+## ? Complete Feature List
 
-SahakarSeva features an autonomous **Multi-Device Cloud Sync Hub** that enables real-time peer discovery across different smartphones and networks (Wi-Fi, 4G/5G mobile data, and localhost):
+### ?? Customer Portal
+- **Multi-language UI** � Full Hindi/English/Telugu/Marathi switching via Bhashini
+- **Live GPS Worker Radar** � Leaflet map showing on-duty workers within 2�100 km
+- **Service Category Catalog** � 8 categories with real worker counts
+- **Worker Verification Cards** � NCCT level, Aadhaar KYC, police clearance, PF & Ayushman badge
+- **AI Sahayak Voice Diagnosis** � Describe issue in any language; returns diagnosis + fair price vs. corporate markup
+- **Escrow-Protected Booking** � Payment held until customer approves completion photo
+- **Emergency SOS Dispatch** � 15-minute rapid dispatch for burst pipes, electrical hazards, gas leaks
+- **Sahakari Suraksha Kavach** � Rs.25,000 zero-deductible guarantee + 30-day free redo warranty (with claim portal)
+- **Cross-Language Job Chat** � Bhashini-powered bilingual chat between customer and worker
+- **Invoice PDF Download** � Receipt with cooperative wage breakdown
 
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        SahakarSeva Multi-Device Sync Topology                          │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-               📱 Smartphone A (Worker)               📱 Smartphone B (Customer)
-               [Android APK / Browser]                [Android APK / Browser]
-                          │                                      │
-                          ▼ (Worker Registration)                ▼ (Search / Marketplace)
-               ┌───────────────────────┐              ┌────────────────────────┐
-               │ Dynamic GPS Coords    │              │ Haversine Geo Filter   │
-               │ (Lat, Lng + Category) │              │ Real-time Merging      │
-               └──────────┬────────────┘              └──────────▲─────────────┘
-                          │                                      │
-                          │        ┌───────────────────┐         │
-                          ├───────►│  Cloud Sync Hub   ├─────────┤ (8s Background Polling
-                          │        │ (REST Object API) │         │  + Instant "Sync Now")
-                          │        └───────────────────┘         │
-                          │                                      │
-                          │        ┌───────────────────┐         │
-                          └───────►│ Express + SQLite  ├─────────┘
-                                   │  LAN / Server API │
-                                   └───────────────────┘
-```
+### ?? Worker Portal
+- **Duty Status Toggle** � On/Off duty with real-time database sync
+- **Welfare Passbook (Khata)** � Digital ledger of earnings, PF contributions, Ayushman credits
+- **NCCT Academy** � Upskilling roadmap: Level 1 ? Level 3 (Solar PV, EV Charger) certification
+- **Material Credit e-RUPI Voucher** � Zero-interest digital vouchers (Rs.500�Rs.5,000) for hardware shops
+- **?? Suraksha Bandhu SOS** � Hyperlocal peer emergency network: siren + 3 nearest peers + audio evidence recording
+- **?? Sahakar Upkaran Bank** � PACS heavy equipment rental at Rs.50�Rs.90/day, zero security deposit
+- **?? Samuhik Seva Tenders** � Form 3�5 member squads to bid directly on RWA bulk contracts (0% middleman cut)
+- **Job Navigation Map** � GPS navigation to customer address
+- **Voice Job Readout** � Bhashini TTS reads incoming job details in Hindi or regional language
+- **Cross-Language Chat** � Real-time bilingual job coordination
 
-### 🔑 Key Sync Features:
-- **Zero-Config Cross-Device Sync**: When a friend registers as a worker on Phone A, Phone B instantly receives the profile through the Cloud Sync Hub within ~8 seconds or immediately upon tapping **"Sync Now"**.
-- **Dynamic Geolocation Dispatch**: Captures the worker's true GPS coordinates (`lat`, `lng`) upon registration. Distance calculations gracefully fall back within customer radius so newly registered workers appear immediately in search and category filters.
-- **Role Switcher for Workers**: Workers can tap **"Preview Marketplace as Customer"** from the Account tab to test and view their own profile as customers see it, then toggle back with **"Return to Worker Dashboard"**.
-- **Tri-Layer Redundancy**:
-  1. **Express + SQLite REST API**: High-performance local/LAN relational database.
-  2. **Cloud Sync Hub**: Zero-configuration multi-phone synchronization across mobile networks.
-  3. **Offline LocalStorage**: Resilient fail-safe persistence ensuring zero data loss if offline.
+### ??? Society Admin Dashboard
+- Worker KYC Approval Queue
+- Fair Wage Floor Control (enforced on all bookings)
+- Welfare Fund Ledger (Ayushman, PF, pension)
+- **?? Suraksha Bandhu Vigilance Desk** � Live SOS alert monitor with resolve action
+- **?? PACS Equipment Asset Ledger** � Tool depot inventory and rental tracking
 
----
+### ??? Federation Admin Dashboard
+- Multi-society wage and revenue analytics
+- Worker pool and NCCT certification overview
+- AI demand forecast by category
 
-## 🏗️ System Architecture
+### ???? Super Admin / NCCT National Dashboard
+- National platform statistics
+- Cooperative compliance scores
+- Wage floor enforcement controls
 
-```
-                                  +-------------------------------------------------+
-                                  |         SahakarSeva Cross-Platform App          |
-                                  |  (Web PWA & Native Android via Capacitor 8.2)  |
-                                  +-------------------------------------------------+
-                                                           |
-                      +------------------------------------+------------------------------------+
-                      |                                                                         |
-                      v                                                                         v
-      +-------------------------------+                                         +-------------------------------+
-      |       Presentation Layer      |                                         |       Native Device Layer     |
-      | - 8-Language Localization     |                                         | - Hardware GPS Geolocation    |
-      | - Role-Based Dynamic Views    |                                         | - Camera Image Capture        |
-      | - Interactive OSM Map         |                                         | - Native Splash & Lifecycle   |
-      | - React Error Boundary        |                                         +-------------------------------+
-      +-------------------------------+
-                      |
-                      v
-      +-----------------------------------------------------------------------------------------+
-      |                                  Client State & Logic Layer                             |
-      |  [AuthContext]       -> Multi-role sessions, phone/password validation, cloud sync push  |
-      |  [AppContext]        -> Escrow bookings, dynamic multi-device worker sync, 8s polling    |
-      |  [LanguageContext]   -> Dynamic 8-language translations with startup selector modal     |
-      |  [ImageCompressor]   -> HTML5 Canvas high-res photo compressor (< 80KB)                |
-      |  [CloudSyncService]  -> REST Cloud Object Hub for real-time cross-device peer discovery |
-      +-----------------------------------------------------------------------------------------+
-                      |
-                      v
-      +-----------------------------------------------------------------------------------------+
-      |                           Data Persistence & Backend API Layer                          |
-      |  - Hybrid Backend: REST API (`/api/*`) via Express.js + SQLite Database (`server/`)     |
-      |  - Cloud Sync Hub: Real-time multi-device cloud registry (`src/utils/cloudSync.js`)     |
-      |  - Resilient Offline-First: `localStorage` Fail-Safe Registry with Quota Protection      |
-      +-----------------------------------------------------------------------------------------+
-```
+### ?? AI & Language Features
+- **Bhashini Translate** � Real-time translation across Hindi, English, Telugu, Kannada, Marathi
+- **Bhashini TTS Voice Readout** � Regional language voice diagnosis and job details
+- **AI Diagnostic Engine** � Keyword + semantic classification ? category + tools + hazard + fair price
+- **Price Transparency Matrix** � Cooperative price vs. corporate app markup (saves 20�40%)
 
 ---
 
-## 💻 Tech Stack Breakdown
+## ?? Innovative Differentiators
 
-### 🎨 Frontend & UI
-- **Framework**: [React 18.3.1](https://react.dev/) + [Vite 5.4](https://vitejs.dev/)
-- **Styling**: [Tailwind CSS 3.4](https://tailwindcss.com/) with custom cooperative color palette and glassmorphism styling
-- **Icons**: [Lucide React](https://lucide.dev/) (200+ clean SVG iconography components)
-- **Image Optimization**: Custom HTML5 Canvas Compressor for camera proof-of-work uploads (< 80KB payload)
-- **Crash Resilience**: React `ErrorBoundary` preventing blank-screen state crashes
+### ??? Innovation 1 � Suraksha Bandhu (Hyperlocal Emergency Mesh)
+Workers get a pulsing red SOS button on every active job card.
+- Web Audio API synthesized emergency siren
+- 1.5 km radar with 3 nearest responding cooperative peers
+- Incident category classification (harassment / medical / accident)
+- Audio evidence recording + PIN standdown
+- Society Admin Vigilance Desk sees live SOS in real time
 
-### 📱 Native Mobile Bridge
-- **Engine**: [Capacitor 8.2](https://capacitorjs.com/) (Android Bridge)
-- **Geolocation**: `@capacitor/geolocation` (Hardware GPS locked with HTML5 fallback)
-- **Android Target**: Gradle 8.2, Android SDK 34 (Android 8.0+ compatible)
+### ?? Innovation 2 � Sahakar Upkaran Bank (PACS Tool Depot)
+Workers rent professional heavy tools from PACS cooperative at 90% below market rates.
+- Bosch Core Drill, Ridgid Sewer Jetter, Fluke Thermal Camera, Fiberglass 33kV Ladder
+- Rs.50�Rs.90/day, Zero Security Deposit, auto-settled from job escrow
+- Digital QR Gate Pass on rental confirmation
 
-### ⚙️ Backend, Cloud & Storage
-- **Server**: Node.js & Express.js (`server/index.js`)
-- **Database**: SQLite3 (`server/db.js`, `server/sahakar_seva.db`)
-- **Cloud Sync Hub**: REST Cloud Registry (`src/utils/cloudSync.js`) for seamless multi-phone syncing across cell networks
-- **Offline Storage**: Resilient `localStorage` wrapper with `QuotaExceededError` protection
-
----
-
-## 👥 Multi-Role Workflow & 1-Tap Demo Credentials
-
-SahakarSeva provides 5 dedicated role interfaces. You can sign in using **1-Tap Demo Logins** on the sign-in modal or with these credentials:
-
-| Role | Email | Password | Primary Functions |
-| :--- | :--- | :--- | :--- |
-| **Customer** | `customer@sahakar.in` | `password123` | Search workers, GPS map, schedule bookings, SOS emergency, approve work, UPI pay |
-| **Worker** | `worker@sahakar.in` | `password123` | On/Off duty toggle, accept jobs, upload camera work proof, track fair earnings |
-| **Cooperative Society Admin** | `society@sahakar.in` | `admin123` | Worker KYC verification, welfare fund disbursement, dispute resolution |
-| **State Federation Admin** | `federation@sahakar.in` | `admin123` | Multi-society analytics, district demand forecasting, compliance scores |
-| **National Super Admin** | `admin@sahakar.in` | `admin123` | NCCT curriculum standards, national floor wage governance, federation audits |
+### ??? Innovation 3 � Samuhik Seva Tenders (Community Bulk Contracting)
+RWAs and apartment societies post bulk work orders; cooperative squads bid directly.
+- 3 live seeded tenders (48-unit AC deep clean, reservoir UV sterilization, solar rewiring)
+- Automated Fair-Wage Split Calculator: 90% workers + 5% welfare + 5% PACS reserve
+- Interactive comparison vs. private contractor pricing (40�50% cut vs 0%)
+- Squad formation and 1-tap bid submission
 
 ---
 
-## 🌐 8 Indian Languages Supported
+## ??? Database Tables
 
-SahakarSeva features full bilingual and localized coverage across 8 Indian languages:
-
-1. **English (EN)**
-2. **हिन्दी (HI)** — Hindi
-3. **मराठी (MR)** — Marathi
-4. **தமிழ் (TA)** — Tamil
-5. **বাংলা (BN)** — Bengali
-6. **తెలుగు (TE)** — Telugu
-7. **ಕನ್ನಡ (KN)** — Kannada
-8. **ગુજરાતી (GU)** — Gujarati
-
-- Automatic **Startup Language Selector Modal** on first launch.
-- Quick-switch **🌐 Language Selector** in the navigation header at any time.
-- All modals, booking flows, invoice receipts, categories, and dashboards translate dynamically.
+| Table | Purpose |
+|-------|---------|
+| \workers\ | NCCT-certified cooperative artisans |
+| \ookings\ | Service bookings with escrow & payment status |
+| \societies\ | Primary cooperative societies (PACS) |
+| \welfare_fund\ | Worker PF, Ayushman, pension credits |
+| \samuhik_tenders\ | ?? RWA community bulk service tenders |
 
 ---
 
-## 🔒 Strict Authentication & Security Constraints
+## ?? API Endpoints
 
-- **Indian Mobile Validation**: Strictly validates 10-digit mobile numbers with `6`, `7`, `8`, or `9` prefixes.
-- **Password Complexity Rules**: Enforces 8+ characters, uppercase letter, lowercase letter, numeric digit, and special symbol with live progress meter.
-- **Worker Aadhaar KYC**: Validates 12-digit numeric Aadhaar number formatted into `XXXX-XXXX-XXXX`.
-- **Canvas Image Compression**: Compresses 10MB+ phone camera captures to lightweight ~80KB JPEGs, protecting mobile memory and storage limits.
+### Workers
+- \GET /api/workers\ � List by GPS radius, category, search
+- \POST /api/workers\ � Register new worker
+- \PATCH /api/workers/:id/duty\ � Toggle duty status
+- \POST /api/workers/:id/approve\ � KYC approval
 
----
+### Bookings
+- \GET /api/bookings\ � All bookings
+- \POST /api/bookings\ � Create booking
+- \POST /api/bookings/:id/accept\ � Worker accepts
+- \POST /api/bookings/:id/photo\ � Upload completion photo
+- \POST /api/bookings/:id/approve\ � Customer approves
+- \POST /api/bookings/:id/pay\ � Release escrow
+- \POST /api/bookings/:id/redo\ � Request re-work
 
-## 📁 Project Directory Structure
+### Societies
+- \GET /api/societies\ � All societies
+- \PATCH /api/societies/:id/wage-floor\ � Update minimum wage
 
-```
-SahakarSeva/
-├── apk/                                # Ready-to-install Android APK binaries
-│   ├── SahakarSeva.apk                 # Standalone release binary (5.24 MB)
-│   └── SahakarSeva-v1.0.0-debug.apk    # Debug build binary
-├── android/                            # Capacitor Android native studio project
-│   ├── app/src/main/
-│   │   ├── AndroidManifest.xml         # Android app manifest & hardware permissions
-│   │   └── java/com/sahakarseva/app/   # Native MainActivity bridge
-│   └── build.gradle                    # Gradle build scripts
-├── server/                             # Express.js REST API & SQLite Database
-│   ├── db.js                           # SQLite database setup & schemas
-│   ├── index.js                        # Express authentication & booking routes
-│   └── aiEngine.js                     # Cooperative demand forecasting engine
-├── src/
-│   ├── components/
-│   │   ├── AI/                         # Sahakar AI Sahayak (voice & problem diagnostician)
-│   │   ├── Auth/                       # AuthModal with live password strength meter
-│   │   ├── Common/                     # ErrorBoundary, LanguageSelectModal, StarRating
-│   │   ├── Customer/                   # BookingModal, EmergencyBooking, WorkerList, ServiceCatalog
-│   │   ├── FederationAdmin/            # State Federation analytics & AI forecaster
-│   │   ├── Landing/                    # Hero showcase & statistics
-│   │   ├── Map/                        # Interactive GPS OpenStreetMap
-│   │   ├── Navigation/                 # MobileNav header & bottom tab bar
-│   │   ├── Payment/                    # Escrow payment breakdown, UPI invoice & impact audit
-│   │   ├── SocietyAdmin/               # Primary cooperative society dashboard
-│   │   ├── SuperAdmin/                 # NCCT national director oversight
-│   │   └── Worker/                     # Worker dashboard, Welfare Passbook & NCCT Academy
-│   ├── context/
-│   │   ├── AppContext.jsx              # Global bookings, workers, and escrow state
-│   │   ├── AuthContext.jsx             # Session management & user roles
-│   │   └── LanguageContext.jsx         # 8-language localization provider
-│   ├── data/
-│   │   ├── mockData.js                 # Certified worker catalog & societies
-│   │   └── translations.js             # 8-language translation dictionary (60+ keys)
-│   ├── utils/
-│   │   ├── aiDiagnosticEngine.js       # Multilingual problem diagnosis & fair pricing engine
-│   │   ├── cloudSync.js                # Cloud Sync Hub for multi-device real-time discovery
-│   │   ├── imageCompressor.js          # HTML5 Canvas image resizer & compressor
-│   │   ├── translateHelpers.js         # Translation formatting helpers
-│   │   └── validation.js               # Strict phone, password, and Aadhaar validators
-│   ├── App.jsx                         # Main application layout router
-│   ├── index.css                       # Tailwind design system tokens
-│   └── main.jsx                        # Application root wrapped in ErrorBoundary
-├── capacitor.config.json               # Capacitor Android configuration
-├── package.json                        # Node dependencies & scripts
-├── vite.config.js                      # Vite bundling pipeline
-└── README.md                           # Documentation
-```
+### Samuhik Tenders (New)
+- \GET /api/tenders\ � List all RWA community tenders
+- \POST /api/tenders\ � Create new tender
+- \POST /api/tenders/:id/bid\ � Submit cooperative squad bid
+
+### Bhashini AI
+- \POST /api/bhashini/translate\ � Language translation
+- \POST /api/bhashini/asr\ � Speech-to-text
+- \POST /api/bhashini/tts\ � Text-to-speech
+- \GET /api/bhashini/status\ � API connectivity check
+
+### Analytics
+- \GET /api/stats/platform\ � Platform-wide metrics
+- \GET /api/stats/categories\ � Worker count per category
+- \GET /api/worker/my-stats\ � Individual worker summary
 
 ---
 
-## 📱 Multi-Phone Testing Guide (Cross-Device Verification)
+## ?? Local Development Setup
 
-You can verify real-time registration sync between two different phones (or between a phone and a computer):
+\\\ash
+# 1. Clone
+git clone https://github.com/ashuthoshkumar/SahakarSeva.git
+cd SahakarSeva
 
-### Scenario: Register on Phone A, View on Phone B
-1. **Phone A (Worker Registration)**:
-   - Open SahakarSeva APK on Phone A.
-   - Tap **Register** and select **"Join as Skilled Worker"**.
-   - Enter worker details: Full Name (e.g. `Ramesh Kumar`), Mobile Number (e.g. `9876543210`), Category (e.g. `Electrician`), Experience, and Hourly Rate.
-   - Complete registration. The profile is saved locally and instantly broadcast to the Cloud Sync Hub.
-
-2. **Phone B (Customer Discovery)**:
-   - Open SahakarSeva on Phone B (either the APK or open `http://<your-lan-ip>:3000` in the mobile browser).
-   - Go to the **Marketplace / Services** tab or search for `Electrician`.
-   - The new worker `Ramesh Kumar` automatically appears in the list!
-   - *Tip:* You can also tap **"Sync Now"** in the **Account** tab to trigger an immediate pull.
-
-3. **Preview Mode for Workers**:
-   - If you registered on Phone A and want to see how customers view your profile, go to the **Account** tab and tap **"Preview Marketplace as Customer"**.
-   - Tap **"Return to Worker Dashboard"** at the top banner whenever you want to switch back to managing your work requests.
-
----
-
-## ⚡ Local Development & Build Commands
-
-### 1. Install Dependencies
-```bash
+# 2. Install dependencies
 npm install
-```
 
-### 2. Start Development Server
-```bash
+# 3. Set environment variables
+cp .env.example .env
+# Add your Bhashini credentials in .env
+
+# 4. Start backend (Terminal 1)
+node server/index.js
+# Running on http://localhost:5050
+
+# 5. Start frontend (Terminal 2)
 npm run dev
-# Starts local Vite server at http://localhost:5173
-```
-
-### 3. Start Backend Server (Optional)
-```bash
-npm run server
-# Starts Express API at http://localhost:5050
-```
-
-### 4. Build Production Web Bundle
-```bash
-npm run build
-```
-
-### 5. Sync & Build Android APK
-```bash
-npx cap sync android
-cd android
-./gradlew assembleDebug
-# Generated APK at: android/app/build/outputs/apk/debug/app-debug.apk
-```
+# Running on http://localhost:3000
+\\\
 
 ---
 
-## 📜 License & Acknowledgements
+## ?? Environment Variables
 
-- **License**: MIT License
-- **Framework & Inspiration**: National Council for Cooperative Training (NCCT) & Ministry of Cooperation, Government of India.
-- **Created with ❤️ for empowering skilled Indian gig workers.**
+\\\env
+BHASHINI_USER_ID=your_bhashini_user_id
+BHASHINI_API_KEY=your_bhashini_api_key
+VITE_API_URL=https://your-backend.onrender.com/api   # Optional for production
+\\\
+
+---
+
+## ?? Bug Fixes (v2.1.0)
+
+| Bug | Status | Fix |
+|-----|--------|-----|
+| \nimate-scaleUp\ CSS class missing across all modals | ? Fixed | Added keyframes + class to \index.css\ |
+| \scrollbar-none\ utility undefined | ? Fixed | Added CSS utility to \index.css\ |
+| \order-3\ not a Tailwind default class | ? Fixed | Added \.border-3 { border-width: 3px }\ |
+| \Users\ icon used but not imported in WorkerDashboard | ? Fixed | Added to lucide-react import |
+| \SurakshaKavachModal\ mounted but never triggered | ? Fixed | Added trigger button in CustomerDashboard |
+| \ddNotification\ called with object instead of \(message, type)\ | ? Fixed | Corrected signature in SamuhikTendersModal |
+
+---
+
+## ?? Cooperative Wage Distribution
+
+Every booking distributes payment transparently:
+
+| Allocation | % | Purpose |
+|-----------|---|---------|
+| Worker Base Wage | 90% | Direct take-home for artisan |
+| Ayushman / Welfare Fund | 5% | Healthcare + pension float |
+| Platform Operations | 5% | Server, audit, insurance |
+| Middleman / Commission | **0%** | Eliminated entirely |
+
+### Samuhik Tender Bulk Contract Split (e.g. Rs.28,800 contract, 4 workers)
+| Allocation | Each worker gets |
+|-----------|-----------------|
+| 90% to squad (split equally) | **Rs.6,480 per person** |
+| 5% Ayushman welfare | Rs.360 per person |
+| 5% PACS Society Reserve | Rs.1,440 shared |
+
+---
+
+## ??? Ministry of Cooperation Alignment
+
+| ICA Principle | Implementation |
+|--------------|---------------|
+| Voluntary & Open Membership | Any verified artisan can join any PACS society |
+| Democratic Member Control | Society Admin sets wage floor |
+| Member Economic Participation | 90% direct wage + 5% welfare escrow |
+| Autonomy & Independence | No corporate control; surplus owned by members |
+| Education, Training, Information | NCCT Academy in Worker Dashboard |
+| Cooperation among Cooperatives | Federation Dashboard links societies |
+| Concern for Community | Suraksha Bandhu mesh, Samuhik Tenders for RWAs |
+
+---
+
+## ?? License
+
+MIT License � Open source for cooperative development.
+
+Built for **Smart India Hackathon 2026** | Problem Statement **SIH26089**
+Ministry of Cooperation & National Council for Cooperative Training (NCCT)

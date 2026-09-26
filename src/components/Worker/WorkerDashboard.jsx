@@ -8,7 +8,7 @@ import {
   Phone, Camera, Upload, ImageIcon, AlertCircle, Wrench, 
   Star, ChevronRight, UserCheck, Sparkles, TrendingUp,
   Volume2, VolumeX, MessageSquare, Globe, ShieldAlert, Radio,
-  PackagePlus, BookOpen, CreditCard, AlertOctagon
+  PackagePlus, BookOpen, CreditCard, AlertOctagon, Users
 } from 'lucide-react';
 import { translateNcctLevel, translateCategory } from '../../utils/translateHelpers';
 import { compressImage } from '../../utils/imageCompressor';

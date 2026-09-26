@@ -75,11 +75,10 @@ export const SamuhikTendersModal = ({ isOpen, onClose, workerProfile }) => {
           workersNeeded: biddingTender.workersNeeded,
           perWorkerShare: Math.round((biddingTender.budgetEscrow * 0.9) / (biddingTender.workersNeeded || 1))
         });
-        addNotification({
-          title: 'सामूहिक टेंडर आवेदन सफल!',
-          message: `Cooperative Squad "${squadName}" bid placed for ₹${biddingTender.budgetEscrow.toLocaleString('en-IN')}`,
-          type: 'success'
-        });
+        addNotification(
+          `सामूहिक टेंडर आवेदन सफल! Cooperative Squad "${squadName}" bid placed for ₹${biddingTender.budgetEscrow.toLocaleString('en-IN')}`,
+          'success'
+        );
         fetchTenders();
       }
     } catch (err) {
@@ -91,11 +90,10 @@ export const SamuhikTendersModal = ({ isOpen, onClose, workerProfile }) => {
         workersNeeded: biddingTender.workersNeeded,
         perWorkerShare: Math.round((biddingTender.budgetEscrow * 0.9) / (biddingTender.workersNeeded || 1))
       });
-      addNotification({
-        title: 'सामूहिक टेंडर आवेदन सफल (ऑफ़लाइन रिकॉर्ड)!',
-        message: `Squad bid registered for ${biddingTender.title}`,
-        type: 'success'
-      });
+      addNotification(
+        `सामूहिक टेंडर आवेदन सफल (ऑफ़लाइन रिकॉर्ड)! Squad bid registered for ${biddingTender.title}`,
+        'success'
+      );
     } finally {
       setSubmitting(false);
     }
