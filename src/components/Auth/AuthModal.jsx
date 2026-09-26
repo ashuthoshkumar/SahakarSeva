@@ -40,19 +40,19 @@ const StrengthBar = ({ analysis }) => {
       </div>
       <div className="grid grid-cols-2 gap-1 text-[11px] pt-1">
         <span className={checks.minLength ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-          {checks.minLength ? '&#10003;' : '&#9675;'} Min 8 chars
+          {checks.minLength ? '✓' : '○'} Min 8 chars
         </span>
         <span className={checks.hasUpper ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-          {checks.hasUpper ? '&#10003;' : '&#9675;'} Uppercase (A-Z)
+          {checks.hasUpper ? '✓' : '○'} Uppercase (A-Z)
         </span>
         <span className={checks.hasLower ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-          {checks.hasLower ? '&#10003;' : '&#9675;'} Lowercase (a-z)
+          {checks.hasLower ? '✓' : '○'} Lowercase (a-z)
         </span>
         <span className={checks.hasNumber ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-          {checks.hasNumber ? '&#10003;' : '&#9675;'} Number (0-9)
+          {checks.hasNumber ? '✓' : '○'} Number (0-9)
         </span>
         <span className={`col-span-2 ${checks.hasSpecial ? 'text-emerald-700 font-semibold' : 'text-slate-400'}`}>
-          {checks.hasSpecial ? '&#10003;' : '&#9675;'} Special character (!@#$%^&*)
+          {checks.hasSpecial ? '✓' : '○'} Special character (!@#$%^&*)
         </span>
       </div>
     </div>
@@ -493,7 +493,7 @@ export const AuthModal = ({ setActiveTab }) => {
                   isInvalid={Boolean(custName && !custNameAnalysis.isValid)}
                   badge={custName ? (
                     custNameAnalysis.isValid ? (
-                      <span className="text-xs font-bold text-emerald-600">&#10003; Valid Name</span>
+                      <span className="text-xs font-bold text-emerald-600">✓ Valid Name</span>
                     ) : (
                       <span className="text-xs font-bold text-red-500">x {custNameAnalysis.error}</span>
                     )
@@ -515,7 +515,7 @@ export const AuthModal = ({ setActiveTab }) => {
                   isInvalid={Boolean(custPhone && !custPhoneAnalysis.isValid)}
                   badge={custPhone ? (
                     custPhoneAnalysis.isValid ? (
-                      <span className="text-xs font-bold text-emerald-600">&#10003; Valid (10 Digits)</span>
+                      <span className="text-xs font-bold text-emerald-600">✓ Valid (10 Digits)</span>
                     ) : (
                       <span className="text-xs font-bold text-red-500">x {custPhoneAnalysis.error}</span>
                     )
@@ -535,9 +535,9 @@ export const AuthModal = ({ setActiveTab }) => {
                   isInvalid={Boolean(custEmail && !custEmailAnalysis.isValid)}
                   badge={custEmail ? (
                     custEmailAnalysis.isValid ? (
-                      <span className="text-xs font-bold text-emerald-600">&#10003; Valid Email</span>
+                      <span className="text-xs font-bold text-emerald-600">✓ Valid Email</span>
                     ) : (
-                      <span className="text-xs font-bold text-red-500">&#10005; Invalid Format</span>
+                      <span className="text-xs font-bold text-red-500">✕ Invalid Format</span>
                     )
                   ) : (
                     <span className="text-xs text-slate-400">Optional</span>
@@ -557,7 +557,7 @@ export const AuthModal = ({ setActiveTab }) => {
                   isInvalid={Boolean(custPassword && !custPassAnalysis.isValid)}
                   badge={custPassword ? (
                     custPassAnalysis.isValid ? (
-                      <span className="text-xs font-bold text-emerald-600">&#10003; Strong Password</span>
+                      <span className="text-xs font-bold text-emerald-600">✓ Strong Password</span>
                     ) : (
                       <span className="text-xs font-bold text-amber-600">Incomplete</span>
                     )
@@ -635,7 +635,7 @@ export const AuthModal = ({ setActiveTab }) => {
                       isInvalid={Boolean(wrkName && !wrkNameAnalysis.isValid)}
                       badge={wrkName ? (
                         wrkNameAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">&#10003; Valid Name</span>
+                          <span className="text-xs font-bold text-emerald-600">✓ Valid Name</span>
                         ) : (
                           <span className="text-xs font-bold text-red-500">x {wrkNameAnalysis.error}</span>
                         )
@@ -655,7 +655,7 @@ export const AuthModal = ({ setActiveTab }) => {
                       isInvalid={Boolean(wrkPhone && !wrkPhoneAnalysis.isValid)}
                       badge={wrkPhone ? (
                         wrkPhoneAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">&#10003; Valid (10 Digits)</span>
+                          <span className="text-xs font-bold text-emerald-600">✓ Valid (10 Digits)</span>
                         ) : (
                           <span className="text-xs font-bold text-red-500">x {wrkPhoneAnalysis.error}</span>
                         )
@@ -674,9 +674,9 @@ export const AuthModal = ({ setActiveTab }) => {
                       isInvalid={Boolean(wrkEmail && !wrkEmailAnalysis.isValid)}
                       badge={wrkEmail ? (
                         wrkEmailAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">&#10003; Valid Email</span>
+                          <span className="text-xs font-bold text-emerald-600">✓ Valid Email</span>
                         ) : (
-                          <span className="text-xs font-bold text-red-500">&#10005; Invalid Format</span>
+                          <span className="text-xs font-bold text-red-500">✕ Invalid Format</span>
                         )
                       ) : (
                         <span className="text-xs text-slate-400">Optional</span>
@@ -714,7 +714,7 @@ export const AuthModal = ({ setActiveTab }) => {
                       isInvalid={Boolean(wrkAadhaar && !wrkAadhaarAnalysis.isValid)}
                       badge={wrkAadhaar ? (
                         wrkAadhaarAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">&#10003; Valid Aadhaar</span>
+                          <span className="text-xs font-bold text-emerald-600">✓ Valid Aadhaar</span>
                         ) : (
                           <span className="text-xs font-bold text-red-500">x {wrkAadhaarAnalysis.error}</span>
                         )
@@ -761,7 +761,7 @@ export const AuthModal = ({ setActiveTab }) => {
                         </label>
                         {pccVerified ? (
                           <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                            &#10003; Criminal Record Clean
+                            ✓ Criminal Record Clean
                           </span>
                         ) : (
                           <span className="text-[10px] text-slate-400">Required</span>
@@ -865,7 +865,7 @@ export const AuthModal = ({ setActiveTab }) => {
                         ) : Number(wrkRate) > 5000 ? (
                           <span className="text-xs font-bold text-red-500">Max ₹5,000/hr</span>
                         ) : (
-                          <span className="text-xs font-bold text-emerald-600">&#10003; Fair Wage</span>
+                          <span className="text-xs font-bold text-emerald-600">✓ Fair Wage</span>
                         )
                       }
                     />
@@ -883,7 +883,7 @@ export const AuthModal = ({ setActiveTab }) => {
                       isInvalid={Boolean(wrkPassword && !wrkPassAnalysis.isValid)}
                       badge={wrkPassword ? (
                         wrkPassAnalysis.isValid ? (
-                          <span className="text-xs font-bold text-emerald-600">&#10003; Strong Password</span>
+                          <span className="text-xs font-bold text-emerald-600">✓ Strong Password</span>
                         ) : (
                           <span className="text-xs font-bold text-amber-600">Incomplete</span>
                         )
