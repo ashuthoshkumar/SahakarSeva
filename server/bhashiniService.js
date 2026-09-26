@@ -102,27 +102,37 @@ async function getPipelineConfig({ tasks, sourceLang, targetLang }) {
     });
   }
 
-  const res = await fetch(BHASHINI_PIPELINE_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'ulcaApiKey': apiKey,
-      'userID': userId
-    },
-    body: JSON.stringify({
-      pipelineTasks,
-      pipelineRequestConfig: { pipelineId }
-    })
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 2500);
 
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Bhashini Pipeline Discovery Error (${res.status}): ${errText}`);
+  try {
+    const res = await fetch(BHASHINI_PIPELINE_URL, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        'ulcaApiKey': apiKey,
+        'userID': userId
+      },
+      body: JSON.stringify({
+        pipelineTasks,
+        pipelineRequestConfig: { pipelineId }
+      })
+    });
+    clearTimeout(timer);
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Bhashini Pipeline Discovery Error (${res.status}): ${errText}`);
+    }
+
+    const data = await res.json();
+    pipelineCache.set(cacheKey, data);
+    return data;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
   }
-
-  const data = await res.json();
-  pipelineCache.set(cacheKey, data);
-  return data;
 }
 
 /**
@@ -163,7 +173,7 @@ export async function translateText({ text, sourceLang = 'en', targetLang = 'hi'
     const translationServiceId = pipelineData.pipelineResponseConfig?.find(c => c.taskType === 'translation')?.config?.[0]?.serviceId;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4000);
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
 
     const computeRes = await fetch(callbackUrl, {
       method: 'POST',
@@ -285,29 +295,38 @@ export async function speechToText({ audioContent, sourceLang = 'hi', audioForma
   const inferenceHeaderName = pipelineData.pipelineInferenceAPIEndPoint?.inferenceApiKey?.name || 'Authorization';
   const asrServiceId = pipelineData.pipelineResponseConfig?.find(c => c.taskType === 'asr')?.config?.[0]?.serviceId;
 
-  const computeRes = await fetch(callbackUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      [inferenceHeaderName]: inferenceApiKey
-    },
-    body: JSON.stringify({
-      pipelineTasks: [
-        {
-          taskType: 'asr',
-          config: {
-            language: { sourceLanguage: sourceLang },
-            serviceId: asrServiceId,
-            audioFormat: audioFormat,
-            samplingRate: 16000
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 3000);
+
+  let computeRes;
+  try {
+    computeRes = await fetch(callbackUrl, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        [inferenceHeaderName]: inferenceApiKey
+      },
+      body: JSON.stringify({
+        pipelineTasks: [
+          {
+            taskType: 'asr',
+            config: {
+              language: { sourceLanguage: sourceLang },
+              serviceId: asrServiceId,
+              audioFormat: audioFormat,
+              samplingRate: 16000
+            }
           }
+        ],
+        inputData: {
+          audio: [{ audioContent }]
         }
-      ],
-      inputData: {
-        audio: [{ audioContent }]
-      }
-    })
-  });
+      })
+    });
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!computeRes.ok) {
     const err = await computeRes.text();
@@ -346,28 +365,37 @@ export async function textToSpeech({ text, sourceLang = 'hi', gender = 'female' 
   const inferenceHeaderName = pipelineData.pipelineInferenceAPIEndPoint?.inferenceApiKey?.name || 'Authorization';
   const ttsServiceId = pipelineData.pipelineResponseConfig?.find(c => c.taskType === 'tts')?.config?.[0]?.serviceId;
 
-  const computeRes = await fetch(callbackUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      [inferenceHeaderName]: inferenceApiKey
-    },
-    body: JSON.stringify({
-      pipelineTasks: [
-        {
-          taskType: 'tts',
-          config: {
-            language: { sourceLanguage: sourceLang },
-            serviceId: ttsServiceId,
-            gender: gender
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 3000);
+
+  let computeRes;
+  try {
+    computeRes = await fetch(callbackUrl, {
+      method: 'POST',
+      signal: controller.signal,
+      headers: {
+        'Content-Type': 'application/json',
+        [inferenceHeaderName]: inferenceApiKey
+      },
+      body: JSON.stringify({
+        pipelineTasks: [
+          {
+            taskType: 'tts',
+            config: {
+              language: { sourceLanguage: sourceLang },
+              serviceId: ttsServiceId,
+              gender: gender
+            }
           }
+        ],
+        inputData: {
+          input: [{ source: text }]
         }
-      ],
-      inputData: {
-        input: [{ source: text }]
-      }
-    })
-  });
+      })
+    });
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!computeRes.ok) {
     const err = await computeRes.text();

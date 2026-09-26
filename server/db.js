@@ -12,6 +12,9 @@ const db = new sqlite3.Database(dbPath, (err) => {
     console.error('Error connecting to SQLite database:', err.message);
   } else {
     console.log('Connected to persistent SQLite database at:', dbPath);
+    db.run('PRAGMA journal_mode = WAL;');
+    db.run('PRAGMA busy_timeout = 5000;');
+    db.run('PRAGMA synchronous = NORMAL;');
   }
 });
 

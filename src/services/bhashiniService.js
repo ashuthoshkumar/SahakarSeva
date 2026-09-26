@@ -9,6 +9,13 @@ const getApiBase = () => {
   return getSavedBackendUrl();
 };
 
+const fetchWithTimeout = (url, options = {}, timeoutMs = 2500) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(timer));
+};
+
 /**
  * 1. Translate text between Indian languages and English
  */
@@ -19,11 +26,11 @@ export async function bhashiniTranslate(text, sourceLang = 'en', targetLang = 'h
 
   try {
     const apiBase = getApiBase();
-    const res = await fetch(`${apiBase}/bhashini/translate`, {
+    const res = await fetchWithTimeout(`${apiBase}/bhashini/translate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, sourceLang, targetLang })
-    });
+    }, 2500);
 
     if (res.ok) {
       const data = await res.json();
@@ -54,7 +61,7 @@ export async function bhashiniSpeechToText(audioBlob, sourceLang = 'hi') {
     });
 
     const apiBase = getApiBase();
-    const res = await fetch(`${apiBase}/bhashini/asr`, {
+    const res = await fetchWithTimeout(`${apiBase}/bhashini/asr`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -62,7 +69,7 @@ export async function bhashiniSpeechToText(audioBlob, sourceLang = 'hi') {
         sourceLang,
         audioFormat: 'wav'
       })
-    });
+    }, 3000);
 
     if (res.ok) {
       const data = await res.json();
@@ -80,11 +87,11 @@ export async function bhashiniSpeechToText(audioBlob, sourceLang = 'hi') {
 export async function bhashiniTextToSpeech(text, sourceLang = 'hi', gender = 'female') {
   try {
     const apiBase = getApiBase();
-    const res = await fetch(`${apiBase}/bhashini/tts`, {
+    const res = await fetchWithTimeout(`${apiBase}/bhashini/tts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text, sourceLang, gender })
-    });
+    }, 3000);
 
     if (res.ok) {
       const data = await res.json();

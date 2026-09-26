@@ -49,33 +49,35 @@ const writeStorage = (key, data) => {
   }
 };
 
+// Hard timeout wrapper — guarantees no network request hangs >3s
+const fetchWithTimeout = (url, options = {}, timeoutMs = 3000) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(timer));
+};
+
 const apiFetch = async (endpoint) => {
-  const backendBase = getSavedBackendUrl();
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
-  // 1. Try relative (browser proxy — works in local dev & if Vercel has rewrites)
+  // 1. Try relative endpoint first (handled in <5ms by Vite proxy in dev, same-origin in prod)
   try {
-    const res = await fetch(`${API}${cleanEndpoint}`);
+    const res = await fetchWithTimeout(`${API}${cleanEndpoint}`, {}, 2500);
     if (res.ok) return await res.json();
   } catch (err) {}
 
-  // 2. Try configured backend / LAN IP
-  try {
-    const res = await fetch(`${backendBase}${cleanEndpoint}`);
-    if (res.ok) return await res.json();
-  } catch (e) {}
-
-  // 3. Try the Render production backend explicitly (guarantees cross-device access)
-  try {
-    if (!backendBase.includes('onrender.com')) {
-      const res = await fetch(`${RENDER_BACKEND_URL}${cleanEndpoint}`);
+  // 2. Try configured backend if different from /api
+  const backendBase = getSavedBackendUrl();
+  if (backendBase && backendBase !== '/api') {
+    try {
+      const res = await fetchWithTimeout(`${backendBase}${cleanEndpoint}`, {}, 2500);
       if (res.ok) return await res.json();
-    }
-  } catch (e) {}
+    } catch (e) {}
+  }
 
-  // 4. Try localhost fallback (for local dev server)
+  // 3. Try direct local development server fallback
   try {
-    const res = await fetch(`http://localhost:5050/api${cleanEndpoint}`);
+    const res = await fetchWithTimeout(`http://localhost:5050/api${cleanEndpoint}`, {}, 2000);
     if (res.ok) return await res.json();
   } catch (e) {}
 
@@ -83,7 +85,6 @@ const apiFetch = async (endpoint) => {
 };
 
 const apiPost = async (endpoint, body) => {
-  const backendBase = getSavedBackendUrl();
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const payload = {
     method: 'POST',
@@ -91,37 +92,37 @@ const apiPost = async (endpoint, body) => {
     body: JSON.stringify(body)
   };
 
-  // 1. Try relative
+  // 1. Try relative endpoint first
   try {
-    const res = await fetch(`${API}${cleanEndpoint}`, payload);
-    if (res.ok) return await res.json();
+    const res = await fetchWithTimeout(`${API}${cleanEndpoint}`, payload, 3000);
+    const ct = res.headers.get('content-type');
+    if (ct && ct.includes('application/json')) return await res.json();
+    if (res.ok) return { success: true };
   } catch (err) {}
 
-  // 2. Try configured backend / LAN IP
-  try {
-    const res = await fetch(`${backendBase}${cleanEndpoint}`, payload);
-    if (res.ok) return await res.json();
-  } catch (e) {}
+  // 2. Try configured backend if different from /api
+  const backendBase = getSavedBackendUrl();
+  if (backendBase && backendBase !== '/api') {
+    try {
+      const res = await fetchWithTimeout(`${backendBase}${cleanEndpoint}`, payload, 3000);
+      const ct = res.headers.get('content-type');
+      if (ct && ct.includes('application/json')) return await res.json();
+      if (res.ok) return { success: true };
+    } catch (e) {}
+  }
 
-  // 3. Try Render production backend explicitly (cross-device guarantee)
+  // 3. Direct local dev fallback
   try {
-    if (!backendBase.includes('onrender.com')) {
-      const res = await fetch(`${RENDER_BACKEND_URL}${cleanEndpoint}`, payload);
-      if (res.ok) return await res.json();
-    }
-  } catch (e) {}
-
-  // 4. Try localhost fallback
-  try {
-    const res = await fetch(`http://localhost:5050/api${cleanEndpoint}`, payload);
-    if (res.ok) return await res.json();
+    const res = await fetchWithTimeout(`http://localhost:5050/api${cleanEndpoint}`, payload, 2500);
+    const ct = res.headers.get('content-type');
+    if (ct && ct.includes('application/json')) return await res.json();
+    if (res.ok) return { success: true };
   } catch (e) {}
 
   return { success: false };
 };
 
 const apiPatch = async (endpoint, body) => {
-  const backendBase = getSavedBackendUrl();
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const payload = {
     method: 'PATCH',
@@ -130,26 +131,27 @@ const apiPatch = async (endpoint, body) => {
   };
 
   try {
-    const res = await fetch(`${API}${cleanEndpoint}`, payload);
-    if (res.ok) return await res.json();
+    const res = await fetchWithTimeout(`${API}${cleanEndpoint}`, payload, 3000);
+    const ct = res.headers.get('content-type');
+    if (ct && ct.includes('application/json')) return await res.json();
+    if (res.ok) return { success: true };
   } catch (err) {}
 
-  try {
-    const res = await fetch(`${backendBase}${cleanEndpoint}`, payload);
-    if (res.ok) return await res.json();
-  } catch (e) {}
-
-  // Render production backend explicit fallback
-  try {
-    if (!backendBase.includes('onrender.com')) {
-      const res = await fetch(`${RENDER_BACKEND_URL}${cleanEndpoint}`, payload);
-      if (res.ok) return await res.json();
-    }
-  } catch (e) {}
+  const backendBase = getSavedBackendUrl();
+  if (backendBase && backendBase !== '/api') {
+    try {
+      const res = await fetchWithTimeout(`${backendBase}${cleanEndpoint}`, payload, 3000);
+      const ct = res.headers.get('content-type');
+      if (ct && ct.includes('application/json')) return await res.json();
+      if (res.ok) return { success: true };
+    } catch (e) {}
+  }
 
   try {
-    const res = await fetch(`http://localhost:5050/api${cleanEndpoint}`, payload);
-    if (res.ok) return await res.json();
+    const res = await fetchWithTimeout(`http://localhost:5050/api${cleanEndpoint}`, payload, 2500);
+    const ct = res.headers.get('content-type');
+    if (ct && ct.includes('application/json')) return await res.json();
+    if (res.ok) return { success: true };
   } catch (e) {}
 
   return { success: false };

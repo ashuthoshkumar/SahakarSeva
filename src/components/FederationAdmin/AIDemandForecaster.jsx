@@ -3,7 +3,6 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianG
 import { BrainCircuit, Sparkles } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { getSavedBackendUrl } from '../../utils/cloudSync';
 
 export const AIDemandForecaster = () => {
   const [selectedLocality, setSelectedLocality] = useState('ConnaughtPlace');
@@ -18,8 +17,7 @@ export const AIDemandForecaster = () => {
     try {
       let res = await fetch(`/api/ai/forecast?locality=${selectedLocality}`);
       if (!res.ok) {
-        const backendBase = getSavedBackendUrl();
-        res = await fetch(`${backendBase}/ai/forecast?locality=${selectedLocality}`);
+        res = await fetch(`http://localhost:5050/api/ai/forecast?locality=${selectedLocality}`);
       }
       const data = await res.json();
       if (data.success) {

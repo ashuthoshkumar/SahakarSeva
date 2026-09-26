@@ -7,9 +7,9 @@ export const CLOUD_WORKERS_ID = 'ff808181a067127101a0763bde2c2728';
 export const CLOUD_ACCOUNTS_ID = 'ff808181a067127101a0763bded52729';
 
 // Default candidate backend URLs
-export const DEFAULT_LAN_IP = '192.168.7.8';
+export const DEFAULT_LAN_IP = '127.0.0.1';
 
-// ─── Production Render backend URL — all devices use this when VITE_API_URL is not set ───
+// ─── Production Render backend URL — used when deployed without proxy ───
 const RENDER_BACKEND = 'https://sahakar-seva-api-h1zm.onrender.com/api';
 
 export const getSavedBackendUrl = () => {
@@ -19,28 +19,34 @@ export const getSavedBackendUrl = () => {
     return envUrl.endsWith('/api') ? envUrl : `${envUrl.replace(/\/+$/, '')}/api`;
   }
 
-  // 2. User-configured custom backend stored in localStorage (for LAN/APK use)
+  // 2. User-configured custom backend stored in localStorage (ignore obsolete LAN IP)
   try {
     const custom = localStorage.getItem('sahakar_custom_backend');
-    if (custom && custom.trim()) return custom.trim();
+    if (custom && custom.trim() && !custom.includes('192.168.7.8')) {
+      return custom.trim();
+    } else if (custom && custom.includes('192.168.7.8')) {
+      localStorage.removeItem('sahakar_custom_backend');
+    }
   } catch (e) {}
 
-  // 3. If running from a non-localhost domain (deployed on Vercel etc.), try same origin first,
-  //    but ALSO return the known Render production backend so apiFetch can try it.
+  // 3. In browser environments:
   if (typeof window !== 'undefined' && window.location) {
     const host = window.location.hostname;
-    if (host && host !== 'localhost' && host !== '127.0.0.1') {
-      // On a LAN IP (e.g. tablet on same WiFi) try the device's own IP:5050
-      if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) {
-        return `http://${host}:5050/api`;
-      }
-      // On a cloud deployment (Vercel), use the known Render backend URL
-      return RENDER_BACKEND;
+    // On localhost / 127.0.0.1 or same-origin dev server: use relative /api (handled by Vite proxy)
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return '/api';
     }
+    // On a LAN IP (e.g. phone/tablet on same WiFi accessing dev server):
+    // Vite dev server proxies /api directly to Express backend
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) {
+      return '/api';
+    }
+    // On a cloud deployment (Vercel without rewrite), use Render backend
+    return RENDER_BACKEND;
   }
 
-  // 4. Local development fallback
-  return `http://${DEFAULT_LAN_IP}:5050/api`;
+  // 4. Default fallback
+  return '/api';
 };
 
 export const setSavedBackendUrl = (url) => {

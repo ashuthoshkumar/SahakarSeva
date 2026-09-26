@@ -27,7 +27,7 @@ export const AccountPage = () => {
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [showServerConfig, setShowServerConfig] = useState(false);
-  const [serverUrlInput, setServerUrlInput] = useState(() => getSavedBackendUrl ? getSavedBackendUrl() : 'http://192.168.7.8:5050/api');
+  const [serverUrlInput, setServerUrlInput] = useState(() => getSavedBackendUrl ? getSavedBackendUrl() : '/api');
 
   if (!isAuthenticated || !user) return null;
 
@@ -239,10 +239,10 @@ export const AccountPage = () => {
               <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Backend API Endpoint</span>
               <button
                 onClick={() => {
-                  const defaultUrl = 'http://192.168.7.8:5050/api';
+                  const defaultUrl = '/api';
                   setServerUrlInput(defaultUrl);
                   setSavedBackendUrl(defaultUrl);
-                  addNotification('Reset to Wi-Fi host IP: ' + defaultUrl, 'info');
+                  addNotification('Reset to default API: ' + defaultUrl, 'info');
                 }}
                 className="text-[10px] font-bold text-teal-600 hover:underline"
               >
@@ -253,7 +253,7 @@ export const AccountPage = () => {
               type="text"
               value={serverUrlInput}
               onChange={(e) => setServerUrlInput(e.target.value)}
-              placeholder="http://192.168.7.8:5050/api"
+              placeholder="/api or http://localhost:5050/api"
               className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-mono text-slate-800 focus:outline-none focus:border-teal-500"
             />
             <button

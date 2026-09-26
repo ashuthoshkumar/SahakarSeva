@@ -8,10 +8,8 @@ import {
   validateHourlyRate
 } from '../utils/validation';
 import {
-  fetchCloudAccounts,
   pushCloudAccount,
   pushCloudWorker,
-  getSavedBackendUrl
 } from '../utils/cloudSync';
 
 const AuthContext = createContext();
@@ -102,19 +100,32 @@ const saveAccountToRegistry = (account) => {
   localStorage.setItem(ACCOUNT_STORE_KEY, JSON.stringify(accounts));
 };
 
+// Hard timeout wrapper — prevents any single fetch from hanging >3s
+const fetchWithTimeout = (url, options = {}, timeoutMs = 3000) => {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal })
+    .finally(() => clearTimeout(timer));
+};
+
 const safeFetchJson = async (endpoint, options = {}) => {
-  let cleanEndpoint = endpoint.startsWith('/api') ? endpoint : `/api${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
-  const backendBase = getSavedBackendUrl();
+  const cleanEndpoint = endpoint.startsWith('/api') ? endpoint : `/api${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
 
-  const candidateUrls = [
-    cleanEndpoint,
-    `${backendBase.replace(/\/api\/?$/, '')}${cleanEndpoint}`,
-    `http://localhost:5050${cleanEndpoint}`
-  ];
-
-  for (const url of candidateUrls) {
+  // 1. Try relative endpoint first (proxied by Vite in dev to :5050 in <5ms, same-origin in prod)
+  try {
+    const res = await fetchWithTimeout(cleanEndpoint, options, 3000);
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const json = await res.json();
+      return { ...json, httpStatus: res.status };
+    }
+    if (res.ok) {
+      return { success: true, httpStatus: res.status };
+    }
+  } catch (err) {
+    // Relative request failed (e.g. standalone file or mobile APK without proxy) -> try localhost direct
     try {
-      const res = await fetch(url, options);
+      const res = await fetchWithTimeout(`http://localhost:5050${cleanEndpoint}`, options, 3000);
       const contentType = res.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
         const json = await res.json();
@@ -123,9 +134,7 @@ const safeFetchJson = async (endpoint, options = {}) => {
       if (res.ok) {
         return { success: true, httpStatus: res.status };
       }
-    } catch (networkErr) {
-      // Unreachable candidate, try next
-    }
+    } catch (e2) {}
   }
 
   return { success: false, offlineFallback: true };
@@ -215,25 +224,12 @@ export const AuthProvider = ({ children }) => {
       console.warn('Network login unavailable, validating against account registry');
     }
 
-    // Standalone Offline Registry Login — Check local registry first, then Cloud Hub
+    // Standalone Offline Registry Login — Check local registry only (cloud sync is fire-and-forget)
     let accounts = getAccountRegistry();
     let matchedAccount = accounts.find(a =>
       (a.email && a.email.toLowerCase() === cleanInput) ||
       (a.phone && a.phone.replace(/\s+/g, '').includes(cleanInput.replace(/\s+/g, '')))
     );
-
-    if (!matchedAccount) {
-      try {
-        const cloudAccs = await fetchCloudAccounts();
-        matchedAccount = cloudAccs.find(a =>
-          (a.email && a.email.toLowerCase() === cleanInput) ||
-          (a.phone && a.phone.replace(/\s+/g, '').includes(cleanInput.replace(/\s+/g, '')))
-        );
-        if (matchedAccount) {
-          saveAccountToRegistry(matchedAccount);
-        }
-      } catch (e) {}
-    }
 
     if (!matchedAccount) {
       return {
@@ -476,12 +472,12 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('sahakar_registered_workers', JSON.stringify(filtered));
           } catch (e) {}
 
-          // Broadcast to multi-device cloud hub
-          pushCloudWorker(data.worker).catch(() => {});
+          // Fire-and-forget cloud sync (non-blocking)
+          setTimeout(() => pushCloudWorker(data.worker).catch(() => {}), 0);
         }
 
-        // Push account to cloud hub for multi-device login
-        pushCloudAccount({ ...data.user, password: cleanPass, category, hourlyRate: cleanRate }).catch(() => {});
+        // Fire-and-forget account sync (non-blocking)
+        setTimeout(() => pushCloudAccount({ ...data.user, password: cleanPass, category, hourlyRate: cleanRate }).catch(() => {}), 0);
 
         setIsAuthModalOpen(false);
         return { success: true, message: data.message, worker: data.worker };
@@ -604,11 +600,11 @@ export const AuthProvider = ({ children }) => {
       filtered.unshift(workerProfile);
       localStorage.setItem('sahakar_registered_workers', JSON.stringify(filtered));
 
-      // Broadcast to multi-device cloud hub so friend's phone sees it
+      // Fire-and-forget cloud sync (non-blocking)
       if (workerProfile) {
-        pushCloudWorker(workerProfile).catch(() => {});
+        setTimeout(() => pushCloudWorker(workerProfile).catch(() => {}), 0);
       }
-      pushCloudAccount(newWorkerAccount).catch(() => {});
+      setTimeout(() => pushCloudAccount(newWorkerAccount).catch(() => {}), 0);
     } catch (e) {
       console.warn('Could not save worker to search pool:', e);
     }
