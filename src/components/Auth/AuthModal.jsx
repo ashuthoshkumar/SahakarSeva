@@ -6,7 +6,7 @@ import {
   ShieldCheck, User, HardHat, Lock, Mail, AlertCircle, 
   Sparkles, LogIn, ArrowRight, ArrowLeft, Eye, EyeOff, 
   CheckCircle2, Phone, X, ChevronRight, FileCheck2, Upload, 
-  RefreshCw, Fingerprint
+  RefreshCw, Fingerprint, Building2, Landmark, Shield
 } from 'lucide-react';
 import { translateCategory } from '../../utils/translateHelpers';
 import { SahakarLogo } from '../Common/SahakarLogo';
@@ -403,25 +403,59 @@ export const AuthModal = ({ setActiveTab }) => {
             <div className="space-y-5">
 
               {/* Quick Demo Logins */}
-              <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-teal-600" />
-                  <span className="text-sm font-bold text-slate-700">Quick Demo Access</span>
+              <div className="bg-slate-50 rounded-xl p-3 sm:p-4 border border-slate-200 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-teal-600" />
+                    <span className="text-xs sm:text-sm font-bold text-slate-800">1-Click Demo Login</span>
+                  </div>
+                  <span className="text-[11px] font-semibold text-teal-700 bg-teal-100/70 px-2 py-0.5 rounded-full">Judge & Testing Access</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => handleDemoLogin('customer@sahakar.in', 'password123')}
-                    className="py-2.5 px-3 rounded-xl bg-white border border-slate-200 hover:border-teal-400 hover:bg-teal-50 transition-all text-sm font-bold text-slate-700 flex items-center gap-2 active:scale-95"
+                    className="py-2 px-2.5 rounded-xl bg-white border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 transition-all text-xs font-bold text-slate-700 flex items-center gap-1.5 active:scale-95 shadow-xs"
                   >
-                    <User className="w-4 h-4 text-emerald-600" /> Customer
+                    <User className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="truncate">Customer</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDemoLogin('worker@sahakar.in', 'password123')}
-                    className="py-2.5 px-3 rounded-xl bg-white border border-slate-200 hover:border-amber-400 hover:bg-amber-50 transition-all text-sm font-bold text-slate-700 flex items-center gap-2 active:scale-95"
+                    className="py-2 px-2.5 rounded-xl bg-white border border-slate-200 hover:border-amber-400 hover:bg-amber-50 transition-all text-xs font-bold text-slate-700 flex items-center gap-1.5 active:scale-95 shadow-xs"
                   >
-                    <HardHat className="w-4 h-4 text-amber-600" /> Worker
+                    <HardHat className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span className="truncate">Worker (NCCT)</span>
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5 pt-0.5 border-t border-slate-200/80">
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('society@sahakar.in', 'admin123')}
+                    className="py-1.5 px-2 rounded-lg bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 transition-all text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1 active:scale-95"
+                    title="Delhi NCR Shramik Sahakari Samiti Admin"
+                  >
+                    <Building2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                    <span className="truncate">Society</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('federation@sahakar.in', 'admin123')}
+                    className="py-1.5 px-2 rounded-lg bg-white border border-slate-200 hover:border-purple-400 hover:bg-purple-50 transition-all text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1 active:scale-95"
+                    title="Northern India Labour Cooperative Federation Officer"
+                  >
+                    <Landmark className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                    <span className="truncate">Federation</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('superadmin@sahakar.in', 'admin123')}
+                    className="py-1.5 px-2 rounded-lg bg-white border border-slate-200 hover:border-rose-400 hover:bg-rose-50 transition-all text-[11px] font-bold text-slate-700 flex items-center justify-center gap-1 active:scale-95"
+                    title="NCCT National Director Super Admin"
+                  >
+                    <Shield className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                    <span className="truncate">Super Admin</span>
                   </button>
                 </div>
               </div>

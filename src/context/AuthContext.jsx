@@ -16,8 +16,27 @@ const AuthContext = createContext();
 
 const API_BASE = '/api';
 
-// Standard administrator accounts for administrative role testing
+// Standard demo accounts for all 5 roles
 const DEFAULT_ACCOUNTS = [
+  {
+    id: 'usr_cust_1',
+    name: 'Priya Sharma (Demo Customer)',
+    phone: '+91 98765 00001',
+    email: 'customer@sahakar.in',
+    password: 'password123',
+    role: 'customer'
+  },
+  {
+    id: 'usr_wrk_1',
+    name: 'Ramesh Sharma (Demo Worker)',
+    phone: '+91 98765 43210',
+    email: 'worker@sahakar.in',
+    password: 'password123',
+    role: 'worker',
+    societyId: 'soc_delhi_1',
+    category: 'electrician',
+    hourlyRate: 350
+  },
   {
     id: 'usr_soc_1',
     name: 'Delhi Coop Admin',
@@ -46,7 +65,7 @@ const DEFAULT_ACCOUNTS = [
 ];
 
 const ACCOUNT_STORE_KEY = 'sahakar_registered_accounts';
-const WIPE_VERSION_KEY = 'sahakar_wipe_v4_clean_start';
+const WIPE_VERSION_KEY = 'sahakar_wipe_v5_demo_ready';
 
 // Auto-wipe stale accounts from localStorage so users start fresh with 0 fake/old accounts
 if (typeof window !== 'undefined') {

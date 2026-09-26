@@ -732,6 +732,32 @@ app.post('/api/bookings/:id/pay', async (req, res) => {
   }
 });
 
+// PATCH /api/bookings/:id/status or PATCH /api/bookings/:id - Generic booking update
+app.patch(['/api/bookings/:id', '/api/bookings/:id/status'], async (req, res) => {
+  try {
+    const { status, completionPhoto, workerLat, workerLng } = req.body || {};
+    const booking = await dbGet('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
+    if (!booking) {
+      return res.status(404).json({ success: false, error: 'Booking not found' });
+    }
+
+    if (status) {
+      await dbRun('UPDATE bookings SET status = ? WHERE id = ?', [status, req.params.id]);
+    }
+    if (completionPhoto) {
+      await dbRun('UPDATE bookings SET completionPhoto = ? WHERE id = ?', [completionPhoto, req.params.id]);
+    }
+    if (workerLat !== undefined && workerLng !== undefined) {
+      await dbRun('UPDATE bookings SET workerLat = ?, workerLng = ? WHERE id = ?', [workerLat, workerLng, req.params.id]);
+    }
+
+    const updated = await dbGet('SELECT * FROM bookings WHERE id = ?', [req.params.id]);
+    res.json({ success: true, message: 'Booking updated successfully', booking: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // GET /api/ai/forecast - AI Demand Forecasting Microservice
 app.get('/api/ai/forecast', async (req, res) => {
   try {
@@ -798,20 +824,75 @@ app.get('/api/stats/categories', async (req, res) => {
   }
 });
 
+// Global In-Memory active SOS state
+let activeSosAlert = null;
+
+// POST /api/sos/trigger
+app.post('/api/sos/trigger', (req, res) => {
+  const { workerId, workerName, workerPhone, lat, lng, reason, customerAddress } = req.body || {};
+  activeSosAlert = {
+    active: true,
+    alertId: 'SOS-' + Date.now(),
+    workerId: workerId || 'unknown',
+    workerName: workerName || 'Cooperative Worker',
+    workerPhone: workerPhone || '',
+    lat: lat || 28.6139,
+    lng: lng || 77.2090,
+    reason: reason || 'Worker Emergency SOS Activated',
+    customerAddress: customerAddress || 'On-duty job location',
+    timestamp: new Date().toISOString()
+  };
+  res.json({ success: true, message: 'SOS broadcasted to peer radar and society vigilance desk', sos: activeSosAlert });
+});
+
+// POST /api/sos/deactivate
+app.post('/api/sos/deactivate', (req, res) => {
+  const { pin } = req.body || {};
+  if (pin && pin !== '1234' && pin !== '9999') {
+    return res.status(400).json({ success: false, error: 'Invalid 4-digit safety PIN' });
+  }
+  activeSosAlert = null;
+  res.json({ success: true, message: 'SOS deactivated safely' });
+});
+
+// GET /api/sos/active
+app.get('/api/sos/active', (req, res) => {
+  res.json({ success: true, sos: activeSosAlert });
+});
+
 // GET /api/worker/my-stats — Logged-in worker's real earnings & stats
 app.get('/api/worker/my-stats', async (req, res) => {
   try {
     const { userId } = req.query;
     if (!userId) return res.status(400).json({ success: false, error: 'userId required' });
 
-    const user = await dbGet('SELECT * FROM users WHERE id = ?', [userId]);
+    let user = await dbGet('SELECT * FROM users WHERE id = ?', [userId]);
+    
+    // If not found in users, check if a worker ID was passed directly
+    if (!user) {
+      const workerMatch = await dbGet('SELECT * FROM workers WHERE id = ?', [userId]);
+      if (workerMatch) {
+        user = await dbGet('SELECT * FROM users WHERE phone = ? OR name = ?', [workerMatch.phone, workerMatch.name]);
+        if (!user) {
+          user = {
+            id: workerMatch.id,
+            name: workerMatch.name,
+            phone: workerMatch.phone,
+            role: 'worker',
+            societyId: workerMatch.societyId,
+            aadhaarNo: 'Aadhaar Verified'
+          };
+        }
+      }
+    }
+
     if (!user) return res.status(404).json({ success: false, error: 'User not found' });
 
     // Find their worker card by name or cleaned phone digits
     const cleanUserDigits = (user.phone || '').replace(/\D/g, '').slice(-10);
     const allWorkers = await dbAll('SELECT * FROM workers');
     const worker = allWorkers.find(w =>
-      (w.name && user.name && w.name.trim().toLowerCase() === user.name.trim().toLowerCase()) ||
+      (w.name && user.name && (w.name.trim().toLowerCase() === user.name.trim().toLowerCase() || user.name.includes(w.name))) ||
       (w.phone && cleanUserDigits && w.phone.replace(/\D/g, '').slice(-10) === cleanUserDigits)
     );
 
