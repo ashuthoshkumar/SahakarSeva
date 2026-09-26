@@ -91,6 +91,17 @@ Developed specifically to address **Problem Statement SIH26089** (*Cooperative G
 - **Instant PACS e-RUPI / UPI Merchant Vouchers**: In partnership with Primary Agricultural Credit Societies (PACS) and Urban Cooperative Banks, workers generate zero-interest digital vouchers (₹500–₹5,000) sent directly to local hardware merchants.
 - **Automated Seamless Settlement**: The voucher is closed with 0% interest from the job's customer escrow release upon job completion, protecting worker cashflow with zero risk of default.
 
+### 6. 🚨 "Suraksha Bandhu" (Hyperlocal Cooperative Peer Emergency & Anti-Harassment Network)
+- **Transforming Isolated Gig Workers into an Armed-with-Solidarity Brotherhood**: Traditional gig workers (especially women and electricians working late nights) face site harassment, sudden electrical shocks, and locked gates with zero on-site assistance.
+- **1-Tap Hyperlocal Peer Dispatch**: When SOS is triggered, Web Audio synthesizes an urgent emergency siren, discreetly activates background audio evidence recording, and immediately broadcasts real-time GPS telemetry to the **3 nearest active cooperative peers within 1.5 km**.
+- **Society Vigilance Desk & Police 112 Integration**: Connects to the local cooperative vigilance officer and national police dispatch, with secure PIN-protected stand-down controls.
+
+### 7. 🛠️ "Sahakar Upkaran Bank" (PACS Zero-Deposit Heavy Tool & Equipment Rental Depot)
+- **Democratizing Professional Industrial Tools**: Expensive heavy equipment (Hilti/Bosch SDS-Max Core Drills, Fluke Thermal Leak Imagers, 180-Bar Hydro-Jet Drain Cleaners, 33kV Fiberglass Safety Ladders) cost upwards of ₹40,000 to purchase or ₹600–₹1,200/day to rent commercially.
+- **PACS Subsidized Depot Rates (Save 90%)**: Primary Agricultural Credit Societies (PACS) and Urban Cooperative Banks host communal tool banks, renting certified equipment to workers for **₹50–₹90/day**.
+- **Zero Security Deposit (Cooperative Member Guarantee)**: Backed by cooperative membership and Ayushman welfare escrow. Rental fees are automatically settled from future customer job payouts with zero upfront cash required.
+- **Digital QR Gate Pass**: Generates an instant verifiable pickup pass with serial number, calibration check, and return countdown.
+
 ---
 
 ## 🌐 Real-Time Multi-Device Sync Hub (Cross-Phone Worker Discovery)

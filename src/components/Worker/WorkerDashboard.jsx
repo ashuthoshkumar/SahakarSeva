@@ -7,13 +7,16 @@ import {
   ToggleLeft, ToggleRight, CheckCircle2, Clock, MapPin, 
   Phone, Camera, Upload, ImageIcon, AlertCircle, Wrench, 
   Star, ChevronRight, UserCheck, Sparkles, TrendingUp,
-  Volume2, VolumeX, MessageSquare, Globe
+  Volume2, VolumeX, MessageSquare, Globe, ShieldAlert, Radio,
+  PackagePlus, BookOpen, CreditCard, AlertOctagon
 } from 'lucide-react';
 import { translateNcctLevel, translateCategory } from '../../utils/translateHelpers';
 import { compressImage } from '../../utils/imageCompressor';
 import { WelfarePassbookModal } from './WelfarePassbookModal';
 import { NcctAcademyModal } from './NcctAcademyModal';
 import { MaterialCreditModal } from './MaterialCreditModal';
+import { SurakshaBandhuModal } from './SurakshaBandhuModal';
+import { SahakarToolDepotModal } from './SahakarToolDepotModal';
 import { WorkerNavigationMap } from './WorkerNavigationMap';
 import { CrossLanguageChatModal } from '../Common/CrossLanguageChatModal';
 import { bhashiniSpeakText, bhashiniStopSpeaking } from '../../services/bhashiniService';
@@ -28,9 +31,31 @@ export const WorkerDashboard = () => {
   const [isPassbookOpen, setIsPassbookOpen] = useState(false);
   const [isAcademyOpen, setIsAcademyOpen] = useState(false);
   const [isMaterialCreditOpen, setIsMaterialCreditOpen] = useState(false);
+  const [isSosOpen, setIsSosOpen] = useState(false);
+  const [isToolDepotOpen, setIsToolDepotOpen] = useState(false);
+  const [selectedJobForSos, setSelectedJobForSos] = useState(null);
+  const [activeSosData, setActiveSosData] = useState(null);
   const [chatBooking, setChatBooking] = useState(null);
   const [activeAudioBookingId, setActiveAudioBookingId] = useState(null);
   const fileInputRefs = useRef({});
+
+  // Monitor active SOS status
+  useEffect(() => {
+    const checkSos = () => {
+      try {
+        const saved = localStorage.getItem('sahakar_active_sos');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setActiveSosData(parsed.active ? parsed : null);
+        } else {
+          setActiveSosData(null);
+        }
+      } catch (e) {}
+    };
+    checkSos();
+    const timer = setInterval(checkSos, 2500);
+    return () => clearInterval(timer);
+  }, []);
 
   // Cleanup speech synthesis on unmount
   useEffect(() => {
@@ -202,26 +227,62 @@ export const WorkerDashboard = () => {
             </div>
           </div>
 
-          {/* Duty Status Toggle & Stats Pill */}
-          <div className="flex items-center gap-4 self-start md:self-auto bg-slate-800/80 backdrop-blur-md px-5 py-3 rounded-2xl border border-slate-700">
-            <div>
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Duty Status</span>
-              <span className={`text-xs font-black ${workerDutyStatus ? 'text-emerald-400' : 'text-slate-400'}`}>
-                {workerDutyStatus ? '🟢 ON DUTY (Receiving Jobs)' : '⚪ OFF DUTY'}
-              </span>
+          {/* Action Hub: SOS Emergency, Tool Depot & Duty Toggle */}
+          <div className="flex flex-wrap items-center gap-3 self-start md:self-auto">
+            
+            {/* Suraksha Bandhu SOS Button */}
+            <button
+              onClick={() => {
+                setSelectedJobForSos(null);
+                setIsSosOpen(true);
+              }}
+              className={`px-4 py-3 rounded-2xl font-black text-xs flex items-center gap-2.5 shadow-lg transition-all active:scale-95 cursor-pointer ${
+                activeSosData?.active
+                  ? 'bg-rose-600 text-white animate-pulse ring-4 ring-rose-500/40'
+                  : 'bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-rose-900/30'
+              }`}
+            >
+              <ShieldAlert className="w-5 h-5 text-white animate-bounce shrink-0" />
+              <div className="text-left">
+                <span className="block text-[9px] uppercase font-bold text-red-100 tracking-wider">SIH26089 Peer SOS</span>
+                <span className="text-xs font-black tracking-tight">{activeSosData?.active ? '🚨 SOS ACTIVE' : '🚨 SURAKSHA BANDHU'}</span>
+              </div>
+            </button>
+
+            {/* Sahakar Upkaran Bank (PACS Tool Depot) */}
+            <button
+              onClick={() => setIsToolDepotOpen(true)}
+              className="px-4 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center gap-2.5 shadow-lg shadow-emerald-950/30 transition-all active:scale-95 cursor-pointer"
+            >
+              <Wrench className="w-5 h-5 text-emerald-200 shrink-0" />
+              <div className="text-left">
+                <span className="block text-[9px] uppercase font-bold text-emerald-100 tracking-wider">PACS Equipment</span>
+                <span className="text-xs font-black tracking-tight">सहकार उपकरण बैंक</span>
+              </div>
+            </button>
+
+            {/* Duty Status Toggle */}
+            <div className="flex items-center gap-3 bg-slate-800/80 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-700">
+              <div>
+                <span className="text-[9px] uppercase font-bold text-slate-400 block">Duty Status</span>
+                <span className={`text-xs font-black ${workerDutyStatus ? 'text-emerald-400' : 'text-slate-400'}`}>
+                  {workerDutyStatus ? '🟢 ON DUTY' : '⚪ OFF DUTY'}
+                </span>
+              </div>
+
+              <button
+                onClick={() => toggleWorkerDuty(workerStats?.workerId)}
+                className={`p-1.5 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer ${
+                  workerDutyStatus 
+                    ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950' 
+                    : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                }`}
+                title="Toggle Online / Offline Status"
+              >
+                {workerDutyStatus ? <ToggleRight className="w-6 h-6" /> : <ToggleLeft className="w-6 h-6" />}
+              </button>
             </div>
 
-            <button
-              onClick={() => toggleWorkerDuty(workerStats?.workerId)}
-              className={`p-2 rounded-xl transition-all shadow-md active:scale-95 ${
-                workerDutyStatus 
-                  ? 'bg-emerald-500 hover:bg-emerald-400 text-slate-950' 
-                  : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
-              }`}
-              title="Toggle Online / Offline Status"
-            >
-              {workerDutyStatus ? <ToggleRight className="w-7 h-7" /> : <ToggleLeft className="w-7 h-7" />}
-            </button>
           </div>
 
         </div>
@@ -435,6 +496,20 @@ export const WorkerDashboard = () => {
                             <span>💬 Bhashini चैट</span>
                           </button>
 
+                          {/* On-Site SOS Emergency Button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedJobForSos(b);
+                              setIsSosOpen(true);
+                            }}
+                            className="inline-flex items-center gap-1 text-[11px] font-black px-2.5 py-1 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-300 shadow-sm transition-all active:scale-95"
+                            title="Trigger Suraksha Bandhu Emergency Alert for this site"
+                          >
+                            <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+                            <span>🚨 Site SOS</span>
+                          </button>
+
                           {b.customerPhone && (
                             <a
                               href={`tel:${b.customerPhone}`}
@@ -520,8 +595,140 @@ export const WorkerDashboard = () => {
 
         {/* Right Column: Worker Welfare & Innovations Suite (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
-          
-          {/* Social Security & Welfare Passbook */}
+
+          {/* 1. SURAKSHA BANDHU PEER EMERGENCY CARD */}
+          <div className={`p-6 rounded-3xl border shadow-sm space-y-4 transition-all ${
+            activeSosData?.active
+              ? 'bg-rose-50 border-rose-400 ring-2 ring-rose-500/20'
+              : 'bg-white border-slate-200'
+          }`}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200 flex items-center gap-1">
+                <Radio className="w-3 h-3 text-rose-600 animate-pulse" />
+                <span>Hyperlocal SOS Network</span>
+              </span>
+              <span className="text-[11px] font-bold text-slate-500">1.5 km Radius</span>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <ShieldAlert className="w-5 h-5 text-rose-600" />
+                <h4 className="text-sm font-black text-slate-900">
+                  {lang === 'hi' ? 'सुरक्षा बंधु आपातकालीन नेटवर्क' : 'Suraksha Bandhu Safety'}
+                </h4>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Instant peer protection against on-site harassment, accidents, or distress. Dispatches live telemetry to the 3 nearest cooperative brothers/sisters.
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setSelectedJobForSos(null);
+                setIsSosOpen(true);
+              }}
+              className={`w-full py-2.5 font-black text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer ${
+                activeSosData?.active
+                  ? 'bg-rose-600 text-white animate-pulse'
+                  : 'bg-rose-600 hover:bg-rose-700 text-white'
+              }`}
+            >
+              <ShieldAlert className="w-4 h-4" />
+              <span>{activeSosData?.active ? '🚨 Active SOS Alert (Manage)' : '🚨 Open Suraksha Bandhu SOS'}</span>
+            </button>
+          </div>
+
+          {/* 2. SAHAKAR UPKARAN BANK (PACS TOOL DEPOT) */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 hover:border-emerald-300 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                PACS Equipment Depot
+              </span>
+              <span className="text-[11px] font-bold text-emerald-600">Save 90% vs Market</span>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <Wrench className="w-5 h-5 text-emerald-600" />
+                <h4 className="text-sm font-black text-slate-900">
+                  {lang === 'hi' ? 'सहकार उपकरण बैंक (PACS)' : 'Sahakar Upkaran Bank'}
+                </h4>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Rent heavy core drills, sewer jetters & thermal cameras from ₹50/day with <strong>Zero Security Deposit</strong> backed by PACS cooperative societies.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsToolDepotOpen(true)}
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+            >
+              <Wrench className="w-4 h-4" />
+              <span>Browse PACS Tool Depot (₹50/d)</span>
+            </button>
+          </div>
+
+          {/* 3. MATERIAL MICRO-CREDIT CARD */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 hover:border-teal-300 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
+                PACS Micro-Credit
+              </span>
+              <span className="text-[11px] font-bold text-teal-600">0% Interest</span>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-teal-600" />
+                <h4 className="text-sm font-black text-slate-900">
+                  Material & Spare Parts Vault
+                </h4>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Generate zero-interest digital e-RUPI vouchers (₹500–₹5,000) for hardware stores. Auto-settled on job completion.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsMaterialCreditOpen(true)}
+              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+            >
+              <CreditCard className="w-4 h-4 text-emerald-400" />
+              <span>Request Spare Parts Credit</span>
+            </button>
+          </div>
+
+          {/* 4. NCCT ACADEMY UPSKILLING CARD */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 hover:border-indigo-300 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                NCCT Certification
+              </span>
+              <span className="text-[11px] font-bold text-indigo-600">+48% Wage Boost</span>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-indigo-600" />
+                <h4 className="text-sm font-black text-slate-900">
+                  NCCT Skill Ladder & Academy
+                </h4>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Upskill from Level 2 Craftsman to Solar PV & EV Technician. Free certified training at cooperative management institutes.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsAcademyOpen(true)}
+              className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span>View NCCT Skill Ladder</span>
+            </button>
+          </div>
+
+          {/* 5. Social Security & Welfare Passbook */}
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
@@ -535,7 +742,7 @@ export const WorkerDashboard = () => {
                 Welfare & Social Security Passbook
               </h4>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Review your accumulated welfare savings, insurance deductions, and provident fund balance.
+                Review your accumulated welfare savings, Ayushman Bharat healthcare escrow, and provident fund balance.
               </p>
             </div>
 
@@ -548,33 +755,28 @@ export const WorkerDashboard = () => {
             </button>
           </div>
 
-          {/* Job Completion Guide */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-3">
-            <h4 className="text-sm font-bold text-slate-900">Service Guidelines</h4>
-            <ul className="text-xs text-slate-600 space-y-2">
-              <li className="flex items-start gap-2">
-                <span className="text-teal-600 font-bold">•</span>
-                <span>Accept jobs promptly to maintain a high customer response score.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-teal-600 font-bold">•</span>
-                <span>Upload a clear completion photo after finishing the work so the customer can approve payment.</span>
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="text-teal-600 font-bold">•</span>
-                <span>Direct UPI payouts are credited immediately upon customer confirmation.</span>
-              </li>
-            </ul>
-          </div>
-
         </div>
 
       </div>
 
-      {/* Welfare Passbook, NCCT Academy, Material Credit & Bhashini Chat Modals */}
+      {/* Welfare Passbook, NCCT Academy, Material Credit, Suraksha Bandhu & Tool Depot Modals */}
       <WelfarePassbookModal isOpen={isPassbookOpen} onClose={() => setIsPassbookOpen(false)} />
       <NcctAcademyModal isOpen={isAcademyOpen} onClose={() => setIsAcademyOpen(false)} />
       <MaterialCreditModal isOpen={isMaterialCreditOpen} onClose={() => setIsMaterialCreditOpen(false)} />
+      <SurakshaBandhuModal
+        isOpen={isSosOpen}
+        onClose={() => setIsSosOpen(false)}
+        worker={workerStats}
+        activeJob={selectedJobForSos || (bookings.find(b => b.status === 'Accepted') || null)}
+      />
+      <SahakarToolDepotModal
+        isOpen={isToolDepotOpen}
+        onClose={() => setIsToolDepotOpen(false)}
+        worker={workerStats}
+        onRentalConfirmed={(rental) => {
+          addNotification(`PACS Tool Gate Pass created for ${rental.toolName}! Saved ₹${rental.savings}.`, 'success');
+        }}
+      />
       <CrossLanguageChatModal isOpen={Boolean(chatBooking)} onClose={() => setChatBooking(null)} booking={chatBooking} />
 
     </div>

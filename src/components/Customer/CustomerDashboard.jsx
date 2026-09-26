@@ -301,6 +301,27 @@ export const CustomerDashboard = ({ setActiveTab }) => {
             </p>
           </div>
 
+          {/* PACS Equipment & Suraksha Bandhu Trust Card */}
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200 rounded-3xl p-5 shadow-sm space-y-3">
+            <div className="flex items-center gap-2 text-emerald-800 font-black text-xs uppercase tracking-wider">
+              <span className="p-1 rounded-lg bg-emerald-600 text-white">🏆</span>
+              <span>Cooperative Advantage</span>
+            </div>
+            <h4 className="font-extrabold text-sm text-slate-900 leading-snug">
+              PACS Tools & Suraksha Bandhu Standard
+            </h4>
+            <ul className="text-xs text-slate-600 space-y-2">
+              <li className="flex items-start gap-2">
+                <span className="text-emerald-600 font-bold">✓</span>
+                <span><strong>PACS Equipment Certified:</strong> Technicians arrive with calibrated industrial tools (Bosch Core Drills, Fluke Thermal Imagers) rented through cooperative banks.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-emerald-600 font-bold">✓</span>
+                <span><strong>Suraksha Bandhu Protected:</strong> Zero-harassment workplace standard backed by local society vigilance and rapid peer solidarity mesh.</span>
+              </li>
+            </ul>
+          </div>
+
         </div>
 
       </div>
