@@ -178,27 +178,92 @@ export const initDB = async () => {
     `);
   }
 
-  // Strictly 0 synthetic/benchmark workers: Workers will only be populated through genuine registrations
-  const SEED_BENCHMARK_WORKERS = false;
-  if (SEED_BENCHMARK_WORKERS) {
-    const existingCategories = await dbAll('SELECT DISTINCT LOWER(category) as cat FROM workers');
-    const catSet = new Set(existingCategories.map(r => r.cat));
+  // Samuhik Seva Tenders (Community Bulk Contracting & RWA Work Orders)
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS samuhik_tenders (
+      id TEXT PRIMARY KEY,
+      rwaName TEXT NOT NULL,
+      title TEXT NOT NULL,
+      titleHi TEXT,
+      category TEXT NOT NULL,
+      description TEXT NOT NULL,
+      unitsCount INTEGER NOT NULL,
+      workersNeeded INTEGER NOT NULL,
+      budgetEscrow REAL NOT NULL,
+      location TEXT NOT NULL,
+      scheduledDates TEXT NOT NULL,
+      status TEXT DEFAULT 'OPEN_FOR_BIDS',
+      awardedSquadName TEXT,
+      bidsCount INTEGER DEFAULT 0,
+      createdAt TEXT NOT NULL
+    );
+  `);
 
-    const benchmarkWorkers = [];
-    for (const bw of benchmarkWorkers) {
-      if (!catSet.has(bw.category)) {
-        await dbRun(`
-          INSERT OR IGNORE INTO workers (
-            id, name, photo, category, societyId, societyName, rating, reviewsCount,
-            jobsCompleted, experienceYears, hourlyRate, lat, lng, ncctLevel,
-            kycStatus, policeVerification, ayushmanCard, pfAccountNumber, onDuty, skills, phone
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [
-          bw.id, bw.name, bw.photo, bw.category, bw.societyId, bw.societyName, bw.rating, bw.reviewsCount,
-          bw.jobsCompleted, bw.experienceYears, bw.hourlyRate, bw.lat, bw.lng, bw.ncctLevel,
-          bw.kycStatus, bw.policeVerification, bw.ayushmanCard, bw.pfAccountNumber, bw.onDuty, bw.skills, bw.phone
-        ]);
-      }
+  const tenderCount = await dbGet('SELECT COUNT(*) as count FROM samuhik_tenders');
+  if (tenderCount.count === 0) {
+    console.log('Seeding initial Samuhik Seva Community Tenders...');
+    const initialTenders = [
+      [
+        'tender_rwa_1',
+        'Royal Palms RWA (Society Reg: RWA/DL/2019/402)',
+        'Society Pre-Summer AC Deep-Clean, Gas Check & Coil Treatment (48 Units)',
+        'सोसाइटी प्री-समर 48 एसी डीप-क्लीन और गैस चेक सामूहिक टेंडर',
+        'appliances',
+        'Bulk service package for 3 residential residential towers. Includes chemical outdoor jet wash, indoor coil sterilisation, and electrical amperage diagnostics for 48 split air conditioners.',
+        48,
+        4,
+        28800,
+        'Royal Palms Residential Complex, Sector 14, Dwarka, New Delhi',
+        '10 Oct - 14 Oct 2026',
+        'OPEN_FOR_BIDS',
+        null,
+        1,
+        '2026-09-25 11:30'
+      ],
+      [
+        'tender_rwa_2',
+        'Apex Heights Cooperative Housing Society',
+        'Overhead & Underground Water Reservoir Desilting & UV Sterilisation (6 Tanks)',
+        'ओवरहेड और अंडरग्राउंड पानी की टंकी विसंक्रमण सामूहिक टेंडर (6 टंकियां)',
+        'plumbing',
+        'High-pressure hydro-jet desilting, anti-bacterial sludge removal, and water pump non-return valve inspection for 4 overhead and 2 underground reservoirs.',
+        6,
+        3,
+        18000,
+        'Apex Heights Society, Pocket 7, Mayur Vihar Phase 1, Delhi',
+        '05 Oct - 07 Oct 2026',
+        'OPEN_FOR_BIDS',
+        null,
+        2,
+        '2026-09-25 14:00'
+      ],
+      [
+        'tender_rwa_3',
+        'Vasant Kunj Sector C Residents Welfare Association',
+        'Common Area Solar Inverter Phase Balancing & 120 LED Rewiring (12 Blocks)',
+        'कॉमन एरिया सोलर इन्वर्टर फेज़ बैलेंसिंग और 120 स्ट्रीटलाइट रीवायरिंग',
+        'electrician',
+        'Inspection and rewiring of common area solar hybrid inverters, MCB distribution busbars, and replacement of 120 floodlight drivers across 12 residential blocks.',
+        12,
+        5,
+        34500,
+        'Sector C, Pocket 2, Vasant Kunj, New Delhi',
+        '12 Oct - 16 Oct 2026',
+        'OPEN_FOR_BIDS',
+        null,
+        1,
+        '2026-09-26 09:15'
+      ]
+    ];
+
+    for (const t of initialTenders) {
+      await dbRun(`
+        INSERT INTO samuhik_tenders (
+          id, rwaName, title, titleHi, category, description,
+          unitsCount, workersNeeded, budgetEscrow, location,
+          scheduledDates, status, awardedSquadName, bidsCount, createdAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, t);
     }
   }
 };

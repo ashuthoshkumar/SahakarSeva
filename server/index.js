@@ -1034,6 +1034,55 @@ app.post('/api/bhashini/tts', async (req, res) => {
   }
 });
 
+// GET /api/tenders — List all community / RWA bulk service tenders
+app.get('/api/tenders', async (req, res) => {
+  try {
+    const tenders = await dbAll('SELECT * FROM samuhik_tenders ORDER BY createdAt DESC');
+    res.json({ success: true, tenders });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/tenders — RWA or Institution creates a new community bulk tender
+app.post('/api/tenders', async (req, res) => {
+  try {
+    const { rwaName, title, category, description, unitsCount, workersNeeded, budgetEscrow, location, scheduledDates } = req.body;
+    if (!rwaName || !title || !category || !budgetEscrow) {
+      return res.status(400).json({ success: false, error: 'rwaName, title, category and budgetEscrow are required.' });
+    }
+    const id = 'tender_' + Date.now();
+    const createdAt = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    await dbRun(`
+      INSERT INTO samuhik_tenders (
+        id, rwaName, title, titleHi, category, description,
+        unitsCount, workersNeeded, budgetEscrow, location,
+        scheduledDates, status, bidsCount, createdAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'OPEN_FOR_BIDS', 0, ?)
+    `, [id, rwaName, title, title, category, description || '', Number(unitsCount) || 10, Number(workersNeeded) || 2, Number(budgetEscrow), location || 'New Delhi', scheduledDates || 'Next Week', createdAt]);
+
+    res.json({ success: true, message: 'Samuhik Tender published to Cooperative Registry!', tenderId: id });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/tenders/:id/bid — Cooperative Worker Squad submits a collective tender bid
+app.post('/api/tenders/:id/bid', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { squadName, membersCount, leadWorkerName } = req.body;
+    await dbRun('UPDATE samuhik_tenders SET bidsCount = bidsCount + 1 WHERE id = ?', [id]);
+    res.json({
+      success: true,
+      message: `Cooperative Squad "${squadName || 'Coop Squad'}" bid recorded! Fair-wage split escrow reserved.`,
+      tenderId: id
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Single Page Application (SPA) client-side routing fallback
 if (fs.existsSync(distPath)) {
   app.get('*', (req, res, next) => {

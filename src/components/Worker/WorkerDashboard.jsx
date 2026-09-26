@@ -17,6 +17,7 @@ import { NcctAcademyModal } from './NcctAcademyModal';
 import { MaterialCreditModal } from './MaterialCreditModal';
 import { SurakshaBandhuModal } from './SurakshaBandhuModal';
 import { SahakarToolDepotModal } from './SahakarToolDepotModal';
+import { SamuhikTendersModal } from './SamuhikTendersModal';
 import { WorkerNavigationMap } from './WorkerNavigationMap';
 import { CrossLanguageChatModal } from '../Common/CrossLanguageChatModal';
 import { bhashiniSpeakText, bhashiniStopSpeaking } from '../../services/bhashiniService';
@@ -33,6 +34,7 @@ export const WorkerDashboard = () => {
   const [isMaterialCreditOpen, setIsMaterialCreditOpen] = useState(false);
   const [isSosOpen, setIsSosOpen] = useState(false);
   const [isToolDepotOpen, setIsToolDepotOpen] = useState(false);
+  const [isTendersOpen, setIsTendersOpen] = useState(false);
   const [selectedJobForSos, setSelectedJobForSos] = useState(null);
   const [activeSosData, setActiveSosData] = useState(null);
   const [chatBooking, setChatBooking] = useState(null);
@@ -668,7 +670,37 @@ export const WorkerDashboard = () => {
             </button>
           </div>
 
-          {/* 3. MATERIAL MICRO-CREDIT CARD */}
+          {/* 3. SAMUHIK SEVA TENDERS (COMMUNITY BULK CONTRACTS) */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 hover:border-cyan-400 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-cyan-800 bg-cyan-50 px-2.5 py-0.5 rounded-full border border-cyan-200">
+                Community Bulk Tenders
+              </span>
+              <span className="text-[11px] font-bold text-cyan-600">0% Subcontractor Cut</span>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-cyan-600" />
+                <h4 className="text-sm font-black text-slate-900">
+                  {lang === 'hi' ? 'सामूहिक सेवा टेंडर (RWA ठेके)' : 'Samuhik Seva Tenders'}
+                </h4>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Form 3–5 artisan cooperative squads to bid directly on RWA apartment society maintenance contracts. 90% direct fair wage escrow.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsTendersOpen(true)}
+              className="w-full py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+            >
+              <Users className="w-4 h-4" />
+              <span>{lang === 'hi' ? 'सामूहिक टेंडर देखें (Squad Bids)' : 'Explore RWA Bulk Tenders'}</span>
+            </button>
+          </div>
+
+          {/* 4. MATERIAL MICRO-CREDIT CARD */}
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 hover:border-teal-300 transition-all">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
@@ -776,6 +808,11 @@ export const WorkerDashboard = () => {
         onRentalConfirmed={(rental) => {
           addNotification(`PACS Tool Gate Pass created for ${rental.toolName}! Saved ₹${rental.savings}.`, 'success');
         }}
+      />
+      <SamuhikTendersModal
+        isOpen={isTendersOpen}
+        onClose={() => setIsTendersOpen(false)}
+        workerProfile={workerStats}
       />
       <CrossLanguageChatModal isOpen={Boolean(chatBooking)} onClose={() => setChatBooking(null)} booking={chatBooking} />
 
