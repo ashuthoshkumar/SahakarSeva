@@ -176,6 +176,7 @@ export const AiSahayakModal = ({ isOpen, onClose }) => {
   const [speechSupported, setSpeechSupported] = useState(false);
   const [diagnosticResult, setDiagnosticResult] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
   const recognitionRef = useRef(null);
 
   // Setup Web Speech Recognition
@@ -207,6 +208,21 @@ export const AiSahayakModal = ({ isOpen, onClose }) => {
     }
   }, [lang]);
 
+  // Clean up audio on unmount or when modal closes
+  useEffect(() => {
+    return () => {
+      bhashiniStopSpeaking();
+    };
+  }, []);
+
+  // Stop audio whenever modal is closed
+  useEffect(() => {
+    if (!isOpen) {
+      bhashiniStopSpeaking();
+      setIsSpeaking(false);
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const toggleListening = () => {
@@ -227,14 +243,6 @@ export const AiSahayakModal = ({ isOpen, onClose }) => {
       }
     }
   };
-
-  const [isSpeaking, setIsSpeaking] = useState(false);
-
-  useEffect(() => {
-    return () => {
-      bhashiniStopSpeaking();
-    };
-  }, []);
 
   const handleRunDiagnosis = async (text) => {
     const targetText = text || inputQuery;
