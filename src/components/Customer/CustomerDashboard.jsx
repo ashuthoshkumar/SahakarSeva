@@ -9,7 +9,8 @@ import { SurakshaKavachModal } from './SurakshaKavachModal';
 import { useAuth } from '../../context/AuthContext';
 import { 
   Search, MapPin, HeartHandshake, AlertTriangle, Navigation, 
-  X, Sparkles, Mic, ShieldCheck, ArrowRight, CheckCircle2, Calendar 
+  X, Sparkles, Mic, ShieldCheck, ArrowRight, CheckCircle2, Calendar,
+  RefreshCw
 } from 'lucide-react';
 import { translateCategory, translateWorkerName } from '../../utils/translateHelpers';
 
@@ -26,12 +27,23 @@ export const CustomerDashboard = ({ setActiveTab }) => {
     bookings,
     setSelectedBooking,
     setInvoiceModalOpen,
-    setPaymentModalOpen
+    setPaymentModalOpen,
+    syncNow
   } = useApp();
 
   const { t, lang } = useLanguage();
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isSurakshaOpen, setIsSurakshaOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    try {
+      if (syncNow) await syncNow();
+    } finally {
+      setTimeout(() => setIsSyncing(false), 800);
+    }
+  };
 
   // Only show bookings that belong to this customer
   const myCustomerBookings = user?.phone
@@ -60,8 +72,19 @@ export const CustomerDashboard = ({ setActiveTab }) => {
               </p>
             </div>
 
-            {/* Header Action Buttons: My Bookings & AI Sahayak */}
+            {/* Header Action Buttons: My Bookings, AI Sahayak & Live Sync */}
             <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto shrink-0">
+              <button
+                type="button"
+                onClick={handleManualSync}
+                disabled={isSyncing}
+                title="Refresh workers from cloud database across all devices"
+                className="px-3.5 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white font-extrabold text-xs rounded-2xl shadow-md transition-all flex items-center gap-1.5 active:scale-95 cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-teal-400 ${isSyncing ? 'animate-spin' : ''}`} />
+                <span>{isSyncing ? 'Syncing...' : 'Live Sync'}</span>
+              </button>
+
               <button
                 onClick={() => {
                   if (setActiveTab) setActiveTab('bookings');
@@ -120,12 +143,14 @@ export const CustomerDashboard = ({ setActiveTab }) => {
                   onChange={(e) => setRadiusKm(Number(e.target.value))}
                   className="bg-transparent focus:outline-none text-xs font-black text-teal-300 cursor-pointer w-full"
                 >
-                  <option value={2} className="text-slate-900">2 km</option>
                   <option value={5} className="text-slate-900">5 km</option>
                   <option value={10} className="text-slate-900">10 km</option>
                   <option value={20} className="text-slate-900">20 km</option>
                   <option value={50} className="text-slate-900">50 km</option>
                   <option value={100} className="text-slate-900">100 km</option>
+                  <option value={250} className="text-slate-900">250 km</option>
+                  <option value={500} className="text-slate-900">500 km</option>
+                  <option value={5000} className="text-slate-900">All India (Nationwide)</option>
                 </select>
               </div>
             </div>

@@ -526,12 +526,12 @@ app.get('/api/workers', async (req, res) => {
       };
     });
 
-    // Spatial Radius Filter
-    let filteredWorkers = workers.filter((w) => w.distanceKm <= maxRadius);
+    // Spatial Radius Filter (>= 1000km treated as All-India Nationwide mode)
+    let filteredWorkers = (maxRadius >= 1000) ? workers : workers.filter((w) => w.distanceKm <= maxRadius);
 
-    // If radius is too tight and no workers match, still provide closest workers rather than an empty screen
+    // If radius is too tight and no workers match, still provide all available registered workers rather than an empty screen
     if (filteredWorkers.length === 0 && workers.length > 0) {
-      filteredWorkers = [...workers].sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 10);
+      filteredWorkers = [...workers].sort((a, b) => a.distanceKm - b.distanceKm);
     }
 
     workers = filteredWorkers;

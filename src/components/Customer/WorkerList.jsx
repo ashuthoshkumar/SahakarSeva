@@ -43,7 +43,7 @@ export const WorkerList = () => {
       (w.societyName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       (w.category || '').toLowerCase().includes(searchQuery.toLowerCase());
     const workerDist = (w.distanceKm !== undefined && !isNaN(w.distanceKm)) ? w.distanceKm : 0;
-    const matchesRadius = workerDist <= radiusKm;
+    const matchesRadius = radiusKm >= 1000 || workerDist <= radiusKm;
     return matchesCategory && matchesSearch && matchesRadius;
   });
 

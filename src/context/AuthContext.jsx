@@ -10,6 +10,7 @@ import {
 import {
   pushCloudAccount,
   pushCloudWorker,
+  getSavedBackendUrl,
 } from '../utils/cloudSync';
 
 const AuthContext = createContext();
@@ -130,7 +131,7 @@ const fetchWithTimeout = (url, options = {}, timeoutMs = 3000) => {
 const safeFetchJson = async (endpoint, options = {}) => {
   const cleanEndpoint = endpoint.startsWith('/api') ? endpoint : `/api${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
 
-  // 1. Try relative endpoint first (proxied by Vite in dev to :5050 in <5ms, same-origin in prod)
+  // 1. Try relative endpoint first (proxied by Vite in dev to :5050 in <5ms, or reverse-proxied by Vercel in prod)
   try {
     const res = await fetchWithTimeout(cleanEndpoint, options, 3000);
     const contentType = res.headers.get('content-type');
@@ -138,23 +139,32 @@ const safeFetchJson = async (endpoint, options = {}) => {
       const json = await res.json();
       return { ...json, httpStatus: res.status };
     }
-    if (res.ok) {
-      return { success: true, httpStatus: res.status };
-    }
-  } catch (err) {
-    // Relative request failed (e.g. standalone file or mobile APK without proxy) -> try localhost direct
+  } catch (err) {}
+
+  // 2. Try configured backend (Render production backend or custom URL)
+  const backendBase = getSavedBackendUrl();
+  if (backendBase && backendBase !== '/api') {
     try {
-      const res = await fetchWithTimeout(`http://localhost:5050${cleanEndpoint}`, options, 3000);
+      const pathSuffix = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      const url = `${backendBase}${pathSuffix.startsWith('/api') ? pathSuffix.slice(4) : pathSuffix}`;
+      const res = await fetchWithTimeout(url, options, 3500);
       const contentType = res.headers.get('content-type');
       if (contentType && contentType.includes('application/json')) {
         const json = await res.json();
         return { ...json, httpStatus: res.status };
       }
-      if (res.ok) {
-        return { success: true, httpStatus: res.status };
-      }
     } catch (e2) {}
   }
+
+  // 3. Fallback to direct local development server
+  try {
+    const res = await fetchWithTimeout(`http://localhost:5050${cleanEndpoint}`, options, 2500);
+    const contentType = res.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const json = await res.json();
+      return { ...json, httpStatus: res.status };
+    }
+  } catch (e3) {}
 
   return { success: false, offlineFallback: true };
 };

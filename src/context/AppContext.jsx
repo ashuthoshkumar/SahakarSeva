@@ -356,12 +356,22 @@ export const AppProvider = ({ children }) => {
     Promise.all([fetchWorkers(), fetchBookings(), fetchSocieties(), fetchPlatformStats(), fetchCategoryCounts()]).then(() => setLoading(false));
   }, [userCoords, selectedCategory, searchQuery, radiusKm]);
 
+  // Real-time Cross-Device sync: poll workers & bookings every 8s silently
+  useEffect(() => {
+    if (!userCoords) return;
+    const poller = setInterval(() => {
+      fetchWorkers();
+      fetchBookings();
+    }, 8000);
+    return () => clearInterval(poller);
+  }, [userCoords, selectedCategory, searchQuery, radiusKm]);
+
   // ─── Manual Refresh Action ───
   const syncNow = async () => {
-    addNotification('Refreshing live data...', 'info');
+    addNotification('Refreshing live workers from cloud database...', 'info');
     await fetchWorkers();
     await fetchBookings();
-    addNotification('Refreshed successfully!', 'success');
+    addNotification('Latest workers & bookings synced!', 'success');
   };
 
   // ─── Add a new registered worker to the dynamic pool & broadcast to cloud ───
