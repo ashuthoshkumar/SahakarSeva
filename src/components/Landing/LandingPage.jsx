@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useApp } from '../../context/AppContext';
 import { 
   ShieldCheck, Zap, ArrowRight, UserCheck, Wrench, 
   Hammer, HeartHandshake, ChefHat, Tv, AlertTriangle, 
-  CheckCircle2, Clock, Search, MapPin
+  CheckCircle2, Clock, Search, MapPin, Paintbrush,
+  Car, Flower2, Sparkles, Star, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { translateCategory } from '../../utils/translateHelpers';
 import { SERVICE_CATEGORIES } from '../../data/mockData';
@@ -14,6 +15,7 @@ export const LandingPage = ({ setActiveTab }) => {
   const { openAuthModal } = useAuth();
   const { t } = useLanguage();
   const { setSelectedCategory, setEmergencyModalOpen, workers } = useApp();
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
   const iconMap = {
     electrician: Zap,
@@ -22,6 +24,10 @@ export const LandingPage = ({ setActiveTab }) => {
     caregiver: HeartHandshake,
     domestic_helper: ChefHat,
     technician: Tv,
+    painter: Paintbrush,
+    driver: Car,
+    gardener: Flower2,
+    cleaner: Sparkles,
   };
 
   const handleCategorySelect = (catId) => {
@@ -138,44 +144,104 @@ export const LandingPage = ({ setActiveTab }) => {
             </h2>
           </div>
           <button
-            onClick={() => {
-              setSelectedCategory('all');
-              if (setActiveTab) setActiveTab('home');
-            }}
-            className="text-xs font-bold text-teal-700 hover:text-teal-800 flex items-center gap-1 cursor-pointer"
+            type="button"
+            onClick={() => setShowAllCategories(!showAllCategories)}
+            className="text-xs font-bold text-teal-700 hover:text-teal-800 flex items-center gap-1.5 cursor-pointer bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-xl border border-teal-200 transition-colors"
           >
-            <span>{t('viewAllCategories')}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <span>{showAllCategories ? 'Show Top 6 Services' : t('viewAllCategories')}</span>
+            {showAllCategories ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {SERVICE_CATEGORIES.slice(0, 6).map((cat) => {
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {(showAllCategories ? SERVICE_CATEGORIES : SERVICE_CATEGORIES.slice(0, 6)).map((cat) => {
             const Icon = iconMap[cat.id] || Wrench;
             const categoryDesc = t(`cat_${cat.id}_desc`) !== `cat_${cat.id}_desc` ? t(`cat_${cat.id}_desc`) : cat.desc;
+            
+            // Find live registered worker in this category if available
+            const categoryWorker = (workers || []).find((w) => w.category === cat.id) || {
+              name: cat.workerName,
+              photo: cat.workerPhoto,
+              rating: 4.9,
+              hourlyRate: 320
+            };
+
             return (
               <div
                 key={cat.id}
                 onClick={() => handleCategorySelect(cat.id)}
-                className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+                className="bg-white rounded-3xl border border-slate-200 hover:border-teal-500/50 p-4 sm:p-5 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col justify-between overflow-hidden relative transform hover:-translate-y-1"
               >
                 <div>
-                  <div className="p-3 rounded-2xl bg-teal-50 text-teal-700 w-fit mb-3 group-hover:bg-teal-600 group-hover:text-white transition-colors">
-                    <Icon className="w-5 h-5" />
+                  {/* Photo of Worker / Trade in Action */}
+                  <div className="relative w-full h-44 sm:h-48 rounded-2xl overflow-hidden bg-slate-100 mb-4 shadow-inner">
+                    <img
+                      src={cat.image || cat.workerPhoto}
+                      alt={translateCategory(cat.id, t)}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src = cat.workerPhoto || 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=600';
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/30 to-transparent" />
+
+                    {/* Trade Category Icon Badge */}
+                    <div className="absolute top-3 left-3 px-2.5 py-1 rounded-xl bg-slate-900/80 backdrop-blur-md text-white border border-white/20 flex items-center gap-1.5 shadow-md">
+                      <Icon className="w-3.5 h-3.5 text-teal-400" />
+                      <span className="text-[11px] font-black uppercase tracking-wider text-teal-300">
+                        {translateCategory(cat.id, t)}
+                      </span>
+                    </div>
+
+                    {/* Representative Worker Card Overlay */}
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white">
+                      <div className="flex items-center gap-2 bg-slate-900/85 backdrop-blur-md py-1.5 px-2.5 rounded-xl border border-white/10 shadow-lg max-w-[85%]">
+                        <img
+                          src={categoryWorker.photo || cat.workerPhoto}
+                          alt={categoryWorker.name || cat.workerName}
+                          className="w-7 h-7 rounded-full object-cover border-2 border-teal-400 shrink-0"
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=250';
+                          }}
+                        />
+                        <div className="truncate">
+                          <p className="text-xs font-bold text-white truncate leading-none">
+                            {categoryWorker.name || cat.workerName}
+                          </p>
+                          <p className="text-[10px] text-teal-300 font-medium leading-none mt-1 flex items-center gap-1">
+                            <Star className="w-2.5 h-2.5 fill-teal-400 text-teal-400 inline" />
+                            <span>{categoryWorker.rating || 4.9}</span>
+                            <span className="text-slate-400">•</span>
+                            <span className="text-slate-300">Verified Pro</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 ring-4 ring-emerald-400/30 animate-pulse shrink-0" title="Active on duty" />
+                    </div>
                   </div>
+
+                  {/* Text Details */}
                   <h3 className="font-extrabold text-base text-slate-900 group-hover:text-teal-700 transition-colors">
                     {translateCategory(cat.id, t)}
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                  <p className="text-xs text-slate-500 mt-1 leading-relaxed line-clamp-2">
                     {categoryDesc}
                   </p>
                 </div>
 
+                {/* Footer with Fair Wage Floor & Action */}
                 <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-400">{t('directBooking')}</span>
-                  <button className="px-3 py-1.5 bg-slate-100 group-hover:bg-teal-600 group-hover:text-white text-slate-700 font-bold text-xs rounded-xl transition-colors flex items-center gap-1">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">{t('directBooking')}</span>
+                    <span className="text-xs font-black text-slate-800">
+                      ₹{categoryWorker.hourlyRate || 320}/hr <span className="text-[10px] font-normal text-slate-400">fair floor</span>
+                    </span>
+                  </div>
+                  <button className="px-3.5 py-1.5 bg-slate-100 group-hover:bg-teal-600 group-hover:text-white text-slate-800 font-bold text-xs rounded-xl transition-all shadow-sm flex items-center gap-1.5">
                     <span>{t('select')}</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                   </button>
                 </div>
               </div>
