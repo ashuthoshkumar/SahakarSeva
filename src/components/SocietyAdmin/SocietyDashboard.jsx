@@ -5,8 +5,10 @@ import { useLanguage } from '../../context/LanguageContext';
 import { 
   Building2, UserCheck, ShieldCheck, DollarSign, Award, CheckCircle2, 
   XCircle, ShieldAlert, Radio, Phone, Wrench, AlertTriangle, 
-  Sparkles, MapPin, QrCode 
+  Sparkles, MapPin, QrCode, Vote, Link2, Users 
 } from 'lucide-react';
+import { SahakariSabhaModal } from '../Common/SahakariSabhaModal';
+import { NyayaPramaanModal } from '../Common/NyayaPramaanModal';
 
 export const SocietyDashboard = () => {
   const { workers, societies, approveWorkerKYC, updateSocietyWageFloor, addNotification } = useApp();
@@ -16,6 +18,8 @@ export const SocietyDashboard = () => {
   const [pendingWorkers, setPendingWorkers] = useState([]);
   const [loadingPending, setLoadingPending] = useState(true);
   const [activeSos, setActiveSos] = useState(null);
+  const [isSabhaOpen, setIsSabhaOpen] = useState(false);
+  const [isNyayaOpen, setIsNyayaOpen] = useState(false);
 
   // Monitor live Suraksha Bandhu SOS signals
   useEffect(() => {
@@ -391,6 +395,48 @@ export const SocietyDashboard = () => {
           </table>
         </div>
       </div>
+
+      {/* Sahakari Sabha & Nyaya Pramaan Quick Access */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-8">
+        <button
+          onClick={() => setIsSabhaOpen(true)}
+          className="bg-gradient-to-r from-purple-50 to-indigo-50 border-2 border-purple-200 rounded-2xl p-6 text-left hover:shadow-lg hover:border-purple-400 transition-all group"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+              <Vote className="w-5 h-5 text-purple-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-purple-900">सहकारी सभा — Sahakari Sabha</h3>
+              <p className="text-xs text-purple-600">Democratic Cooperative Governance Portal</p>
+            </div>
+          </div>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            Monitor and participate in cooperative resolutions. Review voting trends, enforce passed policies, and ensure ICA Principle #2 compliance.
+          </p>
+        </button>
+
+        <button
+          onClick={() => setIsNyayaOpen(true)}
+          className="bg-gradient-to-r from-teal-50 to-cyan-50 border-2 border-teal-200 rounded-2xl p-6 text-left hover:shadow-lg hover:border-teal-400 transition-all group"
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-teal-100 flex items-center justify-center">
+              <Link2 className="w-5 h-5 text-teal-600" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-teal-900">न्याय प्रमाण — Nyaya Pramaan</h3>
+              <p className="text-xs text-teal-600">Immutable Fair Wage Proof Chain</p>
+            </div>
+          </div>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            SHA-256 Merkle hash chain of all cooperative wage payments. Tamper-evident, publicly verifiable, and fully transparent.
+          </p>
+        </button>
+      </div>
+
+      <SahakariSabhaModal isOpen={isSabhaOpen} onClose={() => setIsSabhaOpen(false)} />
+      <NyayaPramaanModal isOpen={isNyayaOpen} onClose={() => setIsNyayaOpen(false)} />
     </div>
   );
 };

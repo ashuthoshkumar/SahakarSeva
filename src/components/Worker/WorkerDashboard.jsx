@@ -20,6 +20,8 @@ import { SahakarToolDepotModal } from './SahakarToolDepotModal';
 import { SamuhikTendersModal } from './SamuhikTendersModal';
 import { WorkerNavigationMap } from './WorkerNavigationMap';
 import { CrossLanguageChatModal } from '../Common/CrossLanguageChatModal';
+import { SahakariSabhaModal } from '../Common/SahakariSabhaModal';
+import { NyayaPramaanModal } from '../Common/NyayaPramaanModal';
 import { bhashiniSpeakText, bhashiniStopSpeaking } from '../../services/bhashiniService';
 
 export const WorkerDashboard = () => {
@@ -39,6 +41,8 @@ export const WorkerDashboard = () => {
   const [activeSosData, setActiveSosData] = useState(null);
   const [chatBooking, setChatBooking] = useState(null);
   const [activeAudioBookingId, setActiveAudioBookingId] = useState(null);
+  const [isSabhaOpen, setIsSabhaOpen] = useState(false);
+  const [isNyayaOpen, setIsNyayaOpen] = useState(false);
   const fileInputRefs = useRef({});
 
   // Monitor active SOS status
@@ -787,6 +791,62 @@ export const WorkerDashboard = () => {
             </button>
           </div>
 
+          {/* 6. SAHAKARI SABHA — Democratic Voting */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 hover:border-purple-300 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
+                ICA Principle #2
+              </span>
+              <span className="text-[11px] font-bold text-purple-600">One Member, One Vote</span>
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-purple-600" />
+                <h4 className="text-sm font-black text-slate-900">
+                  {lang === 'hi' ? 'सहकारी सभा — लोकतांत्रिक मतदान' : 'Sahakari Sabha — Democratic Voting'}
+                </h4>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Vote on cooperative policies, wage floor changes, safety mandates. Your voice shapes the platform.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsSabhaOpen(true)}
+              className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+            >
+              <Users className="w-4 h-4" />
+              <span>{lang === 'hi' ? 'सभा में मतदान करें' : 'Enter Sabha — Cast Your Vote'}</span>
+            </button>
+          </div>
+
+          {/* 7. NYAYA PRAMAAN — Fair Wage Proof Chain */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 hover:border-teal-300 transition-all">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
+                Transparency Ledger
+              </span>
+              <span className="text-[11px] font-bold text-teal-600">SHA-256 Verified</span>
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-teal-600" />
+                <h4 className="text-sm font-black text-slate-900">
+                  {lang === 'hi' ? 'न्याय प्रमाण — वेतन प्रमाण शृंखला' : 'Nyaya Pramaan — Wage Proof Chain'}
+                </h4>
+              </div>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Every rupee you earn is cryptographically sealed. Verify your wage payments are correctly recorded and tamper-proof.
+              </p>
+            </div>
+            <button
+              onClick={() => setIsNyayaOpen(true)}
+              className="w-full py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>{lang === 'hi' ? 'वेतन प्रमाण शृंखला देखें' : 'View Wage Proof Chain'}</span>
+            </button>
+          </div>
+
         </div>
 
       </div>
@@ -815,6 +875,8 @@ export const WorkerDashboard = () => {
         workerProfile={workerStats}
       />
       <CrossLanguageChatModal isOpen={Boolean(chatBooking)} onClose={() => setChatBooking(null)} booking={chatBooking} />
+      <SahakariSabhaModal isOpen={isSabhaOpen} onClose={() => setIsSabhaOpen(false)} />
+      <NyayaPramaanModal isOpen={isNyayaOpen} onClose={() => setIsNyayaOpen(false)} />
 
     </div>
   );

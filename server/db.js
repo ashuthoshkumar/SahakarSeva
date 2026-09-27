@@ -293,4 +293,94 @@ export const initDB = async () => {
       `, t);
     }
   }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // SAHAKARI SABHA — Democratic Cooperative Voting System (ICA Principle #2)
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // Proposals Table
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS sabha_proposals (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      category TEXT DEFAULT 'general',
+      proposedBy TEXT,
+      proposedByName TEXT,
+      status TEXT DEFAULT 'ACTIVE',
+      createdAt TEXT NOT NULL
+    );
+  `);
+
+  // Votes Table (One-member-one-vote enforced)
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS sabha_votes (
+      id TEXT PRIMARY KEY,
+      proposalId TEXT NOT NULL,
+      voterId TEXT NOT NULL,
+      vote INTEGER NOT NULL,
+      createdAt TEXT NOT NULL,
+      UNIQUE(proposalId, voterId),
+      FOREIGN KEY (proposalId) REFERENCES sabha_proposals(id)
+    );
+  `);
+
+  // Seed initial demo proposals if empty
+  const proposalCount = await dbGet('SELECT COUNT(*) as count FROM sabha_proposals');
+  if (proposalCount.count === 0) {
+    console.log('Seeding Sahakari Sabha democratic proposals...');
+    const seedProposals = [
+      [
+        'proposal_seed_1',
+        'Raise Minimum Cooperative Wage Floor from ₹300/hr to ₹380/hr',
+        'As per the rising cost of living index and the government\'s revised minimum wage notification (2026), this resolution proposes increasing the cooperative minimum hourly wage from ₹300 to ₹380 for all NCCT-certified workers. This ensures that every artisan earns a livable wage while maintaining competitive pricing for customers. The 5% welfare contribution will be maintained at the new rate.',
+        'wage_policy',
+        'usr_wrk_1',
+        'Ramesh Sharma (Worker Representative)',
+        'ACTIVE',
+        new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      ],
+      [
+        'proposal_seed_2',
+        'Mandate Safety Helmets for All Electrical & Height Work Above 3m',
+        'This safety resolution mandates that all cooperative electricians and painters working above 3 meters must wear ISI-certified safety helmets (IS 2925:2020). The cooperative society will procure 200 helmets from the PACS Equipment Depot at ₹450 each. Workers without helmets will not be dispatched to height-based jobs. This protects our workers and reduces accident claims.',
+        'safety',
+        'usr_soc_1',
+        'Delhi Coop Admin (Society Admin)',
+        'ACTIVE',
+        new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+      ],
+      [
+        'proposal_seed_3',
+        'Add Women\'s Night Shift Safety Protocol with Mandatory GPS Tracking',
+        'To protect women cooperative workers (caregivers, domestic helpers) during night shifts (7 PM - 7 AM), this resolution proposes: (a) mandatory real-time GPS sharing with the society vigilance desk, (b) auto-trigger Suraksha Bandhu SOS if worker doesn\'t check-in every 45 minutes, (c) priority dispatch of nearby male cooperative peer escorts when requested.',
+        'safety',
+        'usr_wrk_1',
+        'Sunita Devi (Women Worker Representative)',
+        'ACTIVE',
+        new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+      ]
+    ];
+
+    for (const p of seedProposals) {
+      await dbRun(`
+        INSERT INTO sabha_proposals (id, title, description, category, proposedBy, proposedByName, status, createdAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, p);
+    }
+
+    // Seed some demo votes for realism
+    const demoVotes = [
+      ['vote_seed_1', 'proposal_seed_1', 'usr_wrk_1', 1, new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000).toISOString()],
+      ['vote_seed_2', 'proposal_seed_1', 'usr_cust_1', 1, new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()],
+      ['vote_seed_3', 'proposal_seed_2', 'usr_wrk_1', 1, new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()],
+      ['vote_seed_4', 'proposal_seed_3', 'usr_wrk_1', 1, new Date(Date.now() - 0.5 * 24 * 60 * 60 * 1000).toISOString()],
+      ['vote_seed_5', 'proposal_seed_3', 'usr_soc_1', 1, new Date(Date.now() - 0.3 * 24 * 60 * 60 * 1000).toISOString()],
+    ];
+    for (const v of demoVotes) {
+      try {
+        await dbRun('INSERT INTO sabha_votes (id, proposalId, voterId, vote, createdAt) VALUES (?, ?, ?, ?, ?)', v);
+      } catch (e) {} // ignore duplicates
+    }
+  }
 };

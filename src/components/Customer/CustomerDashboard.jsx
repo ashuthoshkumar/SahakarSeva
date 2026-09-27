@@ -10,9 +10,10 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   Search, MapPin, HeartHandshake, AlertTriangle, Navigation, 
   X, Sparkles, Mic, ShieldCheck, ArrowRight, CheckCircle2, Calendar,
-  RefreshCw
+  RefreshCw, Link2
 } from 'lucide-react';
 import { translateCategory, translateWorkerName } from '../../utils/translateHelpers';
+import { NyayaPramaanModal } from '../Common/NyayaPramaanModal';
 
 export const CustomerDashboard = ({ setActiveTab }) => {
   const { user } = useAuth();
@@ -34,6 +35,7 @@ export const CustomerDashboard = ({ setActiveTab }) => {
   const { t, lang } = useLanguage();
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const [isSurakshaOpen, setIsSurakshaOpen] = useState(false);
+  const [isNyayaOpen, setIsNyayaOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
   const handleManualSync = async () => {
@@ -353,6 +355,14 @@ export const CustomerDashboard = ({ setActiveTab }) => {
                 <span><strong>Suraksha Bandhu Protected:</strong> Zero-harassment workplace standard backed by local society vigilance and rapid peer solidarity mesh.</span>
               </li>
             </ul>
+
+            <button
+              onClick={() => setIsNyayaOpen(true)}
+              className="w-full mt-2 py-2 text-xs font-bold text-emerald-800 border border-emerald-300 rounded-xl bg-white hover:bg-emerald-100 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Link2 className="w-3.5 h-3.5" />
+              Verify Fair Wage Ledger (Nyaya Pramaan)
+            </button>
           </div>
 
         </div>
@@ -364,6 +374,9 @@ export const CustomerDashboard = ({ setActiveTab }) => {
 
       {/* Suraksha Kavach Modal Dialog */}
       <SurakshaKavachModal isOpen={isSurakshaOpen} onClose={() => setIsSurakshaOpen(false)} />
+
+      {/* Nyaya Pramaan Modal Dialog */}
+      <NyayaPramaanModal isOpen={isNyayaOpen} onClose={() => setIsNyayaOpen(false)} />
 
     </div>
   );

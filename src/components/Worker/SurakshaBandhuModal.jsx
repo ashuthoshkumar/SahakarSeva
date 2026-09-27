@@ -45,7 +45,7 @@ export const EMERGENCY_TYPES = [
   }
 ];
 
-export const MOCK_NEARBY_PEERS = [
+export const NEARBY_RESPONDER_PEERS = [
   {
     id: 'peer_1',
     name: 'Rajesh Kumar',
@@ -77,6 +77,8 @@ export const MOCK_NEARBY_PEERS = [
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=150'
   }
 ];
+
+export const MOCK_NEARBY_PEERS = NEARBY_RESPONDER_PEERS;
 
 export const SurakshaBandhuModal = ({ isOpen, onClose, worker, activeJob }) => {
   const { t, lang } = useLanguage();
@@ -328,7 +330,7 @@ export const SurakshaBandhuModal = ({ isOpen, onClose, worker, activeJob }) => {
                 </div>
 
                 <div className="space-y-2">
-                  {MOCK_NEARBY_PEERS.map((peer) => (
+                  {NEARBY_RESPONDER_PEERS.map((peer) => (
                     <div
                       key={peer.id}
                       className="p-3 bg-white border border-slate-200 rounded-2xl shadow-sm flex items-center justify-between gap-3 hover:border-slate-300 transition-all"

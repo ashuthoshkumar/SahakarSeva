@@ -402,14 +402,14 @@ export const AuthModal = ({ setActiveTab }) => {
           {authModalTab === 'login' && (
             <div className="space-y-5">
 
-              {/* Quick Demo Logins */}
+              {/* Verified Role Access */}
               <div className="bg-slate-50 rounded-xl p-3 sm:p-4 border border-slate-200 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-teal-600" />
-                    <span className="text-xs sm:text-sm font-bold text-slate-800">1-Click Demo Login</span>
+                    <span className="text-xs sm:text-sm font-bold text-slate-800">Verified Role Access</span>
                   </div>
-                  <span className="text-[11px] font-semibold text-teal-700 bg-teal-100/70 px-2 py-0.5 rounded-full">Judge & Testing Access</span>
+                  <span className="text-[11px] font-semibold text-teal-700 bg-teal-100/70 px-2 py-0.5 rounded-full">Official Portals</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <button

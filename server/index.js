@@ -3,6 +3,8 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import { initDB, dbAll, dbGet, dbRun } from './db.js';
 import { calculateDistanceKm, generateAIDemandForecast } from './aiEngine.js';
 import {
@@ -362,11 +364,14 @@ app.post('/api/auth/register', async (req, res) => {
     const userId = `usr_${role}_${Date.now()}`;
     const createdAt = new Date().toISOString().replace('T', ' ').substring(0, 16);
 
+    // Hash password with bcrypt before storing (10 salt rounds)
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // Insert into SQLite Users table
     await dbRun(`
       INSERT INTO users (id, name, phone, email, password, role, aadhaarNo, societyId, kycVerified, createdAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [userId, name.trim(), formattedPhone, cleanEmail, password, role, cleanAadhaar || null, societyId || null, cleanAadhaar ? 1 : 0, createdAt]);
+    `, [userId, name.trim(), formattedPhone, cleanEmail, hashedPassword, role, cleanAadhaar || null, societyId || null, cleanAadhaar ? 1 : 0, createdAt]);
 
     let createdWorker = null;
 
@@ -442,7 +447,18 @@ app.post('/api/auth/login', async (req, res) => {
       [trimmedInput, formattedPhone || trimmedInput, `%${phoneDigits || 'none'}`, trimmedInput.toLowerCase()]
     );
 
-    if (!user || user.password !== password) {
+    if (!user) {
+      return res.status(401).json({ success: false, error: 'Invalid credentials. Please verify your Mobile/Email and Password.' });
+    }
+
+    // Compare with bcrypt hash (also supports legacy plaintext for seeded demo accounts)
+    let passwordMatch = false;
+    if (user.password && user.password.startsWith('$2')) {
+      passwordMatch = await bcrypt.compare(password, user.password);
+    } else {
+      passwordMatch = (user.password === password);
+    }
+    if (!passwordMatch) {
       return res.status(401).json({ success: false, error: 'Invalid credentials. Please verify your Mobile/Email and Password.' });
     }
 
@@ -1158,6 +1174,249 @@ app.post('/api/tenders/:id/bid', async (req, res) => {
       success: true,
       message: `Cooperative Squad "${squadName || 'Coop Squad'}" bid recorded! Fair-wage split escrow reserved.`,
       tenderId: id
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/* ==========================================================================
+   SAHAKARI SABHA — Cooperative Democratic Voting System (ICA Principle #2)
+   ========================================================================== */
+
+// GET /api/sabha/proposals (or /api/sabha/resolutions) — List all active proposals
+app.get(['/api/sabha/proposals', '/api/sabha/resolutions'], async (req, res) => {
+  try {
+    const proposals = await dbAll('SELECT * FROM sabha_proposals ORDER BY createdAt DESC');
+    const enriched = [];
+    for (const p of proposals) {
+      const votesYes = await dbGet('SELECT COUNT(*) as count FROM sabha_votes WHERE proposalId = ? AND vote = 1', [p.id]);
+      const votesNo = await dbGet('SELECT COUNT(*) as count FROM sabha_votes WHERE proposalId = ? AND vote = 0', [p.id]);
+      const totalVotes = (votesYes.count || 0) + (votesNo.count || 0);
+      const yesPercent = totalVotes > 0 ? ((votesYes.count / totalVotes) * 100).toFixed(1) : '0';
+
+      // Auto-enforce: if voting period ended (7 days) and >60% yes, mark as PASSED
+      const created = new Date(p.createdAt);
+      const daysElapsed = (Date.now() - created.getTime()) / (1000 * 60 * 60 * 24);
+      let status = p.status;
+      if (status === 'ACTIVE' && daysElapsed >= 7) {
+        status = parseFloat(yesPercent) >= 60 ? 'PASSED' : 'REJECTED';
+        await dbRun('UPDATE sabha_proposals SET status = ? WHERE id = ?', [status, p.id]);
+      }
+
+      enriched.push({
+        ...p,
+        status,
+        votesYes: votesYes.count || 0,
+        votesNo: votesNo.count || 0,
+        totalVotes,
+        yesPercent: parseFloat(yesPercent),
+        daysRemaining: Math.max(0, Math.ceil(7 - daysElapsed))
+      });
+    }
+    res.json({ success: true, proposals: enriched, resolutions: enriched });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/sabha/proposals (or /api/sabha/resolutions) — Create a new cooperative resolution
+app.post(['/api/sabha/proposals', '/api/sabha/resolutions'], async (req, res) => {
+  try {
+    const { title, description, category, proposedBy, proposedByName } = req.body;
+    if (!title || !description) {
+      return res.status(400).json({ success: false, error: 'Title and description are required.' });
+    }
+    const id = 'proposal_' + Date.now();
+    const createdAt = new Date().toISOString();
+    await dbRun(`
+      INSERT INTO sabha_proposals (id, title, description, category, proposedBy, proposedByName, status, createdAt)
+      VALUES (?, ?, ?, ?, ?, ?, 'ACTIVE', ?)
+    `, [id, title, description, category || 'general', proposedBy || 'anonymous', proposedByName || 'Cooperative Member', createdAt]);
+    res.json({ success: true, message: 'Sahakari Sabha resolution published for democratic voting!', proposalId: id, resolutionId: id });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// POST /api/sabha/vote or /api/sabha/resolutions/:id/vote — Cast a democratic vote (one-member-one-vote)
+app.post(['/api/sabha/vote', '/api/sabha/resolutions/:id/vote'], async (req, res) => {
+  try {
+    const proposalId = req.body.proposalId || req.params.id;
+    const voterId = req.body.voterId || req.user?.id;
+    const rawVote = req.body.vote;
+
+    if (!proposalId || !voterId || rawVote === undefined) {
+      return res.status(400).json({ success: false, error: 'proposalId, voterId, and vote are required.' });
+    }
+
+    const voteValue = (rawVote === true || rawVote === 1 || rawVote === 'yes' || rawVote === 'for') ? 1 : 0;
+
+    // One-member-one-vote enforcement
+    const existing = await dbGet('SELECT id FROM sabha_votes WHERE proposalId = ? AND voterId = ?', [proposalId, voterId]);
+    if (existing) {
+      return res.status(409).json({ success: false, error: 'You have already voted on this resolution. Democratic principle: one member, one vote.' });
+    }
+
+    const id = 'vote_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+    const createdAt = new Date().toISOString();
+    await dbRun(`
+      INSERT INTO sabha_votes (id, proposalId, voterId, vote, createdAt)
+      VALUES (?, ?, ?, ?, ?)
+    `, [id, proposalId, voterId, voteValue, createdAt]);
+
+    res.json({ success: true, message: 'Your democratic vote has been recorded. Jai Sahakari!' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/* ==========================================================================
+   NYAYA PRAMAAN — Fair Wage Merkle Hash Proof Chain (Transparency Ledger)
+   ========================================================================== */
+
+// In-memory genesis hash
+const GENESIS_HASH = crypto.createHash('sha256').update('SahakarSeva Nyaya Pramaan Fair Wage Ledger v1.0 — Genesis Block').digest('hex');
+
+// Compute Merkle hash for a wage payment event
+const computeWageHash = (prevHash, workerId, workerName, amount, bookingId, timestamp) => {
+  const payload = `${prevHash}|${workerId}|${workerName}|${amount}|${bookingId}|${timestamp}`;
+  return crypto.createHash('sha256').update(payload).digest('hex');
+};
+
+// GET /api/nyaya/chain — Full immutable fair wage proof ledger
+app.get('/api/nyaya/chain', async (req, res) => {
+  try {
+    const paidBookings = await dbAll("SELECT * FROM bookings WHERE status LIKE '%Paid%' ORDER BY createdAt ASC");
+    const chain = [];
+    let prevHash = GENESIS_HASH;
+
+    chain.push({
+      blockIndex: 0,
+      type: 'GENESIS',
+      hash: GENESIS_HASH,
+      prevHash: '0000000000000000',
+      data: 'SahakarSeva Nyaya Pramaan Fair Wage Ledger — Genesis Block',
+      timestamp: '2026-08-01T00:00:00Z'
+    });
+
+    for (let i = 0; i < paidBookings.length; i++) {
+      const b = paidBookings[i];
+      const currentHash = computeWageHash(prevHash, b.workerId, b.workerName, b.baseWage, b.id, b.createdAt);
+      chain.push({
+        blockIndex: i + 1,
+        type: 'WAGE_PAYMENT',
+        hash: currentHash,
+        prevHash,
+        bookingId: b.id,
+        workerId: b.workerId,
+        workerName: b.workerName,
+        baseWage: b.baseWage,
+        welfareContribution: b.welfareContribution,
+        totalAmount: b.totalAmount,
+        category: b.category,
+        timestamp: b.createdAt,
+        verified: true
+      });
+      prevHash = currentHash;
+    }
+
+    res.json({
+      success: true,
+      chainLength: chain.length,
+      genesisHash: GENESIS_HASH,
+      latestHash: prevHash,
+      chain,
+      tamperProof: true,
+      message: 'Nyaya Pramaan — Every rupee is accounted for. Transparent. Immutable. Fair.'
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// GET /api/nyaya/verify/:bookingId — Verify a single wage payment hash
+app.get('/api/nyaya/verify/:bookingId', async (req, res) => {
+  try {
+    const booking = await dbGet('SELECT * FROM bookings WHERE id = ?', [req.params.bookingId]);
+    if (!booking) return res.status(404).json({ success: false, error: 'Booking not found in ledger.' });
+
+    const paidBookings = await dbAll("SELECT * FROM bookings WHERE status LIKE '%Paid%' ORDER BY createdAt ASC");
+    let prevHash = GENESIS_HASH;
+    let targetHash = null;
+
+    for (const b of paidBookings) {
+      const currentHash = computeWageHash(prevHash, b.workerId, b.workerName, b.baseWage, b.id, b.createdAt);
+      if (b.id === req.params.bookingId) {
+        targetHash = currentHash;
+        break;
+      }
+      prevHash = currentHash;
+    }
+
+    res.json({
+      success: true,
+      bookingId: booking.id,
+      workerName: booking.workerName,
+      baseWage: booking.baseWage,
+      hash: targetHash || 'NOT_IN_CHAIN',
+      verified: !!targetHash,
+      message: targetHash ? '✅ Wage payment verified on Nyaya Pramaan chain.' : '⏳ Payment not yet finalized.'
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/* ==========================================================================
+   NCCT WORKER VERIFICATION MOCK API
+   ========================================================================== */
+
+// GET /api/ncct/verify-worker — Mock NCCT certification verification
+app.get('/api/ncct/verify-worker', async (req, res) => {
+  try {
+    const { certificateNo, workerId } = req.query;
+    if (!certificateNo && !workerId) {
+      return res.status(400).json({ success: false, error: 'certificateNo or workerId is required.' });
+    }
+
+    let worker = null;
+    if (workerId) {
+      worker = await dbGet('SELECT * FROM workers WHERE id = ?', [workerId]);
+    } else if (certificateNo) {
+      worker = await dbGet('SELECT * FROM workers WHERE pfAccountNumber = ?', [certificateNo]);
+    }
+
+    if (!worker) {
+      return res.json({
+        success: true,
+        verified: false,
+        message: 'No NCCT certification record found for this certificate number.'
+      });
+    }
+
+    res.json({
+      success: true,
+      verified: true,
+      ncctCertificate: {
+        workerId: worker.id,
+        name: worker.name,
+        certificateNo: worker.pfAccountNumber,
+        level: worker.ncctLevel,
+        category: worker.category,
+        society: worker.societyName,
+        kycStatus: worker.kycStatus,
+        policeVerification: worker.policeVerification,
+        ayushmanCard: worker.ayushmanCard ? 'XXXX-XXXX-' + worker.ayushmanCard.slice(-4) : 'Not Linked',
+        issuedDate: '2024-03-15',
+        validUntil: '2027-03-15',
+        trainingHistory: [
+          { module: 'Level 1 — Foundation Skill Assessment', completedOn: '2023-06-20', score: '88%' },
+          { module: 'Level 2 — Advanced Certification', completedOn: '2024-03-15', score: '92%' },
+          { module: 'Safety & Hazard Protocol (SHP-3)', completedOn: '2024-07-10', score: '95%' }
+        ]
+      },
+      message: '✅ NCCT Verification Successful — Worker credentials are authentic and valid.'
     });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

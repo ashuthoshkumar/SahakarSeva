@@ -22,5 +22,17 @@
   <body class="bg-slate-50 text-slate-800 antialiased font-sans">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Register Progressive Web App Service Worker for offline-first capability
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').then(reg => {
+            console.log('[SahakarSeva] PWA Service Worker registered — scope:', reg.scope);
+          }).catch(err => {
+            console.log('[SahakarSeva] SW registration optional:', err.message);
+          });
+        });
+      }
+    </script>
   </body>
 </html>

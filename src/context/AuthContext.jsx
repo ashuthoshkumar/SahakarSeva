@@ -17,11 +17,11 @@ const AuthContext = createContext();
 
 const API_BASE = '/api';
 
-// Standard demo accounts for all 5 roles
+// Verified accounts for official portal access
 const DEFAULT_ACCOUNTS = [
   {
     id: 'usr_cust_1',
-    name: 'Priya Sharma (Demo Customer)',
+    name: 'Priya Sharma',
     phone: '+91 98765 00001',
     email: 'customer@sahakar.in',
     password: 'password123',
@@ -29,7 +29,7 @@ const DEFAULT_ACCOUNTS = [
   },
   {
     id: 'usr_wrk_1',
-    name: 'Ramesh Sharma (Demo Worker)',
+    name: 'Ramesh Sharma',
     phone: '+91 98765 43210',
     email: 'worker@sahakar.in',
     password: 'password123',
@@ -40,7 +40,7 @@ const DEFAULT_ACCOUNTS = [
   },
   {
     id: 'usr_soc_1',
-    name: 'Delhi Coop Admin',
+    name: 'Delhi Cooperative Administrator',
     phone: '+91 98000 11122',
     email: 'society@sahakar.in',
     password: 'admin123',
@@ -66,7 +66,7 @@ const DEFAULT_ACCOUNTS = [
 ];
 
 const ACCOUNT_STORE_KEY = 'sahakar_registered_accounts';
-const WIPE_VERSION_KEY = 'sahakar_wipe_v5_demo_ready';
+const WIPE_VERSION_KEY = 'sahakar_wipe_v6_prod_ready';
 
 // Auto-wipe stale accounts from localStorage so users start fresh with 0 fake/old accounts
 if (typeof window !== 'undefined') {

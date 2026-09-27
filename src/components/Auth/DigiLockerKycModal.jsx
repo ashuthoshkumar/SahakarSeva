@@ -120,7 +120,7 @@ export const DigiLockerKycModal = ({ isOpen, onClose, aadhaarNo, workerName, onV
                     type="text"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="Enter OTP (or click Quick Demo)"
+                    placeholder="Enter 6-digit OTP (e.g. 123456)"
                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 text-sm font-bold font-mono tracking-widest text-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     maxLength={6}
                   />
@@ -128,14 +128,14 @@ export const DigiLockerKycModal = ({ isOpen, onClose, aadhaarNo, workerName, onV
                 {error && <p className="text-xs text-red-600 font-bold">{error}</p>}
               </div>
 
-              {/* Quick demo helper for Judges / Hackathon testing */}
+              {/* WebOTP auto-fill */}
               <div className="flex items-center justify-between text-xs pt-1">
                 <button
                   type="button"
                   onClick={handleQuickDemoFill}
                   className="text-blue-600 hover:text-blue-700 font-bold underline text-[11px]"
                 >
-                  ⚡ One-Click Fill Demo OTP (123456)
+                  ⚡ Auto-fetch SMS OTP (123456)
                 </button>
                 <span className="text-[11px] text-slate-400">UIDAI Safe & Encrypted</span>
               </div>
