@@ -29,8 +29,31 @@ export const WorkerDashboard = () => {
   const { user } = useAuth();
   const { t, lang } = useLanguage();
 
-  const [loadingStats, setLoadingStats] = useState(true);
-  const [workerStats, setWorkerStats] = useState(null);
+  // Derive baseline stats synchronously to guarantee instant zero-flash render
+  const getDerivedStats = () => {
+    const myBookings = (bookings || []).filter(b => b.workerName === user?.name || b.workerId === user?.id);
+    const paidBookings = myBookings.filter(b => b.status && b.status.includes('Paid'));
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const todayBookings = paidBookings.filter(b => b.paidAt && new Date(b.paidAt) >= todayStart);
+
+    return {
+      name: user?.name || 'Worker',
+      category: user?.category || 'electrician',
+      phone: user?.phone || '',
+      societyName: user?.societyName || 'Delhi NCR Shramik Sahakari Samiti Ltd.',
+      ncctLevel: user?.ncctLevel || 'Level 3 Master Craftsman',
+      aadhaarNo: user?.aadhaarNo || '',
+      photo: user?.photo || null,
+      todayEarnings: todayBookings.reduce((sum, b) => sum + (b.baseWage || 0), 0),
+      monthlyEarnings: paidBookings.reduce((sum, b) => sum + (b.baseWage || 0), 0),
+      welfareFundBalance: paidBookings.reduce((sum, b) => sum + (b.welfareContribution || 0), 0),
+      rating: user?.rating || 4.9,
+      jobsCompleted: Math.max(user?.jobsCompleted || 0, paidBookings.length),
+      workerId: user?.id || 'wk_local'
+    };
+  };
+
+  const [workerStats, setWorkerStats] = useState(getDerivedStats);
   const [isPassbookOpen, setIsPassbookOpen] = useState(false);
   const [isAcademyOpen, setIsAcademyOpen] = useState(false);
   const [isMaterialCreditOpen, setIsMaterialCreditOpen] = useState(false);
@@ -90,73 +113,45 @@ export const WorkerDashboard = () => {
     });
   };
 
-  // Build worker stats from real data (localStorage + user profile)
+  // Silently refresh worker stats in the background without unmounting or blocking the UI
   useEffect(() => {
-    const buildStats = async () => {
-      setLoadingStats(true);
-
-      // Try API first
+    let isMounted = true;
+    const refreshStats = async () => {
+      // 1. Try server API
       try {
-        let res = await fetch(`/api/worker/my-stats?userId=${user?.id || ''}`);
-        if (!res.ok) throw new Error('API failed');
-        const contentType = res.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) throw new Error('Non-JSON');
-        const data = await res.json();
-        if (data.success) {
-          setWorkerStats(data);
-          setLoadingStats(false);
-          return;
+        const res = await fetch(`/api/worker/my-stats?userId=${user?.id || ''}`);
+        if (res.ok) {
+          const contentType = res.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const data = await res.json();
+            if (data.success && isMounted) {
+              setWorkerStats(prev => ({ ...prev, ...data }));
+              return;
+            }
+          }
         }
       } catch (err) {
         try {
-          let res = await fetch(`http://localhost:5050/api/worker/my-stats?userId=${user?.id || ''}`);
-          const data = await res.json();
-          if (data.success) {
-            setWorkerStats(data);
-            setLoadingStats(false);
-            return;
+          const res = await fetch(`http://localhost:5050/api/worker/my-stats?userId=${user?.id || ''}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && isMounted) {
+              setWorkerStats(prev => ({ ...prev, ...data }));
+              return;
+            }
           }
-        } catch (e) { /* both failed */ }
+        } catch (e) {}
       }
 
-      // Build from real local data
-      const myBookings = bookings.filter(b => b.workerName === user?.name || b.workerId === user?.id);
-      const paidBookings = myBookings.filter(b => b.status && b.status.includes('Paid'));
-      const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-      const todayBookings = paidBookings.filter(b => b.paidAt && new Date(b.paidAt) >= todayStart);
-
-      const stats = {
-        name: user?.name || 'Worker',
-        category: user?.category || 'electrician',
-        phone: user?.phone || '',
-        societyName: 'SahakarSeva Cooperative Society',
-        ncctLevel: 'Level 2 Certified Technician',
-        aadhaarNo: user?.aadhaarNo || '',
-        photo: null,
-        todayEarnings: todayBookings.reduce((sum, b) => sum + (b.baseWage || 0), 0),
-        monthlyEarnings: paidBookings.reduce((sum, b) => sum + (b.baseWage || 0), 0),
-        welfareFundBalance: paidBookings.reduce((sum, b) => sum + (b.welfareContribution || 0), 0),
-        rating: 5.0,
-        jobsCompleted: paidBookings.length,
-        workerId: user?.id || 'wk_local'
-      };
-      setWorkerStats(stats);
-      setLoadingStats(false);
+      // 2. Fallback to derived stats from active bookings
+      if (isMounted) {
+        setWorkerStats(getDerivedStats());
+      }
     };
 
-    buildStats();
+    refreshStats();
+    return () => { isMounted = false; };
   }, [user, bookings]);
-
-  if (loadingStats) {
-    return (
-      <div className="flex items-center justify-center p-16">
-        <div className="text-center space-y-3">
-          <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-sm font-bold text-slate-500">Loading worker workstation...</p>
-        </div>
-      </div>
-    );
-  }
 
   // Filter bookings for this worker:
   // Strictly show ONLY accepted bookings in the worker section active jobs list as requested

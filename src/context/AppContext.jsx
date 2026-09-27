@@ -304,7 +304,15 @@ export const AppProvider = ({ children }) => {
     try {
       const data = await apiFetch(`/workers?${queryParams.toString()}`);
       if (data && data.success && Array.isArray(data.workers)) {
-        setWorkers(data.workers);
+        setWorkers(prev => {
+          if (
+            prev.length === data.workers.length &&
+            prev.every((w, i) => w.id === data.workers[i]?.id && w.onDuty === data.workers[i]?.onDuty)
+          ) {
+            return prev;
+          }
+          return data.workers;
+        });
         writeStorage(STORAGE_KEYS.WORKERS, data.workers);
         const counts = {};
         data.workers.forEach(w => {
@@ -321,12 +329,25 @@ export const AppProvider = ({ children }) => {
     setWorkers(local);
   };
 
-  // Fetch Active Bookings
+  // Fetch Active Bookings (with reference stability check)
   const fetchBookings = async () => {
     try {
       const data = await apiFetch('/bookings');
       if (data && data.success && Array.isArray(data.bookings)) {
-        setBookings(data.bookings);
+        setBookings(prev => {
+          if (
+            prev.length === data.bookings.length &&
+            prev.every(
+              (b, i) =>
+                b.id === data.bookings[i]?.id &&
+                b.status === data.bookings[i]?.status &&
+                b.workApproved === data.bookings[i]?.workApproved
+            )
+          ) {
+            return prev;
+          }
+          return data.bookings;
+        });
         writeStorage(STORAGE_KEYS.BOOKINGS, data.bookings);
       }
     } catch (e) {}
@@ -356,13 +377,13 @@ export const AppProvider = ({ children }) => {
     Promise.all([fetchWorkers(), fetchBookings(), fetchSocieties(), fetchPlatformStats(), fetchCategoryCounts()]).then(() => setLoading(false));
   }, [userCoords, selectedCategory, searchQuery, radiusKm]);
 
-  // Real-time Cross-Device sync: poll workers & bookings every 8s silently
+  // Real-time Cross-Device sync: poll workers & bookings every 12s silently
   useEffect(() => {
     if (!userCoords) return;
     const poller = setInterval(() => {
       fetchWorkers();
       fetchBookings();
-    }, 8000);
+    }, 12000);
     return () => clearInterval(poller);
   }, [userCoords, selectedCategory, searchQuery, radiusKm]);
 
