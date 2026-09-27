@@ -106,28 +106,78 @@ export async function bhashiniTextToSpeech(text, sourceLang = 'hi', gender = 'fe
 }
 
 /**
- * 4. Helper to speak text aloud using Bhashini audio with browser speechSynthesis fallback
+ * Helper to clean and format text for natural, conversational speech readout
+ */
+function cleanSpeechText(rawText, lang) {
+  if (!rawText) return '';
+  let clean = rawText
+    .replace(/[#*_`~[\]()]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  if (lang === 'hi') {
+    clean = clean.replace(/₹\s*(\d+)/g, '$1 रुपये');
+  } else {
+    clean = clean.replace(/₹\s*(\d+)/g, '$1 rupees');
+  }
+  return clean;
+}
+
+/**
+ * 4. Ultra-fast, low-latency Speech Output (Instant Browser Speech + High-fidelity fallback)
  */
 let currentAudio = null;
 
 export async function bhashiniSpeakText(text, lang = 'hi', onEndCallback) {
   if (!text) return;
 
-  // Stop previous playback
-  if (currentAudio) {
+  // Immediate cancellation of any ongoing speech
+  bhashiniStopSpeaking();
+
+  const formattedText = cleanSpeechText(text, lang);
+
+  // 1. Instant Zero-Latency Browser SpeechSynthesis (starts in <10ms)
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     try {
-      currentAudio.pause();
-      currentAudio.currentTime = 0;
-    } catch (e) {}
-    currentAudio = null;
-  }
-  if (typeof window !== 'undefined' && window.speechSynthesis) {
-    window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(formattedText);
+      const targetCode = lang === 'hi' ? 'hi-IN' : (lang === 'kn' ? 'kn-IN' : (lang === 'te' ? 'te-IN' : (lang === 'ta' ? 'ta-IN' : (lang === 'mr' ? 'mr-IN' : 'en-IN'))));
+      utterance.lang = targetCode;
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+
+      // Select best regional or Indian voice if loaded in browser
+      const voices = window.speechSynthesis.getVoices?.() || [];
+      if (voices.length > 0) {
+        const langPrefix = targetCode.slice(0, 2).toLowerCase();
+        const preferred = voices.find(v => v.lang && v.lang.toLowerCase().replace('_', '-').startsWith(targetCode.toLowerCase()))
+          || voices.find(v => v.lang && v.lang.toLowerCase().startsWith(langPrefix))
+          || voices.find(v => v.lang && v.lang.toLowerCase().includes('in'));
+        if (preferred) {
+          utterance.voice = preferred;
+        }
+      }
+
+      let ended = false;
+      const finish = () => {
+        if (!ended) {
+          ended = true;
+          if (onEndCallback) onEndCallback();
+        }
+      };
+
+      utterance.onend = finish;
+      utterance.onerror = finish;
+
+      window.speechSynthesis.speak(utterance);
+      return;
+    } catch (err) {
+      console.warn('[Speech] Direct utterance fallback:', err);
+    }
   }
 
-  // Attempt Bhashini TTS first
+  // 2. High-fidelity Server Audio Fallback (if browser speech is unavailable)
   try {
-    const audioUri = await bhashiniTextToSpeech(text, lang);
+    const audioUri = await bhashiniTextToSpeech(formattedText, lang);
     if (audioUri) {
       const audio = new Audio(audioUri);
       currentAudio = audio;
@@ -136,30 +186,19 @@ export async function bhashiniSpeakText(text, lang = 'hi', onEndCallback) {
           currentAudio = null;
           onEndCallback();
         };
+        audio.onerror = () => {
+          currentAudio = null;
+          onEndCallback();
+        };
       }
       await audio.play();
       return;
     }
   } catch (e) {
-    console.warn('[Bhashini Frontend] Audio playback failed, falling back to Web Speech API:', e.message);
+    console.warn('[Speech] Server audio fallback notice:', e.message);
   }
 
-  // Browser speechSynthesis fallback
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    try {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang === 'hi' ? 'hi-IN' : (lang === 'kn' ? 'kn-IN' : (lang === 'te' ? 'te-IN' : (lang === 'ta' ? 'ta-IN' : (lang === 'mr' ? 'mr-IN' : 'en-IN'))));
-      if (onEndCallback) {
-        utterance.onend = onEndCallback;
-      }
-      window.speechSynthesis.speak(utterance);
-    } catch (err) {
-      console.warn('Speech synthesis error:', err);
-      if (onEndCallback) onEndCallback();
-    }
-  } else {
-    if (onEndCallback) onEndCallback();
-  }
+  if (onEndCallback) onEndCallback();
 }
 
 /**

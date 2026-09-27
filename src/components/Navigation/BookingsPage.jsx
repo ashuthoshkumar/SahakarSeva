@@ -259,7 +259,7 @@ export const BookingsPage = ({ setActiveTab }) => {
                         title="Chat with Worker (Auto-translated by Bhashini AI)"
                       >
                         <MessageSquare className="w-3.5 h-3.5 text-purple-600" />
-                        <span>💬 Bhashini Chat</span>
+                        <span>💬 Chat</span>
                       </button>
 
                       {isPaid ? (

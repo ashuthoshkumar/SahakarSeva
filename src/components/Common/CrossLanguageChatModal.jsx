@@ -192,19 +192,19 @@ export const CrossLanguageChatModal = ({ isOpen, onClose, booking }) => {
                     </div>
                   )}
 
-                  {/* Listen (TTS) button */}
+                  {/* Speakout button — Highlighted */}
                   <div className="flex items-center justify-between pt-1 border-t border-white/10">
                     <button
                       type="button"
                       onClick={() => handleSpeakMessage(msg)}
-                      className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-lg transition-colors ${
-                        isMe
-                          ? 'text-teal-200 hover:text-white bg-teal-700/50'
-                          : 'text-teal-700 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 border border-teal-200'
+                      className={`inline-flex items-center gap-1.5 text-[11px] font-black px-2.5 py-1 rounded-xl transition-all shadow-sm active:scale-95 cursor-pointer ${
+                        isAudioActive
+                          ? 'bg-rose-600 text-white shadow-rose-600/30 animate-pulse border border-rose-700'
+                          : 'bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 shadow-amber-400/25 border border-amber-500'
                       }`}
                     >
-                      <Volume2 className={`w-3 h-3 ${isAudioActive ? 'animate-bounce text-amber-300' : ''}`} />
-                      <span>{isAudioActive ? 'Playing...' : '🔊 Listen (सुनें)'}</span>
+                      <Volume2 className="w-3.5 h-3.5" />
+                      <span>{isAudioActive ? 'Stop' : 'Speakout'}</span>
                     </button>
 
                     <div className="flex items-center gap-1 text-[10px] opacity-75">

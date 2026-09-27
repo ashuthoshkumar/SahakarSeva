@@ -101,11 +101,17 @@ export const WorkerDashboard = () => {
     }
 
     const categoryName = translateCategory(booking.category, t);
+    const customer = booking.customerName || (lang === 'hi' ? 'ग्राहक' : 'Customer');
+    const address = booking.address || (lang === 'hi' ? 'स्थानीय पता' : 'Customer address');
+    const wage = booking.baseWage || booking.totalAmount || 0;
+
     const speechText = lang === 'hi'
       ? (isOffer
-          ? `नया काम का प्रस्ताव! ग्राहक का नाम: ${booking.customerName || 'ग्राहक'}। सेवा: ${categoryName}। स्थान: ${booking.address || 'पते पर'}। कुल तय मजदूरी: ₹${booking.baseWage || booking.totalAmount || 0}। काम स्वीकार करने के लिए नीचे हरा बटन दबाएं।`
-          : `स्वीकृत काम: ग्राहक ${booking.customerName || 'ग्राहक'}, सेवा ${categoryName}, पता: ${booking.address || 'पते पर'}। तय मजदूरी: ₹${booking.baseWage || booking.totalAmount || 0}।`)
-      : `Job Details: Customer ${booking.customerName || 'Customer'}, Service ${booking.category}, Location ${booking.address || 'At customer location'}, Base Wage ₹${booking.baseWage || booking.totalAmount || 0}.`;
+          ? `नया काम: ${categoryName} सेवा। ग्राहक ${customer}। स्थान: ${address}। तय मजदूरी: ${wage} रुपये। काम स्वीकार करने के लिए नीचे हरा बटन दबाएं।`
+          : `चालू काम: ग्राहक ${customer}। सेवा: ${categoryName}। पता: ${address}। तय मजदूरी: ${wage} रुपये। काम पूरा होने पर फोटो अपलोड करें।`)
+      : (isOffer
+          ? `New job request: ${booking.category} for ${customer} at ${address}. Guaranteed wage ${wage} rupees. Tap the green button below to accept dispatch.`
+          : `Active job: Customer ${customer}. Service: ${booking.category}. Address: ${address}. Guaranteed wage ${wage} rupees. Upload completion photo when finished.`);
 
     setActiveAudioBookingId(booking.id);
     bhashiniSpeakText(speechText, lang || 'hi', () => {
@@ -372,21 +378,22 @@ export const WorkerDashboard = () => {
                     <button
                       type="button"
                       onClick={() => handleSpeakJob(b, true)}
-                      className={`px-3 py-2.5 rounded-2xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm ${
+                      className={`px-3.5 py-2.5 rounded-2xl font-black text-xs flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer ${
                         activeAudioBookingId === b.id
-                          ? 'bg-rose-100 text-rose-800 border border-rose-300'
-                          : 'bg-white hover:bg-amber-100 text-amber-900 border border-amber-300'
+                          ? 'bg-rose-600 text-white shadow-rose-600/30 animate-pulse border border-rose-700'
+                          : 'bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 shadow-amber-400/30 border border-amber-500'
                       }`}
+                      title="Speakout job summary"
                     >
                       {activeAudioBookingId === b.id ? (
-                        <VolumeX className="w-4 h-4 text-rose-600 animate-pulse" />
+                        <VolumeX className="w-4 h-4 text-white" />
                       ) : (
-                        <Volume2 className="w-4 h-4 text-amber-700" />
+                        <Volume2 className="w-4 h-4 text-slate-950" />
                       )}
                       <span>
                         {activeAudioBookingId === b.id
-                          ? 'बंद करें (Stop)'
-                          : '🔊 बोल कर सुनें (Bhashini Voice)'}
+                          ? 'Stop'
+                          : 'Speakout'}
                       </span>
                     </button>
 
@@ -467,34 +474,34 @@ export const WorkerDashboard = () => {
                         </span>
 
                         <div className="flex items-center gap-2">
-                          {/* Bhashini Voice Readout */}
+                          {/* Speakout Button — Highlighted */}
                           <button
                             type="button"
                             onClick={() => handleSpeakJob(b, false)}
-                            className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-xl transition-all border ${
+                            className={`inline-flex items-center gap-1.5 text-xs font-black px-3 py-1.5 rounded-xl transition-all shadow-md active:scale-95 cursor-pointer ${
                               activeAudioBookingId === b.id
-                                ? 'bg-rose-100 text-rose-800 border-rose-300'
-                                : 'bg-teal-50 hover:bg-teal-100 text-teal-800 border-teal-200'
+                                ? 'bg-rose-600 text-white shadow-rose-600/30 animate-pulse border border-rose-700'
+                                : 'bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 shadow-amber-400/25 border border-amber-500'
                             }`}
-                            title="Listen to job details in your language"
+                            title="Speakout job details"
                           >
                             {activeAudioBookingId === b.id ? (
-                              <VolumeX className="w-3.5 h-3.5 text-rose-600 animate-pulse" />
+                              <VolumeX className="w-3.5 h-3.5 text-white" />
                             ) : (
-                              <Volume2 className="w-3.5 h-3.5 text-teal-700" />
+                              <Volume2 className="w-3.5 h-3.5 text-slate-950" />
                             )}
-                            <span>{activeAudioBookingId === b.id ? 'बंद करें' : '🔊 सुनें'}</span>
+                            <span>{activeAudioBookingId === b.id ? 'Stop' : 'Speakout'}</span>
                           </button>
 
-                          {/* Bhashini Cross-Language Chat */}
+                          {/* Cross-Language Chat */}
                           <button
                             type="button"
                             onClick={() => setChatBooking(b)}
                             className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-200 shadow-sm transition-all"
-                            title="Chat with Customer (Auto-translated by Bhashini)"
+                            title="Chat with Customer (Real-Time Translation)"
                           >
                             <MessageSquare className="w-3.5 h-3.5 text-purple-700" />
-                            <span>💬 Bhashini चैट</span>
+                            <span>💬 Chat</span>
                           </button>
 
                           {/* On-Site SOS Emergency Button */}

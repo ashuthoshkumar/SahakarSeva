@@ -285,9 +285,10 @@ export const AiSahayakModal = ({ isOpen, onClose }) => {
     if (!diagnosticResult) return;
 
     // Formulate a spoken natural language response in Hindi or user language
+    const specialist = translateCategory(diagnosticResult.category, t);
     const spokenMessage = lang === 'hi'
-      ? `समस्या निदान: ${diagnosticResult.issueTitle}। अनुशंसित विशेषज्ञ: ${translateCategory(diagnosticResult.category, t)}। अनुमानित समय लगभग ${diagnosticResult.estimatedDurationMins} मिनट। उचित मजदूरी: ₹${diagnosticResult.pricing.coopTotal}। ${diagnosticResult.hazardWarning ? 'सावधानी चेतावनी: ' + diagnosticResult.hazardWarning : ''}`
-      : `Diagnosis: ${diagnosticResult.issueTitle}. Recommended specialist: ${diagnosticResult.category}. Estimated duration: ${diagnosticResult.estimatedDurationMins} minutes. Fair cooperative price: ₹${diagnosticResult.pricing.coopTotal}. ${diagnosticResult.hazardWarning ? 'Safety Warning: ' + diagnosticResult.hazardWarning : ''}`;
+      ? `जांच रिपोर्ट: ${diagnosticResult.issueTitle}। अनुशंसित कारीगर: ${specialist}। अनुमानित समय: लगभग ${diagnosticResult.estimatedDurationMins} मिनट। उचित मजदूरी: ${diagnosticResult.pricing.coopTotal} रुपये। ${diagnosticResult.hazardWarning ? 'सावधानी: ' + diagnosticResult.hazardWarning : 'सामान्य सुरक्षा श्रेणी।'}`
+      : `Diagnostic summary: ${diagnosticResult.issueTitle}. Recommended specialist: ${diagnosticResult.category}. Estimated duration: ${diagnosticResult.estimatedDurationMins} minutes. Fair cooperative price: ${diagnosticResult.pricing.coopTotal} rupees. ${diagnosticResult.hazardWarning ? 'Safety alert: ' + diagnosticResult.hazardWarning : 'Standard safety category.'}`;
 
     setIsSpeaking(true);
     bhashiniSpeakText(spokenMessage, lang || 'hi', () => {
@@ -354,7 +355,7 @@ export const AiSahayakModal = ({ isOpen, onClose }) => {
                   SIH26089 Innovation
                 </span>
                 <span className="text-[10px] text-teal-200 font-bold bg-white/10 px-2 py-0.5 rounded-full border border-white/20">
-                  🇮🇳 Bhashini AI
+                  🇮🇳 Multilingual AI
                 </span>
               </div>
               <h3 className="text-base font-extrabold text-white leading-tight">
@@ -491,26 +492,27 @@ export const AiSahayakModal = ({ isOpen, onClose }) => {
                   {diagnosticResult.issueTitle}
                 </h4>
 
-                {/* Bhashini Voice Readout (TTS) */}
+                {/* Speakout Button — Highlighted */}
                 <div className="pt-1">
                   <button
                     type="button"
                     onClick={toggleSpeakDiagnosis}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 ${
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-black transition-all shadow-md active:scale-95 cursor-pointer ${
                       isSpeaking
-                        ? 'bg-rose-100 text-rose-800 border border-rose-300'
-                        : 'bg-teal-100 hover:bg-teal-200 text-teal-900 border border-teal-200'
+                        ? 'bg-rose-600 text-white shadow-rose-600/30 animate-pulse border border-rose-700'
+                        : 'bg-gradient-to-r from-amber-400 via-amber-300 to-yellow-400 hover:from-amber-300 hover:to-yellow-300 text-slate-950 shadow-amber-400/30 border border-amber-500'
                     }`}
+                    title="Speakout diagnosis report"
                   >
                     {isSpeaking ? (
-                      <VolumeX className="w-4 h-4 text-rose-600 animate-pulse" />
+                      <VolumeX className="w-4 h-4 text-white" />
                     ) : (
-                      <Volume2 className="w-4 h-4 text-teal-700" />
+                      <Volume2 className="w-4 h-4 text-slate-950" />
                     )}
                     <span>
                       {isSpeaking
-                        ? 'बोलना बंद करें (Stop Voice)'
-                        : '🔊 आवाज़ में सुनें (Bhashini Voice Readout)'}
+                        ? 'Stop'
+                        : 'Speakout'}
                     </span>
                   </button>
                 </div>
