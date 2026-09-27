@@ -387,4 +387,157 @@ export const initDB = async () => {
       } catch (e) {} // ignore duplicates
     }
   }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // PACS TOOL DEPOT (EQUIPMENT BANK) TABLES
+  // ═══════════════════════════════════════════════════════════════════════
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS tools (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      nameHi TEXT,
+      category TEXT NOT NULL,
+      trade TEXT NOT NULL,
+      pacsRatePerDay REAL NOT NULL,
+      commercialRentPerDay REAL NOT NULL,
+      specs TEXT NOT NULL,
+      availableCount INTEGER NOT NULL,
+      depotLocation TEXT NOT NULL,
+      condition TEXT NOT NULL,
+      image TEXT NOT NULL
+    );
+  `);
+
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS tool_rentals (
+      id TEXT PRIMARY KEY,
+      toolId TEXT NOT NULL,
+      toolName TEXT NOT NULL,
+      workerId TEXT NOT NULL,
+      workerName TEXT NOT NULL,
+      depotLocation TEXT NOT NULL,
+      days INTEGER NOT NULL,
+      totalCost REAL NOT NULL,
+      status TEXT DEFAULT 'ACTIVE',
+      qrPassId TEXT NOT NULL,
+      rentedAt TEXT NOT NULL,
+      FOREIGN KEY (toolId) REFERENCES tools(id)
+    );
+  `);
+
+  const toolCount = await dbGet('SELECT COUNT(*) as count FROM tools');
+  if (toolCount.count === 0) {
+    console.log('Seeding PACS Tool Depot inventory...');
+    const seedTools = [
+      ['tool_core_drill', 'Bosch GBH 8-45 Professional SDS-Max Core Drill', 'बॉश हैवी कंक्रीट कोर ड्रिल और डस्ट एक्सट्रैक्टर', 'plumbing', 'Plumbing & Construction', 60, 600, '1500W motor, 12.5 Joules impact, up to 125mm core drill capacity with vacuum attachment', 4, 'Central Connaught Place PACS Tool Depot', 'Grade A+ (Certified & Inspected)', 'https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&q=80&w=400'],
+      ['tool_hydro_jet', 'Rigid K-400 High-Pressure Sewer Jetter & Drain Snake', 'हाई-प्रेशर सीवर जेट्टर और ड्रेन क्लीनर', 'plumbing', 'Plumbing & Sanitation', 75, 800, '180 Bar pressure pump, 75ft autofeed inner-core cable, root cutter & grease blade set', 3, 'Delhi NCR Shramik Sahakari Depot HQ', 'Grade A+ (Sterilized & Pressure Tested)', 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&q=80&w=400'],
+      ['tool_thermal_cam', 'Fluke TiS20+ Thermal Imaging Camera (Leak & Short-Circuit)', 'फ्लूक थर्मल इमेजिंग कैमरा (शॉर्ट सर्किट और लीकेज डिटेक्टर)', 'electrician', 'Electrical & Plumbing', 90, 1200, '120x90 infrared resolution, -20°C to 150°C range, instant wall moisture & hotspot detection', 2, 'Central Connaught Place PACS Tool Depot', 'Calibrated NABL Certified', 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=400'],
+      ['tool_hvac_pump', 'Robinair Dual-Stage HVAC Vacuum Pump & Digital Manifold', 'रॉबिनएयर एसी वैक्यूम पंप और डिजिटल मैनिफोल्ड किट', 'appliances', 'AC & Refrigeration', 80, 750, '5 CFM dual-stage, 15-micron deep vacuum, R-32, R-410A, R-134a compatible digital gauges', 5, 'Central Connaught Place PACS Tool Depot', 'Grade A (Vacuum Seal Tested)', 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=400'],
+      ['tool_fiber_ladder', '16ft Telescopic Non-Conductive Heavy Fiberglass Ladder', '16 फीट गैर-प्रवाहकीय भारी फाइबरग्लास सीढ़ी', 'electrician', 'Electrical & Maintenance', 50, 400, 'Heavy duty ANSI Type 1AA 170kg capacity, 100% electrical safe up to 33,000 Volts', 6, 'Delhi NCR Shramik Sahakari Depot HQ', 'Safety Load Certified', 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&q=80&w=600'],
+      ['tool_wall_scanner', 'Bosch D-tect 120 Professional Wall & Wire Scanner', 'बॉश दीवार के अंदर छिपे तार और पाइप डिटेक्टर', 'carpentry', 'Carpentry & Electrical', 45, 350, 'Detects live wires, water-filled plastic pipes, metal studs up to 12cm wall depth', 7, 'South Delhi Urban Cooperative Depot', 'Grade A+ (Calibrated)', 'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?auto=format&fit=crop&q=80&w=400']
+    ];
+    for (const t of seedTools) {
+      await dbRun(`
+        INSERT INTO tools (id, name, nameHi, category, trade, pacsRatePerDay, commercialRentPerDay, specs, availableCount, depotLocation, condition, image)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, t);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // EMERGENCY SOS ALERTS (SURAKSHA BANDHU)
+  // ═══════════════════════════════════════════════════════════════════════
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS emergency_alerts (
+      id TEXT PRIMARY KEY,
+      workerId TEXT NOT NULL,
+      workerName TEXT NOT NULL,
+      workerPhone TEXT NOT NULL,
+      incidentType TEXT NOT NULL,
+      location TEXT NOT NULL,
+      status TEXT DEFAULT 'RESPONDING',
+      dispatchedAt TEXT NOT NULL,
+      resolvedAt TEXT
+    );
+  `);
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // MATERIAL CREDIT VAULT (e-RUPI VOUCHERS)
+  // ═══════════════════════════════════════════════════════════════════════
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS material_vouchers (
+      id TEXT PRIMARY KEY,
+      workerId TEXT NOT NULL,
+      workerName TEXT NOT NULL,
+      merchantName TEXT NOT NULL,
+      merchantUpi TEXT NOT NULL,
+      items TEXT NOT NULL,
+      amount REAL NOT NULL,
+      status TEXT DEFAULT 'ACTIVE',
+      issuedAt TEXT NOT NULL,
+      expiresAt TEXT NOT NULL
+    );
+  `);
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // NCCT SKILL ACADEMY COURSES & ENROLLMENTS
+  // ═══════════════════════════════════════════════════════════════════════
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS ncct_courses (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      institute TEXT NOT NULL,
+      duration TEXT NOT NULL,
+      dates TEXT NOT NULL,
+      wageBoost TEXT NOT NULL,
+      badge TEXT NOT NULL,
+      badgeColor TEXT NOT NULL,
+      desc TEXT NOT NULL
+    );
+  `);
+
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS ncct_enrollments (
+      id TEXT PRIMARY KEY,
+      courseId TEXT NOT NULL,
+      courseTitle TEXT NOT NULL,
+      workerId TEXT NOT NULL,
+      workerName TEXT NOT NULL,
+      status TEXT DEFAULT 'CONFIRMED',
+      enrolledAt TEXT NOT NULL,
+      FOREIGN KEY (courseId) REFERENCES ncct_courses(id)
+    );
+  `);
+
+  const ncctCount = await dbGet('SELECT COUNT(*) as count FROM ncct_courses');
+  if (ncctCount.count === 0) {
+    console.log('Seeding NCCT Skill Academy courses...');
+    const seedCourses = [
+      ['solar_pv_3', 'Solar Rooftop & Grid-Tied Inverter Technician (Level 3)', 'Institute of Cooperative Management (ICM Delhi)', '3 Days (Weekend Hybrid)', '28 Sep - 30 Sep 2026', '+₹170/hr', 'High Market Demand', 'bg-emerald-50 text-emerald-800 border-emerald-200', 'Grid-tied solar inverters, bi-directional net metering, array tilt optimization & lightning surge arrestors.'],
+      ['ev_charger_3', 'Commercial EV Fast-Charger Setup & High-Voltage Safety', 'RICM Regional Cooperative Training Institute', '2 Days (In-Person Workshop)', '05 Oct - 06 Oct 2026', '+₹200/hr', 'Govt. Subsidized', 'bg-indigo-50 text-indigo-800 border-indigo-200', 'AC/DC commercial EV fast charger commissioning, dedicated earthing standards, and emergency isolation interlocks.'],
+      ['iot_home_3', 'IoT Smart Automation & Wi-Fi Micro-Circuit Panels', 'VAMNICOM National Cooperative Academy', '1 Day Intensive Lab', '12 Oct 2026', '+₹150/hr', 'Popular', 'bg-purple-50 text-purple-800 border-purple-200', 'Smart relay switches, Wi-Fi MCBs, mobile app scene programming & Google Home/Alexa hub integration.']
+    ];
+    for (const c of seedCourses) {
+      await dbRun(`
+        INSERT INTO ncct_courses (id, title, institute, duration, dates, wageBoost, badge, badgeColor, desc)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, c);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // WELFARE CLAIMS & LEDGER
+  // ═══════════════════════════════════════════════════════════════════════
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS welfare_claims (
+      id TEXT PRIMARY KEY,
+      workerId TEXT NOT NULL,
+      workerName TEXT NOT NULL,
+      claimType TEXT NOT NULL,
+      amount REAL NOT NULL,
+      reason TEXT,
+      status TEXT DEFAULT 'UNDER_REVIEW',
+      submittedAt TEXT NOT NULL
+    );
+  `);
 };

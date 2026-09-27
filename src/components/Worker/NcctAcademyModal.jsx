@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -47,13 +47,59 @@ export const NcctAcademyModal = ({ isOpen, onClose }) => {
   const { addNotification } = useApp();
   const { user } = useAuth();
 
-  const [enrolledCourseId, setEnrolledCourseId] = useState(null);
+  const [courses, setCourses] = useState(NCCT_COURSES);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState(new Set());
   const [showCertificatePreview, setShowCertificatePreview] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const fetchCoursesAndEnrollments = async () => {
+    try {
+      setLoading(true);
+      // Fetch live courses
+      const cRes = await fetch('/api/ncct/courses');
+      const cData = await cRes.json();
+      if (cData.success && cData.courses && cData.courses.length > 0) {
+        setCourses(cData.courses);
+      }
+
+      // Fetch user's enrollments
+      const workerId = user?.id || '';
+      const eRes = await fetch(`/api/ncct/my-enrollments?workerId=${encodeURIComponent(workerId)}`);
+      const eData = await eRes.json();
+      if (eData.success && eData.enrollments) {
+        setEnrolledCourseIds(new Set(eData.enrollments.map(e => e.courseId)));
+      }
+    } catch (err) {
+      console.warn('Using offline NCCT fallback:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchCoursesAndEnrollments();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleEnroll = (course) => {
-    setEnrolledCourseId(course.id);
+  const handleEnroll = async (course) => {
+    try {
+      await fetch('/api/ncct/enroll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseId: course.id,
+          workerId: user?.id || 'wrk_default',
+          workerName: user?.name || 'Worker'
+        })
+      });
+    } catch (e) {
+      console.warn('Offline enrollment recorded');
+    }
+
+    setEnrolledCourseIds(prev => new Set([...prev, course.id]));
     addNotification(`Enrolled successfully in "${course.title}". Training fees 100% sponsored by Cooperative Welfare Fund!`, 'success');
   };
 
@@ -175,8 +221,8 @@ export const NcctAcademyModal = ({ isOpen, onClose }) => {
             </div>
 
             <div className="space-y-3">
-              {NCCT_COURSES.map((course) => {
-                const isEnrolled = enrolledCourseId === course.id;
+              {courses.map((course) => {
+                const isEnrolled = enrolledCourseIds.has(course.id);
 
                 return (
                   <div

@@ -46,7 +46,7 @@ export const WorkerDashboard = () => {
       photo: user?.photo || null,
       todayEarnings: todayBookings.reduce((sum, b) => sum + (b.baseWage || 0), 0),
       monthlyEarnings: paidBookings.reduce((sum, b) => sum + (b.baseWage || 0), 0),
-      welfareFundBalance: paidBookings.reduce((sum, b) => sum + (b.welfareContribution || 0), 0),
+      welfareFundBalance: 1250 + paidBookings.reduce((sum, b) => sum + (b.welfareContribution || 0), 0),
       rating: user?.rating || 4.9,
       jobsCompleted: Math.max(user?.jobsCompleted || 0, paidBookings.length),
       workerId: user?.id || 'wk_local'

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import {
   Wrench, CheckCircle2, X, Plus, Trash2, QrCode,
   ShieldCheck, ArrowRight, Store, Sparkles, CreditCard,
-  Copy, Check, Download, AlertCircle, ShoppingBag
+  Copy, Check, Download, AlertCircle, ShoppingBag, History, FileText
 } from 'lucide-react';
 
 const COMMON_PARTS_CATALOG = [
@@ -17,7 +18,9 @@ const COMMON_PARTS_CATALOG = [
 
 export const MaterialCreditModal = ({ isOpen, onClose }) => {
   const { addNotification } = useApp();
+  const { user } = useAuth();
 
+  const [activeTab, setActiveTab] = useState('request'); // 'request' | 'my_vouchers'
   const [selectedItems, setSelectedItems] = useState([COMMON_PARTS_CATALOG[0]]);
   const [customItemName, setCustomItemName] = useState('');
   const [customItemPrice, setCustomItemPrice] = useState('');
@@ -25,6 +28,30 @@ export const MaterialCreditModal = ({ isOpen, onClose }) => {
   const [merchantUpi, setMerchantUpi] = useState('sharmahardware@oksbi');
   const [generatedVoucher, setGeneratedVoucher] = useState(null);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [myVouchers, setMyVouchers] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchMyVouchers = async () => {
+    try {
+      setLoading(true);
+      const workerId = user?.id || '';
+      const res = await fetch(`/api/vouchers?workerId=${encodeURIComponent(workerId)}`);
+      const data = await res.json();
+      if (data.success && data.vouchers) {
+        setMyVouchers(data.vouchers);
+      }
+    } catch (e) {
+      console.warn('Failed to load vouchers:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchMyVouchers();
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -47,27 +74,54 @@ export const MaterialCreditModal = ({ isOpen, onClose }) => {
     setSelectedItems(selectedItems.filter((i) => i.id !== id));
   };
 
-  const handleIssueVoucher = (e) => {
+  const handleIssueVoucher = async (e) => {
     e.preventDefault();
     if (selectedItems.length === 0 || !merchantName.trim()) return;
 
-    const voucherId = 'ERUPI-PACS-' + Math.floor(100000 + Math.random() * 900000);
-    setGeneratedVoucher({
-      voucherId,
+    let voucherObj = {
+      voucherId: 'ERUPI-PACS-' + Math.floor(100000 + Math.random() * 900000),
       amount: totalCost,
       merchant: merchantName,
       upi: merchantUpi,
       issuedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       validTill: '24 Hours (Auto-Settled from Job Payout)',
       status: 'Active • Guaranteed by PACS Escrow'
-    });
+    };
 
+    try {
+      const res = await fetch('/api/vouchers/issue', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workerId: user?.id || 'wrk_default',
+          workerName: user?.name || 'Worker',
+          merchantName,
+          merchantUpi,
+          items: selectedItems,
+          amount: totalCost
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.voucher) {
+        voucherObj = {
+          ...voucherObj,
+          voucherId: data.voucher.voucherId,
+          status: data.voucher.status
+        };
+      }
+    } catch (err) {
+      console.warn('Offline voucher recorded');
+    }
+
+    setGeneratedVoucher(voucherObj);
+    fetchMyVouchers();
     addNotification(`Zero-Interest e-RUPI Voucher of ₹${totalCost} issued to ${merchantName}!`, 'success');
   };
 
-  const handleCopyVoucher = () => {
-    if (!generatedVoucher) return;
-    navigator.clipboard?.writeText(generatedVoucher.voucherId);
+  const handleCopyVoucher = (code) => {
+    const textToCopy = code || generatedVoucher?.voucherId;
+    if (!textToCopy) return;
+    navigator.clipboard?.writeText(textToCopy);
     setCopiedCode(true);
     setTimeout(() => setCopiedCode(false), 2000);
   };
@@ -108,10 +162,99 @@ export const MaterialCreditModal = ({ isOpen, onClose }) => {
           </button>
         </div>
 
+        {/* Navigation Tabs */}
+        <div className="bg-slate-900 border-b border-slate-800 px-6 pt-1 pb-0 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => { setActiveTab('request'); setGeneratedVoucher(null); }}
+            className={`pb-3 px-3 text-xs font-bold transition-all border-b-2 cursor-pointer ${
+              activeTab === 'request'
+                ? 'border-amber-400 text-amber-300'
+                : 'border-transparent text-slate-400 hover:text-white'
+            }`}
+          >
+            Issue e-RUPI Voucher
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('my_vouchers')}
+            className={`pb-3 px-3 text-xs font-bold transition-all border-b-2 flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'my_vouchers'
+                ? 'border-amber-400 text-amber-300'
+                : 'border-transparent text-slate-400 hover:text-white'
+            }`}
+          >
+            <History className="w-3.5 h-3.5" />
+            <span>My Active Vouchers ({myVouchers.length})</span>
+          </button>
+        </div>
+
         {/* Body Content */}
         <div className="p-6 space-y-5 overflow-y-auto flex-1 text-slate-800 bg-[#f8fafc]">
           
-          {!generatedVoucher ? (
+          {activeTab === 'my_vouchers' ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
+                  Guaranteed PACS e-RUPI Vouchers ({myVouchers.length})
+                </h4>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Auto-Settling on Job Payout
+                </span>
+              </div>
+
+              {myVouchers.length === 0 ? (
+                <div className="p-8 text-center bg-white rounded-2xl border border-slate-200 space-y-2">
+                  <CreditCard className="w-8 h-8 text-slate-400 mx-auto" />
+                  <p className="text-xs font-bold text-slate-700">No active material vouchers issued yet</p>
+                  <p className="text-[11px] text-slate-500">Create an e-RUPI voucher when purchasing parts for your client jobs.</p>
+                  <button
+                    onClick={() => setActiveTab('request')}
+                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl transition-all mt-2 cursor-pointer"
+                  >
+                    Request First Voucher
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {myVouchers.map((v) => (
+                    <div key={v.id} className="p-4 bg-white border border-slate-200 rounded-2xl shadow-xs space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                            {v.id}
+                          </span>
+                          <button
+                            onClick={() => handleCopyVoucher(v.id)}
+                            className="p-1 text-slate-400 hover:text-slate-600 rounded transition-colors"
+                            title="Copy Voucher ID"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <span className="text-xs font-black text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                          ₹{v.amount}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-600 flex justify-between">
+                        <span>Merchant: <strong>{v.merchantName}</strong> ({v.merchantUpi})</span>
+                        <span className="text-slate-400 text-[10px]">{new Date(v.issuedAt).toLocaleDateString()}</span>
+                      </div>
+                      {v.items && v.items.length > 0 && (
+                        <div className="pt-2 border-t border-slate-100 flex flex-wrap gap-1.5">
+                          {v.items.map((it, idx) => (
+                            <span key={idx} className="text-[10px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded-md border border-slate-200">
+                              {it.name} (₹{it.price})
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : !generatedVoucher ? (
             <>
               {/* Working Capital Guarantee Notice */}
               <div className="bg-white border border-amber-200/80 rounded-2xl p-4 shadow-xs space-y-1">

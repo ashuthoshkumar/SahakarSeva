@@ -107,32 +107,72 @@ export const SahakarToolDepotModal = ({ isOpen, onClose, worker, onRentalConfirm
   const [selectedDays, setSelectedDays] = useState(1);
   const [selectedDepot, setSelectedDepot] = useState(PACS_DEPOT_LOCATIONS[0].id);
   const [confirmedPass, setConfirmedPass] = useState(null);
+  const [tools, setTools] = useState(TOOL_INVENTORY);
   const [rentedTools, setRentedTools] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Load rented tools from localStorage
-  useEffect(() => {
+  // Fetch live tool inventory from database
+  const fetchTools = async () => {
     try {
-      const saved = localStorage.getItem('sahakar_rented_tools');
-      if (saved) {
-        setRentedTools(JSON.parse(saved));
+      setLoading(true);
+      const res = await fetch('/api/tools');
+      const data = await res.json();
+      if (data.success && data.tools && data.tools.length > 0) {
+        setTools(data.tools);
       }
-    } catch (e) {}
-  }, []);
-
-  const saveRentedTools = (list) => {
-    setRentedTools(list);
-    try {
-      localStorage.setItem('sahakar_rented_tools', JSON.stringify(list));
-    } catch (e) {}
+    } catch (err) {
+      console.warn('Using offline tool inventory fallback:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const filteredTools = TOOL_INVENTORY.filter(tool => {
+  // Fetch worker's active rentals from backend
+  const fetchMyRentals = async () => {
+    try {
+      const workerId = worker?.id || '';
+      const res = await fetch(`/api/tools/my-rentals?workerId=${encodeURIComponent(workerId)}`);
+      const data = await res.json();
+      if (data.success && data.rentals) {
+        // Map backend records to UI representation
+        const mapped = data.rentals.map(r => ({
+          rentalId: r.qrPassId || r.id,
+          toolId: r.toolId,
+          toolName: r.toolName,
+          toolImage: (tools.find(t => t.id === r.toolId)?.image) || 'https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&q=80&w=400',
+          depotName: r.depotLocation,
+          depotAddress: PACS_DEPOT_LOCATIONS.find(d => d.name === r.depotLocation)?.address || r.depotLocation,
+          rentedAt: new Date(r.rentedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+          dueReturn: new Date(new Date(r.rentedAt).getTime() + (r.days || 1) * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }),
+          days: r.days,
+          pacsCost: r.totalCost,
+          savings: Math.round(r.totalCost * 8),
+          workerName: r.workerName,
+          status: r.status
+        }));
+        setRentedTools(mapped);
+      }
+    } catch (e) {
+      console.warn('Failed to load rentals from backend:', e);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchTools();
+      fetchMyRentals();
+    }
+  }, [isOpen]);
+
+  const filteredTools = tools.filter(tool => {
     if (selectedTrade === 'all') return true;
     return tool.category === selectedTrade;
   });
 
-  const handleCheckoutTool = () => {
+  const handleCheckoutTool = async () => {
     if (!selectedTool) return;
+    setSubmitting(true);
 
     const depot = PACS_DEPOT_LOCATIONS.find(d => d.id === selectedDepot) || PACS_DEPOT_LOCATIONS[0];
     const totalPacsCost = selectedTool.pacsRatePerDay * selectedDays;
@@ -160,9 +200,31 @@ export const SahakarToolDepotModal = ({ isOpen, onClose, worker, onRentalConfirm
       status: 'ACTIVE_DISPATCHED'
     };
 
-    const updated = [rentalRecord, ...rentedTools];
-    saveRentedTools(updated);
+    try {
+      const res = await fetch('/api/tools/rent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toolId: selectedTool.id,
+          workerId: worker?.id || 'wrk_default',
+          workerName: worker?.name || 'Worker',
+          depotLocation: depot.name,
+          days: selectedDays
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.rental) {
+        rentalRecord.rentalId = data.rental.qrPassId || rentalRecord.rentalId;
+      }
+    } catch (e) {
+      console.warn('Offline rental recorded:', e);
+    } finally {
+      setSubmitting(false);
+    }
+
+    setRentedTools([rentalRecord, ...rentedTools]);
     setConfirmedPass(rentalRecord);
+    fetchTools(); // Refresh stock counts
 
     if (onRentalConfirmed) {
       onRentalConfirmed(rentalRecord);
@@ -170,8 +232,7 @@ export const SahakarToolDepotModal = ({ isOpen, onClose, worker, onRentalConfirm
   };
 
   const handleReturnTool = (rentalId) => {
-    const updated = rentedTools.filter(r => r.rentalId !== rentalId);
-    saveRentedTools(updated);
+    setRentedTools(rentedTools.filter(r => r.rentalId !== rentalId));
   };
 
   if (!isOpen) return null;

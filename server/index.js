@@ -1447,6 +1447,310 @@ app.get('/api/ncct/verify-worker', async (req, res) => {
   }
 });
 
+/* ==========================================================================
+   8 COOPERATIVE WORKER WELFARE & EMPOWERMENT HUB ENDPOINTS
+   ========================================================================== */
+
+// 1. PACS TOOL DEPOT (EQUIPMENT BANK)
+app.get('/api/tools', async (req, res) => {
+  try {
+    const tools = await dbAll('SELECT * FROM tools ORDER BY availableCount DESC');
+    res.json({ success: true, count: tools.length, tools });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/tools/rent', async (req, res) => {
+  try {
+    const { toolId, workerId, workerName, depotLocation, days } = req.body;
+    const tool = await dbGet('SELECT * FROM tools WHERE id = ?', [toolId]);
+    if (!tool) return res.status(404).json({ success: false, error: 'Tool not found' });
+    if (tool.availableCount <= 0) return res.status(400).json({ success: false, error: 'Tool is currently out of stock at this depot' });
+
+    const rentalId = 'RENT-' + Date.now().toString().slice(-6);
+    const qrPassId = 'PACS-PASS-' + Math.floor(100000 + Math.random() * 900000);
+    const totalCost = (tool.pacsRatePerDay || 50) * (days || 1);
+    const rentedAt = new Date().toISOString();
+
+    await dbRun(
+      'INSERT INTO tool_rentals (id, toolId, toolName, workerId, workerName, depotLocation, days, totalCost, status, qrPassId, rentedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [rentalId, toolId, tool.name, workerId || 'wrk_default', workerName || 'Worker', depotLocation || tool.depotLocation, days || 1, totalCost, 'ACTIVE', qrPassId, rentedAt]
+    );
+
+    // Decrement stock in database
+    await dbRun('UPDATE tools SET availableCount = availableCount - 1 WHERE id = ?', [toolId]);
+
+    res.json({
+      success: true,
+      rental: {
+        id: rentalId,
+        toolId,
+        toolName: tool.name,
+        days,
+        totalCost,
+        qrPassId,
+        rentedAt,
+        depotLocation: depotLocation || tool.depotLocation
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/tools/my-rentals', async (req, res) => {
+  try {
+    const { workerId } = req.query;
+    const sql = workerId 
+      ? 'SELECT * FROM tool_rentals WHERE workerId = ? ORDER BY rentedAt DESC'
+      : 'SELECT * FROM tool_rentals ORDER BY rentedAt DESC';
+    const rentals = await dbAll(sql, workerId ? [workerId] : []);
+    res.json({ success: true, count: rentals.length, rentals });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 2. SURAKSHA BANDHU PEER SOS
+app.post('/api/emergency/sos', async (req, res) => {
+  try {
+    const { workerId, workerName, workerPhone, incidentType, location, lat, lng } = req.body;
+    const alertId = 'SOS-' + Date.now().toString().slice(-6);
+    const dispatchedAt = new Date().toISOString();
+
+    await dbRun(
+      'INSERT INTO emergency_alerts (id, workerId, workerName, workerPhone, incidentType, location, status, dispatchedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [alertId, workerId || 'wrk_default', workerName || 'Worker', workerPhone || '', incidentType || 'General Emergency', location || 'GPS Location', 'RESPONDING', dispatchedAt]
+    );
+
+    // Find nearest on-duty cooperative worker peers from database
+    const userLat = parseFloat(lat) || 28.6139;
+    const userLng = parseFloat(lng) || 77.2090;
+    const allWorkers = await dbAll('SELECT id, name, category, phone, photo, lat, lng, ncctLevel FROM workers WHERE onDuty = 1');
+    const peers = allWorkers
+      .filter(w => w.id !== workerId)
+      .map(w => {
+        const dist = (w.lat && w.lng) ? calculateDistanceKm(userLat, userLng, w.lat, w.lng) : 0.8;
+        return {
+          id: w.id,
+          name: w.name,
+          trade: `${w.category} (${w.ncctLevel || 'NCCT Certified'})`,
+          phone: w.phone,
+          distanceKm: parseFloat(dist.toFixed(2)),
+          etaMinutes: Math.max(2, Math.round(dist * 4)),
+          status: 'En-route on two-wheeler',
+          avatar: w.photo
+        };
+      })
+      .sort((a, b) => a.distanceKm - b.distanceKm)
+      .slice(0, 3);
+
+    res.json({
+      success: true,
+      alertId,
+      dispatchedAt,
+      incidentType,
+      peers
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/emergency/standdown', async (req, res) => {
+  try {
+    const { alertId } = req.body;
+    const resolvedAt = new Date().toISOString();
+    if (alertId) {
+      await dbRun('UPDATE emergency_alerts SET status = ?, resolvedAt = ? WHERE id = ?', ['RESOLVED', resolvedAt, alertId]);
+    }
+    res.json({ success: true, message: 'Emergency alert stood down successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 3. MATERIAL CREDIT VAULT (e-RUPI)
+app.get('/api/vouchers', async (req, res) => {
+  try {
+    const { workerId } = req.query;
+    const sql = workerId 
+      ? 'SELECT * FROM material_vouchers WHERE workerId = ? ORDER BY issuedAt DESC'
+      : 'SELECT * FROM material_vouchers ORDER BY issuedAt DESC';
+    const vouchers = await dbAll(sql, workerId ? [workerId] : []);
+    const formatted = vouchers.map(v => ({ ...v, items: JSON.parse(v.items || '[]') }));
+    res.json({ success: true, count: formatted.length, vouchers: formatted });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/vouchers/issue', async (req, res) => {
+  try {
+    const { workerId, workerName, merchantName, merchantUpi, items, amount } = req.body;
+    const voucherId = 'ERUPI-PACS-' + Math.floor(100000 + Math.random() * 900000);
+    const issuedAt = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
+    await dbRun(
+      'INSERT INTO material_vouchers (id, workerId, workerName, merchantName, merchantUpi, items, amount, status, issuedAt, expiresAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [voucherId, workerId || 'wrk_default', workerName || 'Worker', merchantName || 'Local Merchant', merchantUpi || 'pacs@upi', JSON.stringify(items || []), amount || 500, 'ACTIVE', issuedAt, expiresAt]
+    );
+
+    res.json({
+      success: true,
+      voucher: {
+        id: voucherId,
+        voucherId,
+        workerId,
+        workerName,
+        merchantName,
+        merchantUpi,
+        items,
+        amount,
+        status: 'Active • Guaranteed by PACS Escrow',
+        issuedAt,
+        expiresAt
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 4. NCCT SKILL ACADEMY
+app.get('/api/ncct/courses', async (req, res) => {
+  try {
+    const courses = await dbAll('SELECT * FROM ncct_courses');
+    res.json({ success: true, count: courses.length, courses });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/ncct/enroll', async (req, res) => {
+  try {
+    const { courseId, workerId, workerName } = req.body;
+    const course = await dbGet('SELECT * FROM ncct_courses WHERE id = ?', [courseId]);
+    if (!course) return res.status(404).json({ success: false, error: 'Course not found' });
+
+    const enrollmentId = 'ENR-' + Date.now().toString().slice(-6);
+    const enrolledAt = new Date().toISOString();
+
+    await dbRun(
+      'INSERT INTO ncct_enrollments (id, courseId, courseTitle, workerId, workerName, status, enrolledAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [enrollmentId, courseId, course.title, workerId || 'wrk_default', workerName || 'Worker', 'CONFIRMED', enrolledAt]
+    );
+
+    res.json({
+      success: true,
+      enrollment: {
+        id: enrollmentId,
+        courseId,
+        courseTitle: course.title,
+        status: 'CONFIRMED',
+        enrolledAt
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/ncct/my-enrollments', async (req, res) => {
+  try {
+    const { workerId } = req.query;
+    const sql = workerId 
+      ? 'SELECT * FROM ncct_enrollments WHERE workerId = ? ORDER BY enrolledAt DESC'
+      : 'SELECT * FROM ncct_enrollments ORDER BY enrolledAt DESC';
+    const enrollments = await dbAll(sql, workerId ? [workerId] : []);
+    res.json({ success: true, count: enrollments.length, enrollments });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// 5. STATUTORY WELFARE & PF PASSBOOK
+app.get('/api/welfare/passbook', async (req, res) => {
+  try {
+    const { workerId } = req.query;
+    const worker = workerId ? await dbGet('SELECT * FROM workers WHERE id = ?', [workerId]) : null;
+    
+    // Get paid bookings for this worker
+    const paidBookings = await dbAll(
+      "SELECT * FROM bookings WHERE (workerId = ? OR workerName = ?) AND status LIKE '%Paid%' ORDER BY createdAt DESC",
+      [workerId || '', worker?.name || '']
+    );
+
+    const bookingWelfare = paidBookings.reduce((sum, b) => sum + (b.welfareContribution || 0), 0);
+    const bookingWages = paidBookings.reduce((sum, b) => sum + (b.baseWage || 0), 0);
+
+    // Initial statutory cooperative credit for verified workers
+    const initialCredit = 1250;
+    const totalWelfareAccrued = Math.round(bookingWelfare + initialCredit);
+    const totalWagesEarned = Math.round(bookingWages + (worker?.hourlyRate ? worker.hourlyRate * (worker.jobsCompleted || 10) : 15000));
+    const estimatedDividend = Math.round(totalWagesEarned * 0.08);
+
+    // Fetch submitted claims
+    const claims = await dbAll(
+      'SELECT * FROM welfare_claims WHERE workerId = ? ORDER BY submittedAt DESC',
+      [workerId || '']
+    );
+
+    res.json({
+      success: true,
+      passbook: {
+        workerId: worker?.id || workerId,
+        workerName: worker?.name || 'Worker',
+        societyName: worker?.societyName || 'Delhi NCR Shramik Sahakari Samiti Ltd.',
+        pfAccountNumber: worker?.pfAccountNumber || 'DL/CPM/88219/101',
+        ayushmanCard: worker?.ayushmanCard || 'AB-8829-1029-4411',
+        totalWelfareAccrued,
+        totalWagesEarned,
+        estimatedDividend,
+        paidBookingsCount: paidBookings.length,
+        ledgerEntries: paidBookings.map(b => ({
+          id: b.id,
+          category: b.category,
+          baseWage: b.baseWage,
+          welfareContribution: b.welfareContribution,
+          createdAt: b.createdAt
+        })),
+        claims
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/welfare/claim', async (req, res) => {
+  try {
+    const { workerId, workerName, claimType, amount, reason } = req.body;
+    const claimId = 'CLM-' + Date.now().toString().slice(-6);
+    const submittedAt = new Date().toISOString();
+
+    await dbRun(
+      'INSERT INTO welfare_claims (id, workerId, workerName, claimType, amount, reason, status, submittedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [claimId, workerId || 'wrk_default', workerName || 'Worker', claimType || 'Medical Emergency', amount || 1500, reason || 'Hospitalization Support', 'APPROVED', submittedAt]
+    );
+
+    res.json({
+      success: true,
+      claim: {
+        id: claimId,
+        claimType,
+        amount,
+        status: 'APPROVED',
+        submittedAt
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Single Page Application (SPA) client-side routing fallback
 if (fs.existsSync(distPath)) {
   app.get('*', (req, res, next) => {

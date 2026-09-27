@@ -91,6 +91,8 @@ export const SurakshaBandhuModal = ({ isOpen, onClose, worker, activeJob }) => {
   const [standDownPin, setStandDownPin] = useState('');
   const [standDownError, setStandDownError] = useState('');
   const [showStandDownInput, setShowStandDownInput] = useState(false);
+  const [responderPeers, setResponderPeers] = useState(NEARBY_RESPONDER_PEERS);
+  const [activeAlertId, setActiveAlertId] = useState(null);
 
   const audioCtxRef = useRef(null);
   const oscillatorRef = useRef(null);
@@ -106,6 +108,8 @@ export const SurakshaBandhuModal = ({ isOpen, onClose, worker, activeJob }) => {
           setSosActive(true);
           setSelectedIncident(parsed.incidentId || 'harassment');
           setDispatchedTime(parsed.dispatchedAt || new Date().toLocaleTimeString());
+          if (parsed.alertId) setActiveAlertId(parsed.alertId);
+          if (parsed.peers && parsed.peers.length > 0) setResponderPeers(parsed.peers);
         }
       }
     } catch (e) {}
@@ -174,15 +178,47 @@ export const SurakshaBandhuModal = ({ isOpen, onClose, worker, activeJob }) => {
     };
   }, []);
 
-  const triggerSOSNow = () => {
+  const triggerSOSNow = async () => {
     const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     setSosActive(true);
     setDispatchedTime(timeStr);
     setIsAudioRecording(true);
     startSiren();
 
+    let newAlertId = 'SOS-' + Date.now().toString().slice(-6);
+    let activePeers = responderPeers;
+
+    try {
+      const res = await fetch('/api/emergency/sos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workerId: worker?.id || 'wrk_default',
+          workerName: worker?.name || 'Worker',
+          workerPhone: worker?.phone || '+91 97013 92418',
+          incidentType: selectedIncident,
+          location: activeJob?.address || 'Site: Connaught Place, New Delhi',
+          lat: worker?.lat || 28.6139,
+          lng: worker?.lng || 77.2090
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (data.alertId) newAlertId = data.alertId;
+        if (data.peers && data.peers.length > 0) {
+          activePeers = data.peers;
+          setResponderPeers(data.peers);
+        }
+      }
+    } catch (e) {
+      console.warn('Offline emergency dispatch recorded');
+    }
+
+    setActiveAlertId(newAlertId);
+
     const sosPayload = {
       active: true,
+      alertId: newAlertId,
       workerId: worker?.id || 'wrk_current',
       workerName: worker?.name || 'Worker',
       workerPhone: worker?.phone || '+91 97013 92418',
@@ -191,6 +227,7 @@ export const SurakshaBandhuModal = ({ isOpen, onClose, worker, activeJob }) => {
       dispatchedAt: timeStr,
       location: activeJob?.address || 'Site: Flat 402, Royal Palms, Connaught Place, New Delhi',
       jobId: activeJob?.id || 'job_live_01',
+      peers: activePeers,
       status: 'RESPONDING'
     };
 
@@ -212,12 +249,22 @@ export const SurakshaBandhuModal = ({ isOpen, onClose, worker, activeJob }) => {
       setStandDownError('Invalid PIN. Use 1234 to stand-down safely.');
       return;
     }
+
+    if (activeAlertId) {
+      fetch('/api/emergency/standdown', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ alertId: activeAlertId })
+      }).catch(() => {});
+    }
+
     stopSiren();
     setSosActive(false);
     setIsAudioRecording(false);
     setShowStandDownInput(false);
     setStandDownPin('');
     setStandDownError('');
+    setActiveAlertId(null);
     localStorage.removeItem('sahakar_active_sos');
   };
 
@@ -330,7 +377,7 @@ export const SurakshaBandhuModal = ({ isOpen, onClose, worker, activeJob }) => {
                 </div>
 
                 <div className="space-y-2">
-                  {NEARBY_RESPONDER_PEERS.map((peer) => (
+                  {responderPeers.map((peer) => (
                     <div
                       key={peer.id}
                       className="p-3 bg-white border border-slate-200 rounded-2xl shadow-sm flex items-center justify-between gap-3 hover:border-slate-300 transition-all"
