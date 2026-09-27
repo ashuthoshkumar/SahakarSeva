@@ -81,7 +81,7 @@ export const TOOL_INVENTORY = [
     availableCount: 6,
     depotLocation: 'Delhi NCR Shramik Sahakari Depot HQ',
     condition: 'Safety Load Certified',
-    image: 'https://images.unsplash.com/photo-1541888946425-d0fbb186c5f7?auto=format&fit=crop&q=80&w=400'
+    image: 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&q=80&w=600'
   },
   {
     id: 'tool_wall_scanner',
@@ -345,7 +345,11 @@ export const SahakarToolDepotModal = ({ isOpen, onClose, worker, onRentalConfirm
                         <img
                           src={tool.image}
                           alt={tool.name}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=400';
+                          }}
                         />
                         <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-950/80 backdrop-blur-md text-white">
                           {tool.trade}
@@ -428,6 +432,10 @@ export const SahakarToolDepotModal = ({ isOpen, onClose, worker, onRentalConfirm
                           src={item.toolImage}
                           alt={item.toolName}
                           className="w-16 h-16 rounded-2xl object-cover border border-slate-200 shrink-0"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=400';
+                          }}
                         />
                         <div>
                           <div className="flex items-center gap-2">

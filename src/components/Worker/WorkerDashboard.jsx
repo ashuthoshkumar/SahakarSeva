@@ -344,11 +344,8 @@ export const WorkerDashboard = () => {
 
       </div>
 
-      {/* 3. MAIN WORKSPACE: 2-COLUMN SPLIT */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
-        {/* Left Column: Job Dispatches & Bookings Management (8 cols) */}
-        <div className="lg:col-span-8 space-y-6">
+      {/* 3. MAIN WORKSPACE: JOB DISPATCHES & BOOKINGS */}
+      <div className="w-full space-y-6">
           
           {/* Incoming Dispatch Offers (Pending Acceptance) */}
           {pendingOffers.length > 0 && (
@@ -597,39 +594,62 @@ export const WorkerDashboard = () => {
                 })}
               </div>
             )}
-          </div>
-
         </div>
 
-        {/* Right Column: Worker Welfare & Innovations Suite (4 cols) */}
-        <div className="lg:col-span-4 space-y-6">
+      </div>
 
-          {/* 1. SURAKSHA BANDHU PEER EMERGENCY CARD */}
-          <div className={`p-6 rounded-3xl border shadow-sm space-y-4 transition-all ${
+      {/* 4. COOPERATIVE WORKER EMPOWERMENT SUITE (8 CORE INNOVATIONS) */}
+      <section className="mt-12 pt-8 border-t border-slate-200 space-y-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-black border border-emerald-200 mb-2 shadow-xs">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+              <span>सहकारी श्रमिक कल्याण एवं अधिकार मंच • ICA Cooperative Member Benefits</span>
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+              Cooperative Empowerment & Member Welfare Hub
+            </h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
+              Institutional security guaranteed by the Ministry of Cooperation & PACS: Zero commission fees, peer safety SOS, subsidized heavy tool rentals, interest-free credit, certified upskilling, and democratic voting.
+            </p>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 px-3.5 py-2 rounded-2xl shrink-0">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>8 Active Member Programs</span>
+          </div>
+        </div>
+
+        {/* 8 Feature Cards Grid — 4 Columns on Large Screens */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {/* Card 1: Suraksha Bandhu Peer SOS */}
+          <div className={`p-5 rounded-3xl border shadow-sm flex flex-col justify-between space-y-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
             activeSosData?.active
               ? 'bg-rose-50 border-rose-400 ring-2 ring-rose-500/20'
-              : 'bg-white border-slate-200'
+              : 'bg-white border-slate-200 hover:border-rose-300'
           }`}>
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200 flex items-center gap-1">
-                <Radio className="w-3 h-3 text-rose-600 animate-pulse" />
-                <span>Hyperlocal SOS Network</span>
-              </span>
-              <span className="text-[11px] font-bold text-slate-500">1.5 km Radius</span>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <ShieldAlert className="w-5 h-5 text-rose-600" />
-                <h4 className="text-sm font-black text-slate-900">
-                  {lang === 'hi' ? 'सुरक्षा बंधु आपातकालीन नेटवर्क' : 'Suraksha Bandhu Safety'}
-                </h4>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200 flex items-center gap-1">
+                  <Radio className="w-3 h-3 text-rose-600 animate-pulse" />
+                  <span>Peer SOS Network</span>
+                </span>
+                <span className="text-[11px] font-bold text-slate-500">1.5 km Radius</span>
               </div>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Instant peer protection against on-site harassment, accidents, or distress. Dispatches live telemetry to the 3 nearest cooperative brothers/sisters.
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
+                  <ShieldAlert className="w-5 h-5 text-rose-600" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-900 leading-tight">
+                    {lang === 'hi' ? 'सुरक्षा बंधु आपातकालीन नेटवर्क' : 'Suraksha Bandhu Safety'}
+                  </h4>
+                  <span className="text-[11px] text-rose-600 font-bold">Live GPS Telemetry</span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Instant peer protection against on-site harassment, accidents, or distress. Dispatches live telemetry to the 3 nearest cooperative peers.
               </p>
             </div>
-
             <button
               onClick={() => {
                 setSelectedJobForSos(null);
@@ -642,121 +662,133 @@ export const WorkerDashboard = () => {
               }`}
             >
               <ShieldAlert className="w-4 h-4" />
-              <span>{activeSosData?.active ? '🚨 Active SOS Alert (Manage)' : '🚨 Open Suraksha Bandhu SOS'}</span>
+              <span>{activeSosData?.active ? '🚨 Active SOS Alert' : '🚨 Open Suraksha Bandhu'}</span>
             </button>
           </div>
 
-          {/* 2. SAHAKAR UPKARAN BANK (PACS TOOL DEPOT) */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 hover:border-emerald-300 transition-all">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                PACS Equipment Depot
-              </span>
-              <span className="text-[11px] font-bold text-emerald-600">Save 90% vs Market</span>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <Wrench className="w-5 h-5 text-emerald-600" />
-                <h4 className="text-sm font-black text-slate-900">
-                  {lang === 'hi' ? 'सहकार उपकरण बैंक (PACS)' : 'Sahakar Upkaran Bank'}
-                </h4>
+          {/* Card 2: Sahakar Upkaran Bank (PACS Tool Depot) */}
+          <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:border-emerald-300 hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  PACS Tool Depot
+                </span>
+                <span className="text-[11px] font-bold text-emerald-600">Save 90% vs Market</span>
               </div>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Rent heavy core drills, sewer jetters & thermal cameras from ₹50/day with <strong>Zero Security Deposit</strong> backed by PACS cooperative societies.
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0">
+                  <Wrench className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-900 leading-tight">
+                    {lang === 'hi' ? 'सहकार उपकरण बैंक (PACS)' : 'Sahakar Upkaran Bank'}
+                  </h4>
+                  <span className="text-[11px] text-emerald-700 font-bold">₹50/day • Zero Deposit</span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Rent heavy core drills, sewer jetters & thermal cameras backed by PACS cooperative societies with zero security deposit.
               </p>
             </div>
-
             <button
               onClick={() => setIsToolDepotOpen(true)}
               className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
               <Wrench className="w-4 h-4" />
-              <span>Browse PACS Tool Depot (₹50/d)</span>
+              <span>Browse PACS Depot (₹50/d)</span>
             </button>
           </div>
 
-          {/* 3. SAMUHIK SEVA TENDERS (COMMUNITY BULK CONTRACTS) */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 hover:border-cyan-400 transition-all">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-cyan-800 bg-cyan-50 px-2.5 py-0.5 rounded-full border border-cyan-200">
-                Community Bulk Tenders
-              </span>
-              <span className="text-[11px] font-bold text-cyan-600">0% Subcontractor Cut</span>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-cyan-600" />
-                <h4 className="text-sm font-black text-slate-900">
-                  {lang === 'hi' ? 'सामूहिक सेवा टेंडर (RWA ठेके)' : 'Samuhik Seva Tenders'}
-                </h4>
+          {/* Card 3: Samuhik Seva Tenders (Community Bulk Contracts) */}
+          <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:border-cyan-400 hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-cyan-800 bg-cyan-50 px-2.5 py-0.5 rounded-full border border-cyan-200">
+                  Bulk RWA Contracts
+                </span>
+                <span className="text-[11px] font-bold text-cyan-600">0% Subcontractor Cut</span>
               </div>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Form 3–5 artisan cooperative squads to bid directly on RWA apartment society maintenance contracts. 90% direct fair wage escrow.
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-cyan-50 border border-cyan-100 flex items-center justify-center shrink-0">
+                  <Users className="w-5 h-5 text-cyan-700" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-900 leading-tight">
+                    {lang === 'hi' ? 'सामूहिक सेवा टेंडर (RWA ठेके)' : 'Samuhik Seva Tenders'}
+                  </h4>
+                  <span className="text-[11px] text-cyan-700 font-bold">Cooperative Squad Bids</span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Form 3–5 artisan squads to bid directly on RWA apartment maintenance contracts with 90% direct fair wage escrow.
               </p>
             </div>
-
             <button
               onClick={() => setIsTendersOpen(true)}
               className="w-full py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
               <Users className="w-4 h-4" />
-              <span>{lang === 'hi' ? 'सामूहिक टेंडर देखें (Squad Bids)' : 'Explore RWA Bulk Tenders'}</span>
+              <span>{lang === 'hi' ? 'सामूहिक टेंडर देखें' : 'Explore RWA Bulk Tenders'}</span>
             </button>
           </div>
 
-          {/* 4. MATERIAL MICRO-CREDIT CARD */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 hover:border-teal-300 transition-all">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
-                PACS Micro-Credit
-              </span>
-              <span className="text-[11px] font-bold text-teal-600">0% Interest</span>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-teal-600" />
-                <h4 className="text-sm font-black text-slate-900">
-                  Material & Spare Parts Vault
-                </h4>
+          {/* Card 4: Material & Spare Parts Vault (0% Micro-Credit) */}
+          <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:border-amber-300 hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                  PACS Micro-Credit
+                </span>
+                <span className="text-[11px] font-bold text-amber-600">0% Interest e-RUPI</span>
               </div>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Generate zero-interest digital e-RUPI vouchers (₹500–₹5,000) for hardware stores. Auto-settled on job completion.
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-100 flex items-center justify-center shrink-0">
+                  <CreditCard className="w-5 h-5 text-amber-600" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-900 leading-tight">
+                    Material Credit Vault
+                  </h4>
+                  <span className="text-[11px] text-amber-700 font-bold">₹500–₹5,000 Vouchers</span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Instant digital e-RUPI vouchers for hardware & spare parts at local merchant stores, auto-settled upon job completion.
               </p>
             </div>
-
             <button
               onClick={() => setIsMaterialCreditOpen(true)}
               className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
-              <CreditCard className="w-4 h-4 text-emerald-400" />
+              <CreditCard className="w-4 h-4 text-amber-400" />
               <span>Request Spare Parts Credit</span>
             </button>
           </div>
 
-          {/* 4. NCCT ACADEMY UPSKILLING CARD */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 hover:border-indigo-300 transition-all">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
-                NCCT Certification
-              </span>
-              <span className="text-[11px] font-bold text-indigo-600">+48% Wage Boost</span>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-indigo-600" />
-                <h4 className="text-sm font-black text-slate-900">
-                  NCCT Skill Ladder & Academy
-                </h4>
+          {/* Card 5: NCCT Skill Ladder & Academy */}
+          <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:border-indigo-300 hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 px-2.5 py-0.5 rounded-full border border-indigo-200">
+                  NCCT Academy
+                </span>
+                <span className="text-[11px] font-bold text-indigo-600">+48% Wage Boost</span>
               </div>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Upskill from Level 2 Craftsman to Solar PV & EV Technician. Free certified training at cooperative management institutes.
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0">
+                  <BookOpen className="w-5 h-5 text-indigo-600" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-900 leading-tight">
+                    NCCT Skill Academy
+                  </h4>
+                  <span className="text-[11px] text-indigo-700 font-bold">Govt-Certified Upgrades</span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Upskill from Level 2 to Solar PV, EV Charging & IoT Automation with National Cooperative institute diplomas.
               </p>
             </div>
-
             <button
               onClick={() => setIsAcademyOpen(true)}
               className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
@@ -766,50 +798,61 @@ export const WorkerDashboard = () => {
             </button>
           </div>
 
-          {/* 5. Social Security & Welfare Passbook */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
-                Welfare Ledger
-              </span>
-              <span className="text-xs text-slate-500 font-bold">Automatic Contributions</span>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-bold text-slate-900">
-                Welfare & Social Security Passbook
-              </h4>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Review your accumulated welfare savings, Ayushman Bharat healthcare escrow, and provident fund balance.
+          {/* Card 6: Cooperative Welfare Passbook (Social Security) */}
+          <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:border-teal-300 hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
+                  Welfare Ledger
+                </span>
+                <span className="text-[11px] font-bold text-teal-600">Accrued: ₹{workerStats?.welfareFundBalance || 0}</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-teal-50 border border-teal-100 flex items-center justify-center shrink-0">
+                  <HeartHandshake className="w-5 h-5 text-teal-600" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-900 leading-tight">
+                    Welfare & PF Passbook
+                  </h4>
+                  <span className="text-[11px] text-teal-700 font-bold">Health & Pension Shield</span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Review your accumulated welfare savings, Ayushman Bharat healthcare escrow, and cooperative society dividend share.
               </p>
             </div>
-
             <button
               onClick={() => setIsPassbookOpen(true)}
-              className="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
               <ShieldCheck className="w-4 h-4" />
               <span>View Welfare Passbook</span>
             </button>
           </div>
 
-          {/* 6. SAHAKARI SABHA — Democratic Voting */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 hover:border-purple-300 transition-all">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
-                ICA Principle #2
-              </span>
-              <span className="text-[11px] font-bold text-purple-600">One Member, One Vote</span>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-purple-600" />
-                <h4 className="text-sm font-black text-slate-900">
-                  {lang === 'hi' ? 'सहकारी सभा — लोकतांत्रिक मतदान' : 'Sahakari Sabha — Democratic Voting'}
-                </h4>
+          {/* Card 7: Sahakari Sabha (Democratic Voting) */}
+          <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:border-purple-300 hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
+                  ICA Principle #2
+                </span>
+                <span className="text-[11px] font-bold text-purple-600">1 Member, 1 Vote</span>
               </div>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Vote on cooperative policies, wage floor changes, safety mandates. Your voice shapes the platform.
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-center shrink-0">
+                  <Users className="w-5 h-5 text-purple-600" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-900 leading-tight">
+                    {lang === 'hi' ? 'सहकारी सभा — लोकतांत्रिक मतदान' : 'Sahakari Sabha Voting'}
+                  </h4>
+                  <span className="text-[11px] text-purple-700 font-bold">Democratic Policy Control</span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Vote directly on cooperative policies, wage floor raises, and night shift safety protocols. Your vote shapes the platform.
               </p>
             </div>
             <button
@@ -817,41 +860,44 @@ export const WorkerDashboard = () => {
               className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
               <Users className="w-4 h-4" />
-              <span>{lang === 'hi' ? 'सभा में मतदान करें' : 'Enter Sabha — Cast Your Vote'}</span>
+              <span>{lang === 'hi' ? 'सभा में मतदान करें' : 'Enter Sabha — Cast Vote'}</span>
             </button>
           </div>
 
-          {/* 7. NYAYA PRAMAAN — Fair Wage Proof Chain */}
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4 hover:border-teal-300 transition-all">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
-                Transparency Ledger
-              </span>
-              <span className="text-[11px] font-bold text-teal-600">SHA-256 Verified</span>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-teal-600" />
-                <h4 className="text-sm font-black text-slate-900">
-                  {lang === 'hi' ? 'न्याय प्रमाण — वेतन प्रमाण शृंखला' : 'Nyaya Pramaan — Wage Proof Chain'}
-                </h4>
+          {/* Card 8: Nyaya Pramaan (Fair Wage Proof Chain) */}
+          <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-4 hover:border-sky-300 hover:-translate-y-1 hover:shadow-md transition-all duration-300">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-wider text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200">
+                  Transparency Ledger
+                </span>
+                <span className="text-[11px] font-bold text-sky-600">SHA-256 Verified</span>
               </div>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                Every rupee you earn is cryptographically sealed. Verify your wage payments are correctly recorded and tamper-proof.
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-5 h-5 text-sky-600" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-black text-slate-900 leading-tight">
+                    {lang === 'hi' ? 'न्याय प्रमाण — वेतन प्रमाण शृंखला' : 'Nyaya Pramaan Ledger'}
+                  </h4>
+                  <span className="text-[11px] text-sky-700 font-bold">Tamper-Proof Escrow</span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Every rupee you earn is cryptographically sealed in a public Merkle ledger to guarantee zero hidden cuts or skimming.
               </p>
             </div>
             <button
               onClick={() => setIsNyayaOpen(true)}
-              className="w-full py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
+              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center justify-center gap-2 active:scale-95 cursor-pointer"
             >
-              <ShieldCheck className="w-4 h-4" />
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>{lang === 'hi' ? 'वेतन प्रमाण शृंखला देखें' : 'View Wage Proof Chain'}</span>
             </button>
           </div>
-
         </div>
-
-      </div>
+      </section>
 
       {/* Welfare Passbook, NCCT Academy, Material Credit, Suraksha Bandhu & Tool Depot Modals */}
       <WelfarePassbookModal isOpen={isPassbookOpen} onClose={() => setIsPassbookOpen(false)} />

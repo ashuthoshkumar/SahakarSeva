@@ -109,23 +109,23 @@ export const SamuhikTendersModal = ({ isOpen, onClose, workerProfile }) => {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-sm animate-fadeIn overflow-y-auto">
       <div className="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-auto max-h-[92vh] flex flex-col">
         
-        {/* Header */}
-        <div className="relative px-6 py-5 bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-800 text-white shrink-0">
+        {/* Header — Enterprise Cooperative Procurement Portal */}
+        <div className="relative px-6 py-5 bg-slate-900 border-b border-slate-800 text-white shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-inner">
-                <Users className="w-7 h-7 text-emerald-300" />
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center shrink-0">
+                <Users className="w-6 h-6 text-cyan-400" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
                   <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">
                     सामूहिक सेवा टेंडर
                   </h2>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-400 text-slate-900 shadow">
+                  <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
                     Cooperative Squad Bidding
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-emerald-100 font-medium mt-0.5">
+                <p className="text-xs sm:text-sm text-slate-400 font-medium mt-0.5">
                   Community Bulk Contracts & RWA Society Work Orders with 100% Fair-Wage Split
                 </p>
               </div>
@@ -133,17 +133,17 @@ export const SamuhikTendersModal = ({ isOpen, onClose, workerProfile }) => {
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+              className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-colors"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
           {/* Value Prop Banner */}
-          <div className="mt-4 p-3 rounded-xl bg-white/10 backdrop-blur-md border border-white/15 flex items-center gap-3 text-xs sm:text-sm">
-            <Sparkles className="w-5 h-5 text-amber-300 shrink-0" />
-            <div className="text-white/90">
-              <span className="font-bold text-amber-300">बिचौलिया-मुक्त सामूहिक ठेका:</span> No middleman contractors. Form a cooperative squad of 3-5 verified craftsmen, bid directly, and automatically receive 90% direct payout + 5% Ayushman pension into individual accounts.
+          <div className="mt-4 p-3.5 rounded-2xl bg-slate-800/90 border border-slate-700/80 flex items-center gap-3 text-xs sm:text-sm">
+            <Sparkles className="w-5 h-5 text-amber-400 shrink-0" />
+            <div className="text-slate-300">
+              <span className="font-bold text-amber-300">बिचौलिया-मुक्त सामूहिक ठेका:</span> No middleman contractors. Form a cooperative squad of 3-5 verified craftsmen, bid directly, and automatically receive <strong>90% direct fair wage escrow</strong> + 5% Ayushman pension into individual accounts.
             </div>
           </div>
         </div>
