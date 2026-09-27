@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { Globe, Check, Sparkles } from 'lucide-react';
 
@@ -18,14 +18,38 @@ export const LanguageSelectModal = () => {
     { code: 'gu', label: 'Gujarati', native: 'ગુજરાતી', region: 'ગુજરાત', flag: '🇮🇳' },
   ];
 
+  // Close on Escape key
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') closeLanguageModal();
+    };
+    if (isLanguageModalOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isLanguageModalOpen, closeLanguageModal]);
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn cursor-pointer"
+      onClick={closeLanguageModal}
+    >
       <div
-        className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col animate-scaleUp"
+        className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col animate-scaleUp cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Top Header Banner */}
         <div className="bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 p-6 text-white text-center relative overflow-hidden">
+          {/* Close button */}
+          <button
+            type="button"
+            onClick={closeLanguageModal}
+            className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer text-xs font-bold"
+            title="Close / Continue in English"
+          >
+            ✕
+          </button>
+
           <div className="absolute top-0 right-0 w-36 h-36 bg-teal-500/10 rounded-full blur-2xl pointer-events-none"></div>
 
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-teal-400 via-emerald-500 to-teal-600 text-slate-950 font-black text-xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-teal-500/30">
