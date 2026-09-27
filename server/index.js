@@ -1187,13 +1187,23 @@ app.post('/api/tenders/:id/bid', async (req, res) => {
 // GET /api/sabha/proposals (or /api/sabha/resolutions) — List all active proposals
 app.get(['/api/sabha/proposals', '/api/sabha/resolutions'], async (req, res) => {
   try {
+    const voterId = req.query.voterId || req.user?.id;
     const proposals = await dbAll('SELECT * FROM sabha_proposals ORDER BY createdAt DESC');
     const enriched = [];
     for (const p of proposals) {
       const votesYes = await dbGet('SELECT COUNT(*) as count FROM sabha_votes WHERE proposalId = ? AND vote = 1', [p.id]);
       const votesNo = await dbGet('SELECT COUNT(*) as count FROM sabha_votes WHERE proposalId = ? AND vote = 0', [p.id]);
-      const totalVotes = (votesYes.count || 0) + (votesNo.count || 0);
+      const totalVotes = (votesYes?.count || 0) + (votesNo?.count || 0);
       const yesPercent = totalVotes > 0 ? ((votesYes.count / totalVotes) * 100).toFixed(1) : '0';
+
+      // Check current voter's vote if voterId is supplied
+      let myVote = null;
+      if (voterId) {
+        const myVoteRow = await dbGet('SELECT vote FROM sabha_votes WHERE proposalId = ? AND voterId = ?', [p.id, voterId]);
+        if (myVoteRow !== undefined && myVoteRow !== null) {
+          myVote = myVoteRow.vote; // 1 for Yes, 0 for No
+        }
+      }
 
       // Auto-enforce: if voting period ended (7 days) and >60% yes, mark as PASSED
       const created = new Date(p.createdAt);
@@ -1207,11 +1217,12 @@ app.get(['/api/sabha/proposals', '/api/sabha/resolutions'], async (req, res) => 
       enriched.push({
         ...p,
         status,
-        votesYes: votesYes.count || 0,
-        votesNo: votesNo.count || 0,
+        votesYes: votesYes?.count || 0,
+        votesNo: votesNo?.count || 0,
         totalVotes,
         yesPercent: parseFloat(yesPercent),
-        daysRemaining: Math.max(0, Math.ceil(7 - daysElapsed))
+        daysRemaining: Math.max(0, Math.ceil(7 - daysElapsed)),
+        myVote
       });
     }
     res.json({ success: true, proposals: enriched, resolutions: enriched });
@@ -1252,10 +1263,23 @@ app.post(['/api/sabha/vote', '/api/sabha/resolutions/:id/vote'], async (req, res
 
     const voteValue = (rawVote === true || rawVote === 1 || rawVote === 'yes' || rawVote === 'for') ? 1 : 0;
 
-    // One-member-one-vote enforcement
-    const existing = await dbGet('SELECT id FROM sabha_votes WHERE proposalId = ? AND voterId = ?', [proposalId, voterId]);
+    // One-member-one-vote enforcement with democratic vote updating
+    const existing = await dbGet('SELECT id, vote FROM sabha_votes WHERE proposalId = ? AND voterId = ?', [proposalId, voterId]);
     if (existing) {
-      return res.status(409).json({ success: false, error: 'You have already voted on this resolution. Democratic principle: one member, one vote.' });
+      if (existing.vote === voteValue) {
+        return res.json({ 
+          success: true, 
+          updated: false, 
+          message: voteValue === 1 ? 'You have already voted in favor (YES) of this resolution.' : 'You have already voted against (NO) this resolution.' 
+        });
+      }
+      // Member is switching their vote during active debate period
+      await dbRun('UPDATE sabha_votes SET vote = ?, createdAt = ? WHERE id = ?', [voteValue, new Date().toISOString(), existing.id]);
+      return res.json({ 
+        success: true, 
+        updated: true, 
+        message: 'Your democratic vote has been updated. Jai Sahakari!' 
+      });
     }
 
     const id = 'vote_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);

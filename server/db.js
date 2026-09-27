@@ -369,12 +369,12 @@ export const initDB = async () => {
       `, p);
     }
 
-    // Seed some demo votes for realism
+    // Seed initial votes from other cooperative members for realism
     const demoVotes = [
-      ['vote_seed_1', 'proposal_seed_1', 'usr_wrk_1', 1, new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000).toISOString()],
-      ['vote_seed_2', 'proposal_seed_1', 'usr_cust_1', 1, new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()],
-      ['vote_seed_3', 'proposal_seed_2', 'usr_wrk_1', 1, new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()],
-      ['vote_seed_4', 'proposal_seed_3', 'usr_wrk_1', 1, new Date(Date.now() - 0.5 * 24 * 60 * 60 * 1000).toISOString()],
+      ['vote_seed_1', 'proposal_seed_1', 'wrk_102', 1, new Date(Date.now() - 1.5 * 24 * 60 * 60 * 1000).toISOString()],
+      ['vote_seed_2', 'proposal_seed_1', 'wrk_103', 1, new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()],
+      ['vote_seed_3', 'proposal_seed_2', 'wrk_102', 1, new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()],
+      ['vote_seed_4', 'proposal_seed_3', 'wrk_102', 1, new Date(Date.now() - 0.5 * 24 * 60 * 60 * 1000).toISOString()],
       ['vote_seed_5', 'proposal_seed_3', 'usr_soc_1', 1, new Date(Date.now() - 0.3 * 24 * 60 * 60 * 1000).toISOString()],
     ];
     for (const v of demoVotes) {

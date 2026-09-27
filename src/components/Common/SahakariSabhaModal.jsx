@@ -6,14 +6,21 @@ const API = '/api';
 const RENDER_BACKEND_URL = 'https://sahakar-seva-api-h1zm.onrender.com/api';
 
 const safeFetch = async (endpoint, options = {}) => {
-  const urls = [`${API}${endpoint}`, `${RENDER_BACKEND_URL}${endpoint}`, `http://localhost:5050/api${endpoint}`];
+  const urls = [`${API}${endpoint}`, `http://localhost:5050/api${endpoint}`, `${RENDER_BACKEND_URL}${endpoint}`];
+  let lastErr = null;
   for (const url of urls) {
     try {
-      const res = await fetch(url, { ...options, signal: AbortSignal.timeout(3000) });
-      if (res.ok) return await res.json();
-    } catch (e) {}
+      const res = await fetch(url, { ...options, credentials: 'include', signal: AbortSignal.timeout(4000) });
+      const data = await res.json().catch(() => null);
+      if (res.ok) return data || { success: true };
+      if (data && (data.error || data.message)) {
+        return { success: false, error: data.error || data.message };
+      }
+    } catch (e) {
+      lastErr = e.message;
+    }
   }
-  return { success: false };
+  return { success: false, error: lastErr || 'Network request failed' };
 };
 
 const CATEGORY_ICONS = {
@@ -39,13 +46,15 @@ export const SahakariSabhaModal = ({ isOpen, onClose }) => {
   const [newDescription, setNewDescription] = useState('');
   const [newCategory, setNewCategory] = useState('general');
   const [voteLoading, setVoteLoading] = useState(null);
+  const [feedback, setFeedback] = useState({});
 
   const fetchProposals = useCallback(async () => {
     setLoading(true);
-    const data = await safeFetch('/sabha/proposals');
-    if (data.success) setProposals(data.proposals || []);
+    const query = user?.id ? `?voterId=${encodeURIComponent(user.id)}` : '';
+    const data = await safeFetch(`/sabha/proposals${query}`);
+    if (data && data.success) setProposals(data.proposals || []);
     setLoading(false);
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     if (isOpen) fetchProposals();
@@ -60,10 +69,30 @@ export const SahakariSabhaModal = ({ isOpen, onClose }) => {
       body: JSON.stringify({ proposalId, voterId: user.id, vote: voteYes })
     });
     setVoteLoading(null);
-    if (data.success) {
-      fetchProposals();
+    if (data && data.success) {
+      setFeedback(prev => ({
+        ...prev,
+        [proposalId]: {
+          text: data.message || (voteYes ? 'Vote YES registered! Jai Sahakari!' : 'Vote NO registered! Jai Sahakari!'),
+          type: 'success'
+        }
+      }));
+      await fetchProposals();
+      setTimeout(() => {
+        setFeedback(prev => {
+          const next = { ...prev };
+          delete next[proposalId];
+          return next;
+        });
+      }, 4000);
     } else {
-      alert(data.error || 'Vote failed');
+      setFeedback(prev => ({
+        ...prev,
+        [proposalId]: {
+          text: data?.error || 'Vote could not be processed. Please try again.',
+          type: 'error'
+        }
+      }));
     }
   };
 
@@ -81,7 +110,7 @@ export const SahakariSabhaModal = ({ isOpen, onClose }) => {
         proposedByName: user?.name || 'Cooperative Member'
       })
     });
-    if (data.success) {
+    if (data && data.success) {
       setNewTitle('');
       setNewDescription('');
       setShowNewForm(false);
@@ -257,22 +286,58 @@ export const SahakariSabhaModal = ({ isOpen, onClose }) => {
                   <div className="border-t border-slate-700/40 p-5 bg-slate-900/30">
                     <p className="text-xs text-slate-300 leading-relaxed mb-4">{proposal.description}</p>
 
+                    {/* Feedback message banner */}
+                    {feedback[proposal.id] && (
+                      <div className={`mb-3 p-3 rounded-xl text-xs font-semibold flex items-center gap-2 border ${
+                        feedback[proposal.id].type === 'success'
+                          ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300'
+                          : 'bg-red-500/15 border-red-500/30 text-red-300'
+                      }`}>
+                        {feedback[proposal.id].type === 'success' ? (
+                          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                        ) : (
+                          <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
+                        )}
+                        <span>{feedback[proposal.id].text}</span>
+                      </div>
+                    )}
+
+                    {/* Member's Existing Vote Badge */}
+                    {proposal.status === 'ACTIVE' && user && proposal.myVote !== null && proposal.myVote !== undefined && (
+                      <div className="mb-3 px-3 py-1.5 rounded-lg bg-slate-800/80 border border-slate-700 flex items-center justify-between text-xs">
+                        <span className="text-slate-400">Your Democratic Record:</span>
+                        <span className={`font-bold flex items-center gap-1 ${proposal.myVote === 1 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {proposal.myVote === 1 ? '✓ You Voted IN FAVOR (YES)' : '✓ You Voted AGAINST (NO)'}
+                        </span>
+                      </div>
+                    )}
+
                     {/* Vote Buttons */}
                     {proposal.status === 'ACTIVE' && user && (
                       <div className="flex gap-3">
                         <button
                           onClick={() => handleVote(proposal.id, true)}
                           disabled={voteLoading === proposal.id}
-                          className="flex-1 py-2.5 rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-300 font-bold text-sm hover:bg-emerald-600/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                          className={`flex-1 py-2.5 rounded-xl border font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 ${
+                            proposal.myVote === 1
+                              ? 'bg-emerald-600/30 border-emerald-400 text-emerald-200 ring-2 ring-emerald-500/40'
+                              : 'bg-emerald-600/15 border-emerald-500/30 text-emerald-300 hover:bg-emerald-600/25'
+                          }`}
                         >
-                          <CheckCircle2 className="w-4 h-4" /> Vote YES — Samarthan
+                          <CheckCircle2 className="w-4 h-4" />
+                          {voteLoading === proposal.id ? 'Recording...' : proposal.myVote === 1 ? '✓ Voted YES (Samarthan)' : proposal.myVote === 0 ? 'Change Vote to YES' : 'Vote YES — Samarthan'}
                         </button>
                         <button
                           onClick={() => handleVote(proposal.id, false)}
                           disabled={voteLoading === proposal.id}
-                          className="flex-1 py-2.5 rounded-xl bg-red-600/20 border border-red-500/30 text-red-300 font-bold text-sm hover:bg-red-600/30 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                          className={`flex-1 py-2.5 rounded-xl border font-bold text-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 ${
+                            proposal.myVote === 0
+                              ? 'bg-red-600/30 border-red-400 text-red-200 ring-2 ring-red-500/40'
+                              : 'bg-red-600/15 border-red-500/30 text-red-300 hover:bg-red-600/25'
+                          }`}
                         >
-                          <XCircle className="w-4 h-4" /> Vote NO — Virodh
+                          <XCircle className="w-4 h-4" />
+                          {voteLoading === proposal.id ? 'Recording...' : proposal.myVote === 0 ? '✓ Voted NO (Virodh)' : proposal.myVote === 1 ? 'Change Vote to NO' : 'Vote NO — Virodh'}
                         </button>
                       </div>
                     )}
