@@ -286,30 +286,6 @@ export const CustomerDashboard = ({ setActiveTab }) => {
             </p>
           </div>
 
-          {/* Emergency SOS Rapid Dispatch Card */}
-          <div className="bg-gradient-to-br from-rose-50 to-red-50 border border-red-200 rounded-3xl p-5 shadow-sm space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="p-2.5 rounded-2xl bg-red-600 text-white shadow-md">
-                <AlertTriangle className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="font-extrabold text-sm text-red-950">{t('needUrgentFix') || 'Need an Urgent Fix?'}</h4>
-                <p className="text-xs text-red-800 mt-0.5">{t('dispatchIn15Mins') || '15-Minute Emergency Rapid Dispatch'}</p>
-              </div>
-            </div>
-
-            <p className="text-xs text-red-700 leading-relaxed font-medium">
-              Burst pipes, electrical hazards, gas leaks, or emergency lockouts. Pre-vetted emergency technicians dispatched immediately.
-            </p>
-
-            <button
-              onClick={() => setEmergencyModalOpen(true)}
-              className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-2xl shadow-lg shadow-red-600/30 transition-all flex items-center justify-center gap-2 sos-pulse-btn active:scale-95"
-            >
-              <AlertTriangle className="w-4 h-4" />
-              <span>{t('emergencySOS') || 'Trigger Emergency SOS Dispatch'}</span>
-            </button>
-          </div>
 
           {/* Service Guarantee Card */}
           <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm space-y-3">
